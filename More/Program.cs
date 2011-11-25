@@ -454,20 +454,23 @@ namespace More
 
         static void Main(string[] args)
         {
-            var filePattern = "";
-            var workingDirectory = Environment.CurrentDirectory;
-            var recurse = false;
-            var showHelp = false;
-            var overwrite = false;
-            var warnAsErrors = false;
-            var maxDegreeParallelism = Math.Max(1, Environment.ProcessorCount - 1);
-            var minify = false;
-            var optimize = false;
-            var verbose = false;
-            string spriteProg = null;
-            string spriteArguments = null;
+            try
+            {
 
-            var options = new OptionSet()
+                var filePattern = "";
+                var workingDirectory = Environment.CurrentDirectory;
+                var recurse = false;
+                var showHelp = false;
+                var overwrite = false;
+                var warnAsErrors = false;
+                var maxDegreeParallelism = Math.Max(1, Environment.ProcessorCount - 1);
+                var minify = false;
+                var optimize = false;
+                var verbose = false;
+                string spriteProg = null;
+                string spriteArguments = null;
+
+                var options = new OptionSet()
             {
                 { "r", "Recursively search all folders for matching files to compile", r => recurse = r != null },
                 { "f|force", "Force overwriting of existing css files.", f => overwrite = f != null },
@@ -483,32 +486,60 @@ namespace More
                 { "sa:|spritearguments:", "arguments to pass to spriteprocessor before the sprite file", sa => spriteArguments = sa }
             };
 
-            options.Parse(args);
+                options.Parse(args);
 
-            if (showHelp)
-            {
-                options.WriteOptionDescriptions(Console.Out);
-                return;
+                if (showHelp)
+                {
+                    options.WriteOptionDescriptions(Console.Out);
+                    return;
+                }
+
+                var toCompile = FindFiles(workingDirectory, filePattern, recurse);
+
+                if (toCompile.Count == 0)
+                {
+                    Console.WriteLine("No files found to compile");
+                    return;
+                }
+
+                if (verbose)
+                {
+                    Console.WriteLine("Compiling (" + toCompile.Count + ") files...");
+                }
+
+                MultiThreadedCompile(maxDegreeParallelism, workingDirectory, toCompile, overwrite, warnAsErrors, minify, optimize, verbose, spriteProg, spriteArguments);
+
+                if (verbose)
+                {
+                    Console.ReadKey();
+                }
             }
-
-            var toCompile = FindFiles(workingDirectory, filePattern, recurse);
-
-            if (toCompile.Count == 0)
+            catch (Exception e)
             {
-                Console.WriteLine("No files found to compile");
-                return;
-            }
+                var errorFile = "error-" + Guid.NewGuid() + ".log";
 
-            if (verbose)
-            {
-                Console.WriteLine("Compiling (" + toCompile.Count + ") files...");
-            }
+                Console.WriteLine();
+                Console.WriteLine("!!!An Error Occurred!!!");
+                Console.Write("Dumping to ["+errorFile+"]...");
 
-            MultiThreadedCompile(maxDegreeParallelism, workingDirectory, toCompile, overwrite, warnAsErrors, minify, optimize, verbose, spriteProg, spriteArguments);
+                using (var file = File.OpenWrite(errorFile))
+                using (var text = new StreamWriter(file))
+                {
+                    text.WriteLine("Operating System: " + Environment.OSVersion);
+                    text.WriteLine("64 Bit? " + Environment.Is64BitProcess);
+                    text.WriteLine("Path Separator: " + Path.DirectorySeparatorChar);
+                    text.WriteLine("Command Line: " + Environment.CommandLine);
+                    text.WriteLine("On Date: " + DateTime.UtcNow);
+                    text.WriteLine();
+                    text.WriteLine("Exception");
+                    text.WriteLine("---------");
+                    text.WriteLine(e.Message);
+                    text.WriteLine(e.StackTrace);
+                }
 
-            if (verbose)
-            {
-                Console.ReadKey();
+                Console.WriteLine(" done!");
+                Console.WriteLine();
+                Console.WriteLine("Please submit this bug report");
             }
         }
     }

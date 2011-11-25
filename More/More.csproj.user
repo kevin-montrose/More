@@ -5,6 +5,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <StartArguments>/r /wd=C:\Users\Montrose\Desktop\More\POC\ /f /minify /v /optimize all.more</StartArguments>
+    <StartWorkingDirectory>
+    </StartWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <StartArguments>/r /wd=C:\Users\Montrose\Desktop\More\POC\ /f /minify /optimize all.more</StartArguments>
