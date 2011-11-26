@@ -19,7 +19,7 @@ namespace MoreTests
         private List<Block> TryParseStatements(string text)
         {
             var toUse = Interlocked.Increment(ref TryParseNumber);
-            Current.ClearErrors();
+            Current.SetContext(new Context());
 
             using (var stream = new StringReader(text))
             {
@@ -29,9 +29,12 @@ namespace MoreTests
         }
 
         private static int TryCompileNumber = 0;
-        private string TryCompile(string text, IFileLookup lookup = null)
+        private string TryCompile(string text, IFileLookup lookup = null, bool reset = true)
         {
-            Current.ClearErrors();
+            if (reset)
+            {
+                Current.SetContext(new Context());
+            }
 
             Current.SetWriterMode(WriterMode.Minimize);
             using (var input = new StringReader(text))
@@ -242,8 +245,10 @@ namespace MoreTests
         [TestMethod]
         public void SameNameCausesError()
         {
+            Current.SetContext(new Context());
             Current.SetOptions(Options.WarningsAsErrors);
-            TryCompile("img{ a:1; a:2; }");
+
+            TryCompile("img{ a:1; a:2; }", reset: false);
 
             Assert.IsTrue(Current.HasErrors());
             var cErrors = Current.GetErrors(ErrorType.Compiler);

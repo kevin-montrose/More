@@ -19,7 +19,7 @@ namespace MoreTests
     {
         private bool TryParse(string text)
         {
-            Current.ClearErrors();
+            Current.SetContext(new Context());
 
             try
             {
@@ -35,7 +35,7 @@ namespace MoreTests
         private static int TryParseNumber = 0;
         private List<Block> TryParseStatements(string text)
         {
-            Current.ClearErrors();
+            Current.SetContext(new Context());
 
             var toUse = Interlocked.Increment(ref TryParseNumber);
 

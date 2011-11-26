@@ -22,7 +22,7 @@ namespace MoreTests
         {
             fakeFile = fakeFile ?? "compiler-fake-file " + Interlocked.Increment(ref TryCompileNumber) + ".more";
 
-            Current.ClearErrors();
+            Current.SetContext(new Context());
 
             Current.SetWriterMode(WriterMode.Minimize);
             if (!minify)
@@ -57,6 +57,8 @@ namespace MoreTests
         private static int TryParseNumber = 0;
         private List<Block> TryParseStatements(string text)
         {
+            Current.SetContext(new Context());
+
             var toUse = Interlocked.Increment(ref TryParseNumber);
 
             using (var stream = new StringReader(text))
@@ -736,6 +738,8 @@ namespace MoreTests
         [TestMethod]
         public void FileRebasing()
         {
+            Current.SetContext(new Context());
+
             Current.SetWorkingDirectory(@"C:\hello");
             Assert.AreEqual(@"C:\hello\world.txt", @"~\world.txt".RebaseFile());
 

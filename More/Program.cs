@@ -330,7 +330,7 @@ namespace More
                     {
                         try
                         {
-                            Current.Reset();
+                            Current.SetContext(new Context());
 
                             if (minify)
                             {

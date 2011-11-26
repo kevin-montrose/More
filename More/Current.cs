@@ -25,95 +25,73 @@ namespace More
         OptimizeCompression
     }
 
+    class Context
+    {
+        internal Scope GlobalScope { get; set; }
+        internal Options Options { get; set; }
+        internal string WorkingDirectory { get; set; }
+        internal string CurrentFilePath { get; set; }
+        internal WriterMode WriterMode { get; set; }
+        internal Dictionary<ErrorType, List<Error>> Errors { get; set; }
+        internal Dictionary<ErrorType, List<Error>> Warnings { get; set; }
+        internal List<string> InfoMessages { get; set; }
+
+        public Context()
+        {
+            InfoMessages = new List<string>();
+            Errors = new Dictionary<ErrorType, List<Error>>();
+            Warnings = new Dictionary<ErrorType, List<Error>>();
+            WriterMode = More.WriterMode.Pretty;
+            Options = More.Options.None;
+        }
+
+        public Context(Scope scope, Options options, string workingDir, string currentFile, WriterMode writer)
+            : this()
+        {
+            GlobalScope = scope;
+            Options = options;
+            WorkingDirectory = workingDir;
+            CurrentFilePath = currentFile;
+            WriterMode = writer;
+        }
+    }
+
     static class Current
     {
-        private static ThreadLocal<Scope> _globalScope = new ThreadLocal<Scope>();
+        private static ThreadLocal<Context> InnerContext = new ThreadLocal<Context>();
+
         public static Scope GlobalScope
         {
-            get
-            {
-                return _globalScope.IsValueCreated ? _globalScope.Value : new Scope(new Dictionary<string, Value>(), new Dictionary<string, MixinBlock>());
-            }
-
-            set
-            {
-                _globalScope.Value = value;
-            }
+            get { return InnerContext.Value.GlobalScope; }
+            set { InnerContext.Value.GlobalScope = value; }
         }
 
-        private static ThreadLocal<Options> _options = new ThreadLocal<Options>();
         public static Options Options
         {
-            get
-            {
-                return _options.IsValueCreated ? _options.Value : More.Options.None;
-            }
-            private set
-            {
-                _options.Value = value;
-            }
+            get { return InnerContext.Value.Options; }
+            set { InnerContext.Value.Options = value; }
         }
 
-        private static ThreadLocal<string> _workingDir = new ThreadLocal<string>();
         public static string WorkingDirectory {
-            get
-            {
-                return _workingDir.Value;
-            }
-            private set
-            {
-                _workingDir.Value = value;
-            }
+            get { return InnerContext.Value.WorkingDirectory; }
+            set { InnerContext.Value.WorkingDirectory = value; }
         }
 
-        private static ThreadLocal<string> _currentFilePath = new ThreadLocal<string>();
         public static string CurrentFilePath
         {
-            get
-            {
-                return _currentFilePath.Value;
-            }
-            private set
-            {
-                _currentFilePath.Value = value;
-            }
+            get { return InnerContext.Value.CurrentFilePath; }
+            set { InnerContext.Value.CurrentFilePath = value; }
         }
 
-        private static ThreadLocal<WriterMode> _writerMode = new ThreadLocal<WriterMode>();
         public static WriterMode WriterMode
         {
-            get
-            {
-                return _writerMode.Value;
-            }
-            private set
-            {
-                _writerMode.Value = value;
-            }
+            get { return InnerContext.Value.WriterMode; }
+            set { InnerContext.Value.WriterMode = value; }
         }
 
-        static Current()
+        public static void SetContext(Context context)
         {
-            SetWriterMode(More.WriterMode.Pretty);
-        }
-
-        public static void Reset()
-        {
-            try
-            {
-                _currentFilePath.Dispose();
-                _globalScope.Dispose();
-                _options.Dispose();
-                _workingDir.Dispose();
-                _writerMode.Dispose();
-            }
-            catch { }
-
-            _currentFilePath = new ThreadLocal<string>();
-            _globalScope = new ThreadLocal<Scope>();
-            _options = new ThreadLocal<Options>();
-            _workingDir = new ThreadLocal<string>();
-            _writerMode = new ThreadLocal<WriterMode>();
+            InnerContext.Value = context;
         }
 
         public static void SetWorkingDirectory(string path)
@@ -141,19 +119,9 @@ namespace More
             }
         }
 
-        private static ThreadLocal<Dictionary<ErrorType, List<Error>>> Errors = new ThreadLocal<Dictionary<ErrorType, List<Error>>>();
         public static void RecordError(ErrorType type, IPosition position, string message)
         {
-            Dictionary<ErrorType, List<Error>> errors;
-            if (!Errors.IsValueCreated)
-            {
-                errors = new Dictionary<ErrorType, List<Error>>();
-                Errors.Value = errors;
-            }
-            else
-            {
-                errors = Errors.Value;
-            }
+            Dictionary<ErrorType, List<Error>> errors = InnerContext.Value.Errors;
 
             List<Error> ofType;
             if (!errors.TryGetValue(type, out ofType))
@@ -165,7 +133,6 @@ namespace More
             ofType.Add(Error.Create(type, position.Start, position.Stop, message, position.FilePath));
         }
 
-        private static ThreadLocal<Dictionary<ErrorType, List<Error>>> Warnings = new ThreadLocal<Dictionary<ErrorType, List<Error>>>();
         public static void RecordWarning(ErrorType type, IPosition position, string message)
         {
             if ((Current.Options & More.Options.WarningsAsErrors) != 0)
@@ -174,16 +141,7 @@ namespace More
                 return;
             }
 
-            Dictionary<ErrorType, List<Error>> warnings;
-            if (!Warnings.IsValueCreated)
-            {
-                warnings = new Dictionary<ErrorType, List<Error>>();
-                Warnings.Value = warnings;
-            }
-            else
-            {
-                warnings = Warnings.Value;
-            }
+            Dictionary<ErrorType, List<Error>> warnings = InnerContext.Value.Warnings;
 
             List<Error> ofType;
             if (!warnings.TryGetValue(type, out ofType))
@@ -195,32 +153,24 @@ namespace More
             ofType.Add(Error.Create(type, position.Stop, position.Stop, message, position.FilePath));
         }
 
-        private static ThreadLocal<List<string>> InfoMessages = new ThreadLocal<List<string>>();
         public static void RecordInfo(string msg)
         {
-            if (!InfoMessages.IsValueCreated)
-            {
-                InfoMessages.Value = new List<string>();
-            }
-
-            InfoMessages.Value.Add(msg);
+            InnerContext.Value.InfoMessages.Add(msg);
         }
 
         public static List<string> GetInfo()
         {
-            if (!InfoMessages.IsValueCreated) return new List<string>();
-
-            return InfoMessages.Value;
+            return InnerContext.Value.InfoMessages;
         }
 
         public static bool HasErrors()
         {
-            return Errors.IsValueCreated;
+            return InnerContext.Value.Errors.Count > 0;
         }
 
         public static bool HasWarnings()
         {
-            return Warnings.IsValueCreated;
+            return InnerContext.Value.Warnings.Count > 0;
         }
 
         public static List<Error> GetAllErrors()
@@ -247,7 +197,7 @@ namespace More
         {
             if (!HasErrors()) return new List<Error>();
 
-            var error = Errors.Value;
+            var error = InnerContext.Value.Errors;
             List<Error> ret;
             if (!error.TryGetValue(ofType, out ret)) return new List<Error>();
 
@@ -258,18 +208,11 @@ namespace More
         {
             if (!HasWarnings()) return new List<Error>();
 
-            var warning = Warnings.Value;
+            var warning = InnerContext.Value.Warnings;
             List<Error> ret;
             if (!warning.TryGetValue(ofType, out ret)) return new List<Error>();
 
             return ret;
-        }
-
-        public static void ClearErrors()
-        {
-            Errors = new ThreadLocal<Dictionary<ErrorType, List<Error>>>();
-            Warnings = new ThreadLocal<Dictionary<ErrorType, List<Error>>>();
-            InfoMessages = new ThreadLocal<List<string>>();
         }
 
         public static void SetOptions(Options opts)
