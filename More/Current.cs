@@ -35,9 +35,11 @@ namespace More
         internal Dictionary<ErrorType, List<Error>> Errors { get; set; }
         internal Dictionary<ErrorType, List<Error>> Warnings { get; set; }
         internal List<string> InfoMessages { get; set; }
+        internal List<string> SpriteFiles { get; set; }
 
         public Context()
         {
+            SpriteFiles = new List<string>();
             InfoMessages = new List<string>();
             Errors = new Dictionary<ErrorType, List<Error>>();
             Warnings = new Dictionary<ErrorType, List<Error>>();
@@ -53,6 +55,57 @@ namespace More
             WorkingDirectory = workingDir;
             CurrentFilePath = currentFile;
             WriterMode = writer;
+        }
+
+        internal Context Merge(Context other)
+        {
+            if (this.Options != other.Options ||
+              this.WriterMode != other.WriterMode)
+            {
+                throw new InvalidOperationException();
+            }
+
+            var errors = this.Errors.ToDictionary(d => d.Key, d => d.Value.ToList());
+            foreach (var k in other.Errors.Keys)
+            {
+                if (errors.ContainsKey(k))
+                {
+                    errors[k].AddRange(other.Errors[k]);
+                }
+                else
+                {
+                    errors[k] = other.Errors[k].ToList();
+                }
+            }
+
+            var warnings = this.Warnings.ToDictionary(d => d.Key, d => d.Value.ToList());
+            foreach (var k in other.Warnings.Keys)
+            {
+                if (warnings.ContainsKey(k))
+                {
+                    warnings[k].AddRange(other.Warnings[k]);
+                }
+                else
+                {
+                    warnings[k] = other.Warnings[k].ToList();
+                }
+            }
+
+            var infos = this.InfoMessages.ToList();
+            infos.AddRange(other.InfoMessages);
+
+            // Dupes should be removed here, thus Union()
+            var sprites = this.SpriteFiles.Union(other.SpriteFiles).ToList();
+
+            var ret = new Context();
+            ret.Errors = errors;
+            ret.Warnings = warnings;
+            ret.InfoMessages = infos;
+            ret.SpriteFiles = sprites;
+            ret.Options = this.Options;
+            ret.WriterMode = this.WriterMode;
+
+            return ret;
         }
     }
 
@@ -131,6 +184,20 @@ namespace More
             }
 
             ofType.Add(Error.Create(type, position.Start, position.Stop, message, position.FilePath));
+        }
+
+        public static void RecordError(Error err)
+        {
+            Dictionary<ErrorType, List<Error>> errors = InnerContext.Value.Errors;
+
+            List<Error> ofType;
+            if (!errors.TryGetValue(err.Type, out ofType))
+            {
+                ofType = new List<Error>();
+                errors[err.Type] = ofType;
+            }
+
+            ofType.Add(err);
         }
 
         public static void RecordWarning(ErrorType type, IPosition position, string message)
@@ -234,6 +301,16 @@ namespace More
         public static void SetGlobalScope(Scope scope)
         {
             GlobalScope = scope;
+        }
+
+        public static void SpriteFileWritten(string spriteFile)
+        {
+            InnerContext.Value.SpriteFiles.Add(spriteFile);
+        }
+
+        public static List<string> GetWrittenSpriteFiles()
+        {
+            return InnerContext.Value.SpriteFiles;
         }
     }
 }

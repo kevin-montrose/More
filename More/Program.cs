@@ -18,7 +18,7 @@ namespace More
 {
     class Program
     {
-        internal static bool Compile(string currentDir, string inputFile, TextWriter output, out List<string> spriteFiles)
+        internal static bool Compile(string currentDir, string inputFile, TextWriter output)
         {
             Current.SetWorkingDirectory(currentDir);
             inputFile = inputFile.RebaseFile();
@@ -26,7 +26,7 @@ namespace More
             using (var stream = File.OpenRead(inputFile))
             using (var @in = new StreamReader(stream))
             {
-                return Compiler.Get().Compile(currentDir, inputFile, @in, output, FileLookup.Singleton, out spriteFiles);
+                return Compiler.Get().Compile(currentDir, inputFile, @in, output, FileLookup.Singleton);
             }
         }
 
@@ -261,7 +261,7 @@ namespace More
             }
         }
 
-        static void RunSpriteCommand(string command, string workingDir, string file, string spriteArguments, ConcurrentBag<Error> errors, ConcurrentBag<Error> warnings, ConcurrentBag<string> info)
+        static void RunSpriteCommand(string command, string workingDir, string file, string spriteArguments)
         {
             try
             {
@@ -294,33 +294,30 @@ namespace More
 
                 if (proc.ExitCode != 0)
                 {
-                    errors.Add(OutOfProcError.Create(ErrorType.Compiler, "Error by [" + command + "] for [" + file + "] exited with code " + proc.ExitCode));
+                    Current.RecordError(OutOfProcError.Create(ErrorType.Compiler, "Error by [" + command + "] for [" + file + "] exited with code " + proc.ExitCode));
                 }
 
                 if (output.HasValue())
                 {
-                    info.Add("Written by [" + command + "] for [" + file + "]:\r\n" + output);
+                    Current.RecordInfo("Written by [" + command + "] for [" + file + "]:\r\n" + output);
                 }
 
                 if (errorOutput.Length != 0)
                 {
-                    errors.Add(OutOfProcError.Create(ErrorType.Compiler, "Error by [" + command + "] for [" + file + "]:\r\n" + errorOutput.ToString()));
+                    Current.RecordError(OutOfProcError.Create(ErrorType.Compiler, "Error by [" + command + "] for [" + file + "]:\r\n" + errorOutput.ToString()));
                 }
             }
             catch (Exception e)
             {
-                errors.Add(OutOfProcError.Create(ErrorType.Compiler, "Error encountered executing [" + command + "], \"" + e.Message + "\""));
+                Current.RecordError(OutOfProcError.Create(ErrorType.Compiler, "Error encountered executing [" + command + "], \"" + e.Message + "\""));
             }
         }
 
         static void MultiThreadedCompile(int maxParallelism, string workingDirectory, List<string> toCompile, bool overwrite, bool warnAsErrors, bool minify, bool optimize, bool verbose, string spriteProg, string spriteArguments)
         {
             var @lock = new Semaphore(0, toCompile.Count);
+            var contexts = new ConcurrentBag<Context>();
             var outMsg = new ConcurrentBag<string>();
-            var errors = new ConcurrentBag<Error>();
-            var warnings = new ConcurrentBag<Error>();
-            var infos = new ConcurrentBag<string>();
-            var sprites = new ConcurrentBag<string>();
 
             toCompile.AsParallel()
                 .WithDegreeOfParallelism(maxParallelism)
@@ -330,7 +327,10 @@ namespace More
                     {
                         try
                         {
-                            Current.SetContext(new Context());
+                            var threadContext = new Context();
+                            contexts.Add(threadContext);
+
+                            Current.SetContext(threadContext);
 
                             if (minify)
                             {
@@ -355,8 +355,7 @@ namespace More
                                 var timer = new Stopwatch();
                                 timer.Start();
 
-                                List<string> generatedSprites;
-                                var result = Compile(workingDirectory, compile, output, out generatedSprites);
+                                var result = Compile(workingDirectory, compile, output);
 
                                 timer.Stop();
 
@@ -367,32 +366,6 @@ namespace More
                                 else
                                 {
                                     buffer.AppendLine(" failed after " + timer.ElapsedMilliseconds + "ms");
-                                }
-
-                                if (Current.HasErrors())
-                                {
-                                    foreach (var error in Current.GetAllErrors())
-                                    {
-                                        errors.Add(error);
-                                    }
-                                }
-
-                                if (Current.HasWarnings())
-                                {
-                                    foreach (var warning in Current.GetAllWarnings())
-                                    {
-                                        warnings.Add(warning);
-                                    }
-                                }
-
-                                foreach (var i in Current.GetInfo())
-                                {
-                                    infos.Add(i);
-                                }
-
-                                foreach (var sprite in generatedSprites)
-                                {
-                                    sprites.Add(sprite);
                                 }
 
                                 outMsg.Add(buffer.ToString());
@@ -408,11 +381,19 @@ namespace More
             for (int i = 0; i < toCompile.Count; i++)
                 @lock.WaitOne();
 
+            var mergedContext = contexts.ElementAt(0);
+            for (int i = 1; i < contexts.Count; i++)
+            {
+                mergedContext = mergedContext.Merge(contexts.ElementAt(i));
+            }
+
+            Current.SetContext(mergedContext);
+
             if (spriteProg.HasValue())
             {
-                foreach (var sprite in sprites)
+                foreach (var sprite in Current.GetWrittenSpriteFiles())
                 {
-                    RunSpriteCommand(spriteProg, workingDirectory, sprite, spriteArguments, errors, warnAsErrors ? errors : warnings, infos);
+                    RunSpriteCommand(spriteProg, workingDirectory, sprite, spriteArguments);
                 }
             }
 
@@ -426,26 +407,26 @@ namespace More
                 if (outMsg.Count > 0) Console.WriteLine();
             }
 
-            if (errors.Count > 0)
+            if (Current.HasErrors())
             {
-                var parseErrors = errors.Where(e => e.Type == ErrorType.Parser).Distinct().ToList();
-                var compileErrors = errors.Where(e => e.Type == ErrorType.Compiler).Distinct().ToList();
+                var parseErrors = Current.GetErrors(ErrorType.Parser).Distinct().ToList();
+                var compileErrors = Current.GetErrors(ErrorType.Compiler).Distinct().ToList();
 
                 PrintErrors(parseErrors: parseErrors, compileErrors: compileErrors);
             }
 
-            if (warnings.Count > 0)
+            if (Current.HasWarnings())
             {
-                var parseWarnings = warnings.Where(e => e.Type == ErrorType.Parser).Distinct().ToList();
-                var compileWarnings = warnings.Where(e => e.Type == ErrorType.Compiler).Distinct().ToList();
+                var parseWarnings = Current.GetWarnings(ErrorType.Parser).Distinct().ToList();
+                var compileWarnings = Current.GetWarnings(ErrorType.Compiler).Distinct().ToList();
 
                 PrintWarnings(parseWarn: parseWarnings, compileWarn: compileWarnings);
             }
-            if (verbose && infos.Count > 0)
+            if (verbose && Current.GetInfo().Count > 0)
             {
                 Console.WriteLine("INFO");
                 Console.WriteLine("====");
-                foreach (var i in infos)
+                foreach (var i in Current.GetInfo())
                 {
                     Console.WriteLine(i);
                 }

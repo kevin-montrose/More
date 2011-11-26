@@ -1265,10 +1265,8 @@ namespace More
             }
         }
 
-        public bool Compile(string currentDir, string inputFile, TextReader @in, TextWriter output, IFileLookup lookup, out List<string> sprites)
+        public bool Compile(string currentDir, string inputFile, TextReader @in, TextWriter output, IFileLookup lookup)
         {
-            sprites = null;
-
             try
             {
                 Current.SetWorkingDirectory(currentDir);
@@ -1365,17 +1363,17 @@ namespace More
                     statement.Write(writer);
                 }
 
-                sprites = new List<string>();
-
                 if (spriteExports != null)
                 {
                     foreach (var sprite in spriteExports)
                     {
-                        sprite.Sprite.Save(sprite.OutputFile);
-                        sprite.Sprite.Dispose();
-                    }
+                        var @out = sprite.OutputFile.Replace('/', Path.DirectorySeparatorChar);
 
-                    sprites = spriteExports.Select(s => s.OutputFile.Replace('/', Path.DirectorySeparatorChar)).ToList();
+                        sprite.Sprite.Save(@out);
+                        sprite.Sprite.Dispose();
+
+                        Current.SpriteFileWritten(@out);
+                    }
                 }
 
                 return true;

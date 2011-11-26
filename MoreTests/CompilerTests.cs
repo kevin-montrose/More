@@ -46,10 +46,8 @@ namespace MoreTests
             using (var input = new StringReader(text))
             using (var output = new StringWriter())
             {
-                List<string> ignored;
-
                 var compiler = Compiler.Get();
-                compiler.Compile(Environment.CurrentDirectory, fakeFile, input, output, lookup ?? new NullFileLookup(), out ignored);
+                compiler.Compile(Environment.CurrentDirectory, fakeFile, input, output, lookup ?? new NullFileLookup());
                 return output.ToString();
             }
         }
