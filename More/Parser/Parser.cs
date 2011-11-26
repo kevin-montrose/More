@@ -24,7 +24,7 @@ namespace More.Parser
 
         internal static MediaBlock ParseMediaDirective(ParserStream stream)
         {
-            var start = stream.MarkPos();
+            var start = stream.Position;
 
             var media = new StringBuilder();
             stream.ScanUntil(media, '{');
@@ -32,7 +32,7 @@ namespace More.Parser
             var mediaStr = media.ToString().Trim();
             if (mediaStr.IsNullOrEmpty())
             {
-                Current.RecordError(ErrorType.Parser, Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Expected media list");
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected media list");
                 throw new StoppedParsingException();
             }
 
@@ -42,7 +42,7 @@ namespace More.Parser
                 Media mParsed;
                 if (!Enum.TryParse<Media>(m.Trim(), ignoreCase: true, result: out mParsed))
                 {
-                    Current.RecordWarning(ErrorType.Parser, Model.Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Unknown media type '" + m.Trim() + "', ignoring.");
+                    Current.RecordWarning(ErrorType.Parser, Model.Position.Create(start, stream.Position, Current.CurrentFilePath), "Unknown media type '" + m.Trim() + "', ignoring.");
                 }
                 else
                 {
@@ -52,7 +52,7 @@ namespace More.Parser
 
             if (mediaList.Count == 0)
             {
-                Current.RecordError(ErrorType.Parser, Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "No recognized media found");
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "No recognized media found");
                 throw new StoppedParsingException();
             }
 
@@ -93,19 +93,19 @@ namespace More.Parser
             // Skip past }
             stream.Advance();
 
-            return new MediaBlock(mediaList, contained, start.Position, stream.Position, Current.CurrentFilePath);
+            return new MediaBlock(mediaList, contained, start, stream.Position, Current.CurrentFilePath);
         }
 
         internal static CssCharset ParseCharsetDirective(ParserStream stream)
         {
-            var start = stream.MarkPos();
+            var start = stream.Position;
 
             var ignored = new StringBuilder();
             var quote = stream.ScanUntil(ignored, '"', '\'');
 
             if (quote == null)
             {
-                Current.RecordError(ErrorType.Parser, Model.Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Expected quotation mark");
+                Current.RecordError(ErrorType.Parser, Model.Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected quotation mark");
                 throw new StoppedParsingException();
             }
 
@@ -114,28 +114,26 @@ namespace More.Parser
 
             stream.AdvancePast(";");
 
-            stream.PopMark();
-
             var isoNameStr = isoName.ToString();
 
             if (!CssCharset.KnownCharset(isoNameStr))
             {
-                Current.RecordWarning(ErrorType.Parser, Model.Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Unrecognized charset");
+                Current.RecordWarning(ErrorType.Parser, Model.Position.Create(start, stream.Position, Current.CurrentFilePath), "Unrecognized charset");
             }
 
-            return new CssCharset(new QuotedStringValue(isoNameStr), start.Position, stream.Position);
+            return new CssCharset(new QuotedStringValue(isoNameStr), start, stream.Position);
         }
 
         internal static Using ParseUsingDirective(ParserStream stream)
         {
-            var start = stream.MarkPos();
+            var start = stream.Position;
 
             var ignored = new StringBuilder();
             var quote = stream.ScanUntil(ignored, '"', '\'');
 
             if (quote == null)
             {
-                Current.RecordError(ErrorType.Parser, Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Expected quotation mark");
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected quotation mark");
                 throw new StoppedParsingException();
             }
 
@@ -154,7 +152,7 @@ namespace More.Parser
                     Media med;
                     if (!Enum.TryParse<Media>(m.Trim(), ignoreCase: true, result: out med))
                     {
-                        Current.RecordWarning(ErrorType.Parser, Model.Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Unknown media type '" + m.Trim() + "', ignoring.");
+                        Current.RecordWarning(ErrorType.Parser, Model.Position.Create(start, stream.Position, Current.CurrentFilePath), "Unknown media type '" + m.Trim() + "', ignoring.");
                     }
                     else
                     {
@@ -163,14 +161,12 @@ namespace More.Parser
                 }
             }
 
-            stream.PopMark();
-
-            return new Using(file.ToString(), media, start.Position, stream.Position, Current.CurrentFilePath);
+            return new Using(file.ToString(), media, start, stream.Position, Current.CurrentFilePath);
         }
 
         internal static Import ParseImportDirective(ParserStream stream)
         {
-            var start = stream.MarkPos();
+            var start = stream.Position;
 
             var buffer = new StringBuilder();
             stream.ScanUntilWithNesting(buffer, ';');
@@ -187,11 +183,11 @@ namespace More.Parser
 
                 if (i == -1)
                 {
-                    Current.RecordError(ErrorType.Parser, Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Expected ')'"); ;
+                    Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected ')'"); ;
                     throw new StoppedParsingException();
                 }
 
-                val = Value.Parse(toParse.Substring(0, i + 1), start.Position, start.Position + i + 1, Current.CurrentFilePath);
+                val = Value.Parse(toParse.Substring(0, i + 1), start, start + i + 1, Current.CurrentFilePath);
 
                 mediaStr = toParse.Substring(i + 1);
             }
@@ -199,7 +195,7 @@ namespace More.Parser
             {
                 if (!(toParse.StartsWith("\"") || toParse.StartsWith("'")))
                 {
-                    Current.RecordError(ErrorType.Parser, Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Expected quote");
+                    Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected quote");
                     throw new StoppedParsingException();
                 }
 
@@ -207,11 +203,11 @@ namespace More.Parser
 
                 if (i == -1)
                 {
-                    Current.RecordError(ErrorType.Parser, Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Expected '" + toParse[0] + "'");
+                    Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected '" + toParse[0] + "'");
                     throw new StoppedParsingException();
                 }
 
-                val = Value.Parse(toParse.Substring(0, i + 1), start.Position, start.Position + i + 1, Current.CurrentFilePath);
+                val = Value.Parse(toParse.Substring(0, i + 1), start, start + i + 1, Current.CurrentFilePath);
                 mediaStr = toParse.Substring(i + 1);
             }
 
@@ -223,7 +219,7 @@ namespace More.Parser
                     Media mParsed;
                     if (!Enum.TryParse<Media>(m.Trim(), ignoreCase: true, result: out mParsed))
                     {
-                        Current.RecordWarning(ErrorType.Parser, Model.Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Unknown media type '" + m.Trim() + "', ignoring.");
+                        Current.RecordWarning(ErrorType.Parser, Model.Position.Create(start, stream.Position, Current.CurrentFilePath), "Unknown media type '" + m.Trim() + "', ignoring.");
                     }
                     else
                     {
@@ -232,16 +228,16 @@ namespace More.Parser
                 }
             }
 
-            return new Import(val, media, start.Position, stream.Position);
+            return new Import(val, media, start, stream.Position);
         }
 
         internal static SpriteRule ParseSpriteRule(ParserStream stream)
         {
-            var start = stream.MarkPos();
+            var start = stream.Position;
 
             if (stream.Peek() != '@')
             {
-                Current.RecordError(ErrorType.Parser, Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Expected '@'");
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected '@'");
                 throw new StoppedParsingException();
             }
 
@@ -261,7 +257,7 @@ namespace More.Parser
 
             if (quote == null)
             {
-                Current.RecordError(ErrorType.Parser, Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Expected quotation mark");
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected quotation mark");
                 throw new StoppedParsingException();
             }
 
@@ -275,9 +271,7 @@ namespace More.Parser
 
             var value = (QuotedStringValue)Value.Parse(valueStr.ToString(), valueStart, stream.Position, Current.CurrentFilePath);
 
-            stream.PopMark();
-
-            return new SpriteRule(name.ToString().Trim(), value, start.Position, stream.Position, Current.CurrentFilePath);
+            return new SpriteRule(name.ToString().Trim(), value, start, stream.Position, Current.CurrentFilePath);
         }
 
         internal static List<SpriteRule> ParseSpriteRules(ParserStream stream)
@@ -307,7 +301,7 @@ namespace More.Parser
 
         internal static SpriteBlock ParseSpriteDeclaration(ParserStream stream)
         {
-            var start = stream.MarkPos();
+            var start = stream.Position;
 
             stream.AdvancePast("(");
 
@@ -316,13 +310,13 @@ namespace More.Parser
 
             if (ignored.ToString().Any(a => !char.IsWhiteSpace(a)))
             {
-                Current.RecordError(ErrorType.Parser, Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Expected quotation mark");
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected quotation mark");
                 throw new StoppedParsingException();
             }
 
             if (adTo == null)
             {
-                Current.RecordError(ErrorType.Parser, Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Expected quotation mark");
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected quotation mark");
                 throw new StoppedParsingException();
             }
 
@@ -337,14 +331,12 @@ namespace More.Parser
 
             var rules = ParseSpriteRules(stream);
 
-            stream.PopMark();
-
-            return new SpriteBlock((QuotedStringValue)Value.Parse(name.ToString(), nameStart, nameStop, Current.CurrentFilePath), rules, start.Position, stream.Position, Current.CurrentFilePath);
+            return new SpriteBlock((QuotedStringValue)Value.Parse(name.ToString(), nameStart, nameStop, Current.CurrentFilePath), rules, start, stream.Position, Current.CurrentFilePath);
         }
 
-        internal static List<MixinParameter> ParseMixinDeclarationParameter(string parse, ParserStream.Mark start)
+        internal static List<MixinParameter> ParseMixinDeclarationParameter(string parse, int start)
         {
-            var stop = start.Position + parse.Length;
+            var stop = start + parse.Length;
 
             var ret = new List<MixinParameter>();
 
@@ -362,7 +354,7 @@ namespace More.Parser
                 var x = piece.Trim();
                 if (x[0] != '@')
                 {
-                    Current.RecordError(ErrorType.Parser, Position.Create(start.Position, start.Position + offset, Current.CurrentFilePath), "Expected '@'");
+                    Current.RecordError(ErrorType.Parser, Position.Create(start, start + offset, Current.CurrentFilePath), "Expected '@'");
                     throw new StoppedParsingException();
                 }
 
@@ -371,7 +363,7 @@ namespace More.Parser
                 var q2 = piece.IndexOf('\'');
                 if ((q1 != -1 && i > q1) || (q2 != -1 && i > q2))
                 {
-                    Current.RecordError(ErrorType.Parser, Position.Create(start.Position, start.Position + offset, Current.CurrentFilePath), "Unable to parse value");
+                    Current.RecordError(ErrorType.Parser, Position.Create(start, start + offset, Current.CurrentFilePath), "Unable to parse value");
                     throw new StoppedParsingException();
                 }
 
@@ -388,17 +380,17 @@ namespace More.Parser
                 {
                     if (@default == null)
                     {
-                        value = NotFoundValue.Default.BindToPosition(start.Position, stop, Current.CurrentFilePath);
+                        value = NotFoundValue.Default.BindToPosition(start, stop, Current.CurrentFilePath);
                     }
                     else
                     {
-                        value = Value.Parse(@default, start.Position, stop, Current.CurrentFilePath);
+                        value = Value.Parse(@default, start, stop, Current.CurrentFilePath);
                     }
                 }
 
                 if (name.Equals("arguments", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    Current.RecordError(ErrorType.Parser, Position.Create(start.Position, stop, Current.CurrentFilePath), "arguments cannot be the name of a parameter to a mixin.");
+                    Current.RecordError(ErrorType.Parser, Position.Create(start, stop, Current.CurrentFilePath), "arguments cannot be the name of a parameter to a mixin.");
                 }
 
                 ret.Add(new MixinParameter(name, value));
@@ -409,7 +401,7 @@ namespace More.Parser
 
         internal static MixinBlock ParseMixinDeclaration(string name, ParserStream stream)
         {
-            var start = stream.MarkPos();
+            var start = stream.Position;
             var @params = new StringBuilder();
             stream.ScanUntil(@params, ')');
 
@@ -417,15 +409,13 @@ namespace More.Parser
 
             if (name.Length == 0)
             {
-                Current.RecordError(ErrorType.Parser, Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Expected mixin name");
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected mixin name");
                 throw new StoppedParsingException();
             }
 
             stream.AdvancePast("{");
 
-            stream.PopMark();
-
-            return new MixinBlock(name, ParseMixinDeclarationParameter(@params.ToString(), start), ParseCssRules(stream), start.Position, stream.Position, Current.CurrentFilePath);
+            return new MixinBlock(name, ParseMixinDeclarationParameter(@params.ToString(), start), ParseCssRules(stream), start, stream.Position, Current.CurrentFilePath);
         }
 
         internal static MoreVariable ParseMoreVariable(string name, ParserStream stream, int start)
@@ -581,56 +571,47 @@ namespace More.Parser
 
             stream.Advance(); // Advance past @
 
-            var bufferStart = stream.MarkPos();
+            var bufferStart = stream.Position;
             var buffer = new StringBuilder();
             var next = stream.WhichNextInsensitive(buffer, @using, sprite, import, charset, media, keyframes, mozKeyframes, webKeyframes, fontFace);
 
             if (next == @using)
             {
-                stream.PopMark();
                 return ParseUsingDirective(stream);
             }
 
             if (next == sprite)
             {
-                stream.PopMark();
                 return ParseSpriteDeclaration(stream);
             }
 
             if (next == import)
             {
-                stream.PopMark();
                 return ParseImportDirective(stream);
             }
 
             if (next == charset)
             {
-                stream.PopMark();
                 return ParseCharsetDirective(stream);
             }
 
             if (next == media)
             {
-                stream.PopMark();
                 return ParseMediaDirective(stream);
             }
 
             if (next.In(keyframes, mozKeyframes, webKeyframes))
             {
-                stream.PopMark();
-
                 string prefix = "";
                 if (next == mozKeyframes) prefix = "-moz-";
                 if (next == webKeyframes) prefix = "-webkit-";
 
-                return ParseKeyFramesDirective(prefix, stream, bufferStart.Position);
+                return ParseKeyFramesDirective(prefix, stream, bufferStart);
             }
 
             if (next == fontFace)
             {
-                stream.PopMark();
-
-                return ParseFontFace(stream, bufferStart.Position);
+                return ParseFontFace(stream, bufferStart);
             }
 
             stream.PushBack(buffer.ToString());
@@ -641,11 +622,9 @@ namespace More.Parser
 
             if (eqOrPara == '=')
             {
-                stream.PopMark();
-                return ParseMoreVariable(leader.ToString(), stream, bufferStart.Position);
+                return ParseMoreVariable(leader.ToString(), stream, bufferStart);
             }
 
-            stream.PopMark();
             return ParseMixinDeclaration(leader.ToString(), stream);
         }
 
@@ -685,7 +664,7 @@ namespace More.Parser
             return new MixinApplicationParameter(name.Trim(), Value.Parse(value.Trim(), start, stop, Current.CurrentFilePath, allowSelectorIncludes: true));
         }
 
-        internal static List<MixinApplicationParameter> ParseApplicationParameters(string application, ParserStream.Mark start)
+        internal static List<MixinApplicationParameter> ParseApplicationParameters(string application, int start)
         {
             var pieces = new List<Tuple<string, int>>();
             var current = new StringBuilder();
@@ -695,7 +674,7 @@ namespace More.Parser
             {
                 if (application[i] == ',')
                 {
-                    pieces.Add(Tuple.Create(current.ToString().Trim(), start.Position + i));
+                    pieces.Add(Tuple.Create(current.ToString().Trim(), start + i));
                     current.Clear();
                     i++;
                     continue;
@@ -715,7 +694,7 @@ namespace More.Parser
 
                     if (application[i] != advanceTo)
                     {
-                        Current.RecordError(ErrorType.Parser, Position.Create(start.Position, start.Position + i, Current.CurrentFilePath), "Expected '" + advanceTo + "'");
+                        Current.RecordError(ErrorType.Parser, Position.Create(start, start + i, Current.CurrentFilePath), "Expected '" + advanceTo + "'");
                         throw new StoppedParsingException();
                     }
                     current.Append(application[i]);
@@ -725,15 +704,15 @@ namespace More.Parser
 
             if (current.Length != 0)
             {
-                pieces.Add(Tuple.Create(current.ToString().Trim(), start.Position + i));
+                pieces.Add(Tuple.Create(current.ToString().Trim(), start + i));
             }
 
-            return pieces.Select(s => ParseMixinParameter(s.Item1, start.Position, s.Item2)).ToList();
+            return pieces.Select(s => ParseMixinParameter(s.Item1, start, s.Item2)).ToList();
         }
 
         internal static Property ParseMixinOrVariableRule(ParserStream stream)
         {
-            var start = stream.MarkPos();
+            var start = stream.Position;
 
             var name = new StringBuilder();
             stream.Advance(); // Skip @
@@ -752,7 +731,7 @@ namespace More.Parser
 
                 if (trimmingWhiteSpace || (!char.IsLetterOrDigit(c) && !c.In('-', '_')))
                 {
-                    Current.RecordError(ErrorType.Parser, Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Unexpected character '" + c + "'");
+                    Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Unexpected character '" + c + "'");
                     throw new StoppedParsingException();
                 }
                 name.Append(c);
@@ -760,7 +739,7 @@ namespace More.Parser
 
             if (!stream.Peek().In('(', '='))
             {
-                Current.RecordError(ErrorType.Parser, Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Expected '(' or '='");
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected '(' or '='");
                 throw new StoppedParsingException();
             }
 
@@ -771,13 +750,12 @@ namespace More.Parser
                 var localValue = ParseMoreValue(stream);
                 var varName = name.ToString().Trim();
 
-                return new VariableProperty(varName, localValue, start.Position, stream.Position, Current.CurrentFilePath);
+                return new VariableProperty(varName, localValue, start, stream.Position, Current.CurrentFilePath);
             }
 
             stream.Advance();
 
-            var startParams = stream.MarkPos();
-            stream.PopMark();
+            var startParams = stream.Position;
 
             var paramStart = stream.Position;
             var @params = new StringBuilder();
@@ -785,15 +763,12 @@ namespace More.Parser
             var paramStop = stream.Position;
 
             var options = new StringBuilder();
-            var optionsStart = stream.MarkPos();
-            stream.PopMark();
+            var optionsStart = stream.Position;
             stream.ScanUntil(options, ';');
 
             var nameStr = name.ToString().Trim();
             var paramsStr = @params.ToString().Trim();
             var optionsStr = options.ToString().Trim();
-
-            stream.PopMark();
 
             var optional = optionsStr.Contains('?');
             var overrides = optionsStr.Contains('!');
@@ -804,15 +779,15 @@ namespace More.Parser
             {
                 if (unexpected.Count() == 0)
                 {
-                    Current.RecordError(ErrorType.Parser, Position.Create(start.Position, optionsStart.Position + options.Length, Current.CurrentFilePath), "Unexpected character '" + unexpected.ElementAt(0) + "'");
+                    Current.RecordError(ErrorType.Parser, Position.Create(start, optionsStart + options.Length, Current.CurrentFilePath), "Unexpected character '" + unexpected.ElementAt(0) + "'");
                 }
                 else
                 {
                     Current.RecordError(
                         ErrorType.Parser, 
                         Position.Create(
-                            start.Position, 
-                            optionsStart.Position + options.Length, 
+                            start, 
+                            optionsStart + options.Length, 
                             Current.CurrentFilePath
                         ),
                         "Unexpected characters "+
@@ -827,12 +802,12 @@ namespace More.Parser
             {
                 if (optional)
                 {
-                    Current.RecordWarning(ErrorType.Parser, Position.Create(start.Position, optionsStart.Position + options.Length, Current.CurrentFilePath), "Include directives are always optional, no trailing '?' is needed.");
+                    Current.RecordWarning(ErrorType.Parser, Position.Create(start, optionsStart + options.Length, Current.CurrentFilePath), "Include directives are always optional, no trailing '?' is needed.");
                 }
-                return new IncludeSelectorProperty(Selector.Parse(paramsStr, paramStart, paramStop, Current.CurrentFilePath), overrides, start.Position, stream.Position, Current.CurrentFilePath);
+                return new IncludeSelectorProperty(Selector.Parse(paramsStr, paramStart, paramStop, Current.CurrentFilePath), overrides, start, stream.Position, Current.CurrentFilePath);
             }
 
-            return new MixinApplicationProperty(nameStr, ParseApplicationParameters(paramsStr, startParams), optional: optional, overrides: overrides, start: start.Position, stop: stream.Position, filePath: Current.CurrentFilePath);
+            return new MixinApplicationProperty(nameStr, ParseApplicationParameters(paramsStr, startParams), optional: optional, overrides: overrides, start: start, stop: stream.Position, filePath: Current.CurrentFilePath);
         }
 
         internal static Value ParseFontValue(ParserStream stream)
@@ -854,8 +829,7 @@ namespace More.Parser
 
         internal static Property ParseRule(ParserStream stream)
         {
-            var start = stream.MarkPos();
-            stream.PopMark();
+            var start = stream.Position;
 
             if (stream.Peek() == '@')
             {
@@ -878,12 +852,12 @@ namespace More.Parser
             {
                 var nestedBlock = ParseSelectorAndBlock(stream, ruleName.ToString().Trim());
 
-                return new NestedBlockProperty(nestedBlock, start.Position, stream.Position);
+                return new NestedBlockProperty(nestedBlock, start, stream.Position);
             }
 
             if (found == null)
             {
-                Current.RecordError(ErrorType.Parser, Position.Create(start.Position, stream.Position, Current.CurrentFilePath), "Expected '{' or ':'");
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected '{' or ':'");
                 throw new StoppedParsingException();
             }
 
@@ -901,7 +875,7 @@ namespace More.Parser
                 value = ParseMoreValue(stream);
             }
 
-            return new NameValueProperty(name, value, start.Position, stream.Position, Current.CurrentFilePath);
+            return new NameValueProperty(name, value, start, stream.Position, Current.CurrentFilePath);
         }
 
         internal static List<Property> ParseCssRules(ParserStream stream)
@@ -928,7 +902,7 @@ namespace More.Parser
 
         internal static SelectorAndBlock ParseSelectorAndBlock(ParserStream stream, string selectorStr = null)
         {
-            var mark = stream.MarkPos();
+            var mark = stream.Position;
 
             int selectorStop, selectorStart;
 
@@ -943,22 +917,20 @@ namespace More.Parser
 
                 if (selectorStr.IsNullOrEmpty())
                 {
-                    Current.RecordError(ErrorType.Parser, Position.Create(mark.Position, stream.Position, Current.CurrentFilePath), "Expected selector");
+                    Current.RecordError(ErrorType.Parser, Position.Create(mark, stream.Position, Current.CurrentFilePath), "Expected selector");
                     throw new StoppedParsingException();
                 }
             }
             else
             {
-                selectorStop = mark.Position;
+                selectorStop = mark;
                 selectorStart= selectorStop -  selectorStr.Length;
             }
 
             var sel = Selector.Parse(selectorStr, selectorStart, selectorStop, Current.CurrentFilePath);
             var cssRules = ParseCssRules(stream);
 
-            stream.PopMark();
-
-            return new SelectorAndBlock(sel, cssRules, mark.Position, stream.Position, Current.CurrentFilePath);
+            return new SelectorAndBlock(sel, cssRules, mark, stream.Position, Current.CurrentFilePath);
         }
 
         public List<Block> Parse(string filePath, TextReader reader)

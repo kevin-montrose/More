@@ -18,8 +18,6 @@ namespace More.Parser
             }
         }
 
-        private Stack<Mark> _marks = new Stack<Mark>();
-
         private CommentlessStream _wrapped { get; set; }
 
         private Queue<char> _buffer = new Queue<char>();
@@ -47,34 +45,7 @@ namespace More.Parser
                 _buffer.Enqueue(c);
             }
         }
-
-        /// <summary>
-        /// Mark a position in the stream, for referal to later.
-        /// </summary>
-        public Mark MarkPos()
-        {
-            var ret = new Mark() { Position = Position };
-            _marks.Push(ret);
-
-            return ret;
-        }
-
-        /// <summary>
-        /// Returns the last marked position in the stream.
-        /// </summary>
-        public Mark LastMark()
-        {
-            return _marks.Peek();
-        }
-
-        /// <summary>
-        /// Remove the most recent mark from the stream
-        /// </summary>
-        public void PopMark()
-        {
-            _marks.Pop();
-        }
-
+        
         /// <summary>
         /// Returns true if there are more characters to be read from the stream.
         /// </summary>
@@ -158,7 +129,7 @@ namespace More.Parser
         /// </summary>
         public void ScanUntilWithNesting(StringBuilder buffer, char needle, bool requireFound = true)
         {
-            MarkPos();
+            var start = Position;
 
             var nonTerminals = new Stack<char>();
             bool found = false;
@@ -196,11 +167,9 @@ namespace More.Parser
 
             if (!found && requireFound)
             {
-                Current.RecordError(Model.ErrorType.Parser, Model.Position.Create(LastMark().Position, Position, Current.CurrentFilePath), "Expected '" + needle + "'");
+                Current.RecordError(Model.ErrorType.Parser, Model.Position.Create(start, Position, Current.CurrentFilePath), "Expected '" + needle + "'");
                 throw new StoppedParsingException();
             }
-
-            PopMark();
         }
 
         /// <summary>
@@ -211,8 +180,6 @@ namespace More.Parser
         /// </summary>
         public char? ScanUntil(StringBuilder buffer, params char[] needles)
         {
-            MarkPos();
-
             char? found = null;
             while (HasMore())
             {
@@ -227,8 +194,6 @@ namespace More.Parser
                 buffer.Append(c);
             }
 
-            PopMark();
-
             return found;
         }
 
@@ -239,8 +204,6 @@ namespace More.Parser
         /// </summary>
         public string WhichNextInsensitive(StringBuilder rejected, params string[] options)
         {
-            MarkPos();
-
             string found = null;
 
             int max = options.Select(s => s.Length).Max();
@@ -260,8 +223,6 @@ namespace More.Parser
                 }
             }
 
-            PopMark();
-
             if (found == null) rejected.Append(read);
 
             return found;
@@ -275,7 +236,7 @@ namespace More.Parser
         /// </summary>
         public void AdvancePast(string needle, bool requireFind = true)
         {
-            MarkPos();
+            var start = Position;
 
             int needlePos = 0;
             char lookingFor = needle[needlePos];
@@ -303,11 +264,9 @@ namespace More.Parser
 
             if (!found && requireFind)
             {
-                Current.RecordError(Model.ErrorType.Parser, Model.Position.Create(LastMark().Position, Position, Current.CurrentFilePath), "Expected '" + needle + "'");
+                Current.RecordError(Model.ErrorType.Parser, Model.Position.Create(start, Position, Current.CurrentFilePath), "Expected '" + needle + "'");
                 throw new StoppedParsingException();
             }
-
-            PopMark();
         }
 
 
