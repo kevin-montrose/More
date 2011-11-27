@@ -10,7 +10,15 @@ namespace More.Compiler
 {
     partial class Compiler
     {
-        private List<Block> EvaluateUsings(string initialFile, List<Block> initialStatements, IFileLookup lookup)
+        private List<Block> EvaluateUsings(List<Block> initialStatements)
+        {
+            var lookup = Current.FileLookup;
+            var initialFile = Current.InitialFilePath;
+
+            return EvaluateUsingsImpl(initialFile, initialStatements, lookup);
+        }
+
+        private List<Block> EvaluateUsingsImpl(string initialFile, List<Block> initialStatements, IFileLookup lookup)
         {
             var imports = new Dictionary<string, Tuple<Using, List<Block>>>();
             imports[initialFile] = Tuple.Create((Using)null, initialStatements);
@@ -47,7 +55,7 @@ namespace More.Compiler
 
                 using (var @in = lookup.Find(file))
                 {
-                    var statements = ParseStream(file, @in);
+                    var statements = ParseStreamImpl(file, @in);
 
                     if (statements == null)
                     {

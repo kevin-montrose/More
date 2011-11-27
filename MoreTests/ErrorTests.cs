@@ -25,7 +25,7 @@ namespace MoreTests
             using (var stream = new StringReader(text))
             {
                 var compiler = Compiler.Get();
-                return compiler.ParseStream("!--error test file " + toUse + " --!", stream);
+                return compiler.ParseStreamImpl("!--error test file " + toUse + " --!", stream);
             }
         }
 

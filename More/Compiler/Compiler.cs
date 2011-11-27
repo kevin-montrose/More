@@ -23,16 +23,16 @@ namespace More.Compiler
             try
             {
                 Current.SetWorkingDirectory(currentDir);
+                Current.SetInitialFile(inputFile);
+                Current.SetFileLookup(lookup);
 
-                List<SpriteExport> spriteExports;
-
-                var initial = ParseStream(inputFile, @in);
+                var initial = ParseStream(@in);
 
                 if (initial == null) { return false; }
 
                 if (Current.HasErrors()) { return false; }
 
-                var flattened = EvaluateUsings(inputFile, initial, lookup);
+                var flattened = EvaluateUsings(initial);
 
                 if (Current.HasErrors()) { return false; }
 
@@ -48,7 +48,7 @@ namespace More.Compiler
 
                 if (Current.HasErrors()) { return false; }
 
-                var sprited = ExportSprites(inputFile, ordered, out spriteExports);
+                var sprited = ExportSprites(ordered);
 
                 if (Current.HasErrors()) { return false; }
 
@@ -116,17 +116,14 @@ namespace More.Compiler
                     statement.Write(writer);
                 }
 
-                if (spriteExports != null)
+                foreach (var sprite in Current.PendingSpriteExports)
                 {
-                    foreach (var sprite in spriteExports)
-                    {
-                        var @out = sprite.OutputFile.Replace('/', Path.DirectorySeparatorChar);
+                    var @out = sprite.OutputFile.Replace('/', Path.DirectorySeparatorChar);
 
-                        sprite.Sprite.Save(@out);
-                        sprite.Sprite.Dispose();
+                    sprite.Sprite.Save(@out);
+                    sprite.Sprite.Dispose();
 
-                        Current.SpriteFileWritten(@out);
-                    }
+                    Current.SpriteFileWritten(@out);
                 }
 
                 return true;

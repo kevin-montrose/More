@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading;
 using More.Parser;
 using More.Model;
+using More.Compiler;
 
 namespace More
 {
@@ -30,12 +31,15 @@ namespace More
         internal Scope GlobalScope { get; set; }
         internal Options Options { get; set; }
         internal string WorkingDirectory { get; set; }
+        internal string InitialFilePath { get; set; }
         internal string CurrentFilePath { get; set; }
         internal WriterMode WriterMode { get; set; }
         internal Dictionary<ErrorType, List<Error>> Errors { get; set; }
         internal Dictionary<ErrorType, List<Error>> Warnings { get; set; }
         internal List<string> InfoMessages { get; set; }
         internal List<string> SpriteFiles { get; set; }
+        internal IFileLookup FileLookup { get; set; }
+        internal List<SpriteExport> PendingSpriteExports { get; set; }
 
         public Context()
         {
@@ -45,16 +49,7 @@ namespace More
             Warnings = new Dictionary<ErrorType, List<Error>>();
             WriterMode = More.WriterMode.Pretty;
             Options = More.Options.None;
-        }
-
-        public Context(Scope scope, Options options, string workingDir, string currentFile, WriterMode writer)
-            : this()
-        {
-            GlobalScope = scope;
-            Options = options;
-            WorkingDirectory = workingDir;
-            CurrentFilePath = currentFile;
-            WriterMode = writer;
+            PendingSpriteExports = new List<SpriteExport>();
         }
 
         internal Context Merge(Context other)
@@ -125,7 +120,8 @@ namespace More
             set { InnerContext.Value.Options = value; }
         }
 
-        public static string WorkingDirectory {
+        public static string WorkingDirectory 
+        {
             get { return InnerContext.Value.WorkingDirectory; }
             set { InnerContext.Value.WorkingDirectory = value; }
         }
@@ -136,10 +132,27 @@ namespace More
             set { InnerContext.Value.CurrentFilePath = value; }
         }
 
+        public static string InitialFilePath
+        {
+            get { return InnerContext.Value.InitialFilePath; }
+            set { InnerContext.Value.InitialFilePath = value; }
+        }
+
         public static WriterMode WriterMode
         {
             get { return InnerContext.Value.WriterMode; }
             set { InnerContext.Value.WriterMode = value; }
+        }
+
+        public static IFileLookup FileLookup
+        {
+            get { return InnerContext.Value.FileLookup; }
+            set { InnerContext.Value.FileLookup = value; }
+        }
+
+        public static List<SpriteExport> PendingSpriteExports
+        {
+            get { return InnerContext.Value.PendingSpriteExports; }
         }
 
         public static void SetContext(Context context)
@@ -147,9 +160,19 @@ namespace More
             InnerContext.Value = context;
         }
 
+        public static void SetFileLookup(IFileLookup fileLookup)
+        {
+            FileLookup = fileLookup;
+        }
+
         public static void SetWorkingDirectory(string path)
         {
             WorkingDirectory = path;
+        }
+
+        public static void SetInitialFile(string path)
+        {
+            InitialFilePath = path;
         }
 
         public static void SwitchToFile(string path)
@@ -301,6 +324,11 @@ namespace More
         public static void SetGlobalScope(Scope scope)
         {
             GlobalScope = scope;
+        }
+
+        public static void SpritePending(SpriteExport sprite)
+        {
+            InnerContext.Value.PendingSpriteExports.Add(sprite);
         }
 
         public static void SpriteFileWritten(string spriteFile)

@@ -63,7 +63,7 @@ namespace MoreTests
             using (var stream = new StringReader(text))
             {
                 var compiler = Compiler.Get();
-                return compiler.ParseStream("!--compiler test file " + toUse + "--!", stream);
+                return compiler.ParseStreamImpl("!--compiler test file " + toUse + "--!", stream);
             }
         }
 

@@ -31,7 +31,14 @@ namespace More.Compiler
             }
         }
 
-        public List<Block> ParseStream(string filePath, TextReader @in)
+        public List<Block> ParseStream(TextReader @in)
+        {
+            var filePath = Current.InitialFilePath;
+
+            return ParseStreamImpl(filePath, @in);
+        }
+
+        internal List<Block> ParseStreamImpl(string filePath, TextReader @in)
         {
             lock (SyncLock)
             {

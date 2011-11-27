@@ -43,7 +43,7 @@ namespace MoreTests
             using (var stream = new StringReader(text))
             {
                 var compiler = Compiler.Get();
-                return compiler.ParseStream("!--parser test file " + toUse + " --!", stream);
+                return compiler.ParseStreamImpl("!--parser test file " + toUse + " --!", stream);
             }
         }
 
