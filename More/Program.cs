@@ -18,6 +18,14 @@ namespace More
 {
     class Program
     {
+        enum ExitCode : int
+        {
+            Success = 0,
+            BadParameters = 1,
+            CompilationErrors = 2,
+            Crash = 3
+        }
+
         internal static bool Compile(string currentDir, string inputFile, TextWriter output)
         {
             Current.SetWorkingDirectory(currentDir);
@@ -313,7 +321,7 @@ namespace More
             }
         }
 
-        static void MultiThreadedCompile(int maxParallelism, string workingDirectory, List<string> toCompile, bool overwrite, bool warnAsErrors, bool minify, bool optimize, bool verbose, string spriteProg, string spriteArguments)
+        static bool MultiThreadedCompile(int maxParallelism, string workingDirectory, List<string> toCompile, bool overwrite, bool warnAsErrors, bool minify, bool optimize, bool verbose, string spriteProg, string spriteArguments)
         {
             var @lock = new Semaphore(0, toCompile.Count);
             var contexts = new ConcurrentBag<Context>();
@@ -422,6 +430,7 @@ namespace More
 
                 PrintWarnings(parseWarn: parseWarnings, compileWarn: compileWarnings);
             }
+
             if (verbose && Current.GetInfo().Count > 0)
             {
                 Console.WriteLine("INFO");
@@ -431,13 +440,39 @@ namespace More
                     Console.WriteLine(i);
                 }
             }
+
+            return !Current.HasErrors();
         }
 
-        static void Main(string[] args)
+        private static bool VerifyParameters(string workingDirectory, int maxDegreeParallelism, string spriteProg)
+        {
+            var ret = true;
+
+            if (workingDirectory.HasValue() && !Directory.Exists(workingDirectory))
+            {
+                Console.WriteLine("Could not find directory [" + workingDirectory + "]");
+                ret = false;
+            }
+
+            if (spriteProg.HasValue() && !File.Exists(spriteProg))
+            {
+                Console.WriteLine("Could not find program [" + spriteProg + "]");
+                ret = false;
+            }
+
+            if (maxDegreeParallelism <= 0)
+            {
+                Console.WriteLine("maxthreads must be >= 0");
+                return false;
+            }
+
+            return ret;
+        }
+
+        static int Main(string[] args)
         {
             try
             {
-
                 var filePattern = "";
                 var workingDirectory = Environment.CurrentDirectory;
                 var recurse = false;
@@ -452,27 +487,32 @@ namespace More
                 string spriteArguments = null;
 
                 var options = new OptionSet()
-            {
-                { "r", "Recursively search all folders for matching files to compile", r => recurse = r != null },
-                { "f|force", "Force overwriting of existing css files.", f => overwrite = f != null },
-                { "wd:", "Sets the working directory for compilation. ~ in paths will be resolved with the working directory where needed.", wd => workingDirectory = wd },
-                { "<>", "File pattern to compile.", d => filePattern = d },
-                { "wae|warnaserror", "Treat warnings as errors", w => warnAsErrors = w != null },
-                { "?|help", "show this message and exit", h => showHelp = h != null },
-                { "mt:|maxthreads:", "maximum number of threads to use during compilation", t => maxDegreeParallelism = Int32.Parse(t) },
-                { "m|minify", "minify output", m => minify = m != null },
-                { "o|optimize", "optimize for compression", o => optimize = o != null },
-                { "v|verbose", "print info output", v => verbose = v != null },
-                { "sp:|spriteprocessor:", "program to run on generated sprites, the sprite will be passed after spritearguments argument", sc => spriteProg = sc },
-                { "sa:|spritearguments:", "arguments to pass to spriteprocessor before the sprite file", sa => spriteArguments = sa }
-            };
+                {
+                    { "r", "Recursively search all folders for matching files to compile", r => recurse = r != null },
+                    { "f|force", "Force overwriting of existing css files.", f => overwrite = f != null },
+                    { "wd:", "Sets the working directory for compilation. ~ in paths will be resolved with the working directory where needed.", wd => workingDirectory = wd },
+                    { "<>", "File pattern to compile.", d => filePattern = d },
+                    { "wae|warnaserror", "Treat warnings as errors", w => warnAsErrors = w != null },
+                    { "?|help", "show this message and exit", h => showHelp = h != null },
+                    { "mt:|maxthreads:", "maximum number of threads to use during compilation", t => maxDegreeParallelism = Int32.Parse(t) },
+                    { "m|minify", "minify output", m => minify = m != null },
+                    { "o|optimize", "optimize for compression", o => optimize = o != null },
+                    { "v|verbose", "print info output", v => verbose = v != null },
+                    { "sp:|spriteprocessor:", "program to run on generated sprites, the sprite will be passed after spritearguments argument", sc => spriteProg = sc },
+                    { "sa:|spritearguments:", "arguments to pass to spriteprocessor before the sprite file", sa => spriteArguments = sa }
+                };
 
                 options.Parse(args);
 
                 if (showHelp)
                 {
                     options.WriteOptionDescriptions(Console.Out);
-                    return;
+                    return (int)ExitCode.Success;
+                }
+
+                if (!VerifyParameters(workingDirectory, maxDegreeParallelism, spriteProg))
+                {
+                    return (int)ExitCode.BadParameters;
                 }
 
                 var toCompile = FindFiles(workingDirectory, filePattern, recurse);
@@ -480,7 +520,7 @@ namespace More
                 if (toCompile.Count == 0)
                 {
                     Console.WriteLine("No files found to compile");
-                    return;
+                    return (int)ExitCode.BadParameters;
                 }
 
                 if (verbose)
@@ -488,12 +528,14 @@ namespace More
                     Console.WriteLine("Compiling (" + toCompile.Count + ") files...");
                 }
 
-                MultiThreadedCompile(maxDegreeParallelism, workingDirectory, toCompile, overwrite, warnAsErrors, minify, optimize, verbose, spriteProg, spriteArguments);
+                var success = MultiThreadedCompile(maxDegreeParallelism, workingDirectory, toCompile, overwrite, warnAsErrors, minify, optimize, verbose, spriteProg, spriteArguments);
 
                 if (verbose)
                 {
                     Console.ReadKey();
                 }
+
+                return (int)(success ? ExitCode.Success : ExitCode.CompilationErrors);
             }
             catch (Exception e)
             {
@@ -521,6 +563,8 @@ namespace More
                 Console.WriteLine(" done!");
                 Console.WriteLine();
                 Console.WriteLine("Please submit this bug report");
+
+                return (int)ExitCode.Crash;
             }
         }
     }

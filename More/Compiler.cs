@@ -1205,7 +1205,6 @@ namespace More
                     Current.RecordError(ErrorType.Compiler, font, "No src rule found in @font-face declaration");
                 }
 
-
                 if (fontFamily == null)
                 {
                     Current.RecordError(ErrorType.Compiler, font, "No font-family rule found in @font-face declaration");
