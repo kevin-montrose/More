@@ -27,7 +27,7 @@ namespace More.Compiler
 
             var tasks = new List<CompilationTask>()
             {
-                EvaluateUsings,
+                Tasks.Using.Task,
                 References.Task,
                 Charsets.Task,
                 Tasks.Import.Task,
@@ -53,7 +53,7 @@ namespace More.Compiler
                 Current.SetFileLookup(lookup);
                 Current.SetOutputStream(output);
 
-                var blocks = ParseStream(@in);
+                var blocks = Parse.Task(@in);
 
                 if (blocks == null) return false;
 

@@ -10,6 +10,7 @@ using More.Parser;
 using System.Threading;
 using More.Helpers;
 using More.Compiler;
+using More.Compiler.Tasks;
 
 namespace MoreTests
 {
@@ -25,7 +26,7 @@ namespace MoreTests
             using (var stream = new StringReader(text))
             {
                 var compiler = Compiler.Get();
-                return compiler.ParseStreamImpl("!--error test file " + toUse + " --!", stream);
+                return Parse.ParseStreamImpl("!--error test file " + toUse + " --!", stream);
             }
         }
 

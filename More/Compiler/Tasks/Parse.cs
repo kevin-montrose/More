@@ -6,23 +6,26 @@ using More.Model;
 using System.IO;
 using System.Threading;
 
-namespace More.Compiler
+namespace More.Compiler.Tasks
 {
-    partial class Compiler
+    /// <summary>
+    /// Parses an initial file into blocks as a task.
+    /// </summary>
+    public class Parse
     {
-        public List<Block> ParseStream(TextReader @in)
+        public static List<Block> Task(TextReader @in)
         {
             var filePath = Current.InitialFilePath;
 
             return ParseStreamImpl(filePath, @in);
         }
 
-        private static List<Block> CheckPostImport(List<Block> ret)
+        internal static List<Block> CheckPostImport(List<Block> ret)
         {
             if (ret == null) return null;
 
-            var lastImport = ret.LastOrDefault(r => r is Import);
-            var firstNonImport = ret.FirstOrDefault(r => !(r is Import));
+            var lastImport = ret.LastOrDefault(r => r is Model.Import);
+            var firstNonImport = ret.FirstOrDefault(r => !(r is Model.Import));
 
             if (lastImport == null || firstNonImport == null)
             {
@@ -38,7 +41,7 @@ namespace More.Compiler
                 {
                     for (int i = fnix; i < ret.Count; i++)
                     {
-                        if (ret[i] is Import)
+                        if (ret[i] is Model.Import)
                         {
                             Current.RecordWarning(ErrorType.Parser, ret[i], "@import should appear before any other statements.  Statement will be moved.");
                         }
@@ -49,7 +52,7 @@ namespace More.Compiler
             return ret;
         }
 
-        internal List<Block> ParseStreamImpl(string filePath, TextReader @in)
+        internal static List<Block> ParseStreamImpl(string filePath, TextReader @in)
         {
             var ret =
                 Current.FileCache.Demand(

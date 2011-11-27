@@ -60,10 +60,10 @@
     <Compile Include="Compiler\Tasks\Minify.cs" />
     <Compile Include="Compiler\Tasks\Mixins.cs" />
     <Compile Include="Compiler\Tasks\NoOps.cs" />
-    <Compile Include="Compiler\Tasks\Compiler.Parse.cs" />
+    <Compile Include="Compiler\Tasks\Parse.cs" />
     <Compile Include="Compiler\Tasks\Sprites.cs" />
     <Compile Include="Compiler\Tasks\Unroll.cs" />
-    <Compile Include="Compiler\Tasks\Compiler.Using.cs" />
+    <Compile Include="Compiler\Tasks\Using.cs" />
     <Compile Include="Compiler\Tasks\References.cs" />
     <Compile Include="Compiler\Tasks\Write.cs" />
     <Compile Include="Compiler\Tasks\WriteSprites.cs" />

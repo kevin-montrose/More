@@ -6,11 +6,18 @@ using More.Model;
 using More.Helpers;
 using System.IO;
 
-namespace More.Compiler
+namespace More.Compiler.Tasks
 {
-    partial class Compiler
+    /// <summary>
+    /// Resolves all @using directives.
+    /// 
+    /// After this has run, we'll have a single flat collection of all more blocks and what not
+    /// in a collection; while @imports persist (and will be written to disk) no more @usings will
+    /// be found once this has returned.
+    /// </summary>
+    public class Using
     {
-        private List<Block> EvaluateUsings(List<Block> initialStatements)
+        public static List<Block> Task(List<Block> initialStatements)
         {
             var lookup = Current.FileLookup;
             var initialFile = Current.InitialFilePath;
@@ -18,14 +25,14 @@ namespace More.Compiler
             return EvaluateUsingsImpl(initialFile, initialStatements, lookup);
         }
 
-        private List<Block> EvaluateUsingsImpl(string initialFile, List<Block> initialStatements, IFileLookup lookup)
+        private static List<Block> EvaluateUsingsImpl(string initialFile, List<Block> initialStatements, IFileLookup lookup)
         {
-            var imports = new List<Tuple<Using, List<Block>>>();
-            imports.Add(Tuple.Create((Using)null, initialStatements));
+            var imports = new List<Tuple<Model.Using, List<Block>>>();
+            imports.Add(Tuple.Create((Model.Using)null, initialStatements));
 
-            var unresolved = new List<Tuple<string, Using>>();
+            var unresolved = new List<Tuple<string, Model.Using>>();
             unresolved.AddRange(
-                initialStatements.OfType<Using>().Select(
+                initialStatements.OfType<Model.Using>().Select(
                     u =>
                         Tuple.Create(
                             u.RawPath.Replace('/', Path.DirectorySeparatorChar).RebaseFile(initialFile),
@@ -48,7 +55,7 @@ namespace More.Compiler
                             using (var @in = lookup.Find(file))
                             {
                                 var newParser = Parser.Parser.CreateParser();
-                                var statements = CheckPostImport(newParser.Parse(file, @in));
+                                var statements = Parse.CheckPostImport(newParser.Parse(file, @in));
 
                                 if (statements == null)
                                 {
@@ -69,7 +76,7 @@ namespace More.Compiler
 
                 if (loaded.Item2 != null)
                 {
-                    var references = loaded.Item2.OfType<Using>().Where(a => !imports.Any(x => x.Item1 == a));
+                    var references = loaded.Item2.OfType<Model.Using>().Where(a => !imports.Any(x => x.Item1 == a));
                     
                     foreach(var subRef in references)
                     {
