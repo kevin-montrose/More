@@ -79,7 +79,14 @@ namespace More.Compiler
             VerifyBlockVariableReferences(outer, mixin.Properties);
         }
 
-        private void VerifyVariableReferences(List<Block> statements, List<string> globallyDeclared = null)
+        internal List<Block> VerifyVariableReferences(List<Block> blocks)
+        {
+            VerifyVariableReferencesImpl(blocks);
+
+            return blocks;
+        }
+
+        private void VerifyVariableReferencesImpl(List<Block> statements, List<string> globallyDeclared = null)
         {
             var globals = statements.OfType<MoreVariable>().OrderBy(a => a.Id);
 
@@ -186,7 +193,7 @@ namespace More.Compiler
 
             foreach (var parts in statements.OfType<MediaBlock>())
             {
-                VerifyVariableReferences(parts.Blocks.ToList(), globallyDeclared);
+                VerifyVariableReferencesImpl(parts.Blocks.ToList(), globallyDeclared);
             }
         }
     }

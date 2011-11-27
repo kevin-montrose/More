@@ -9,7 +9,7 @@ namespace More.Compiler
 {
     partial class Compiler
     {
-        internal void WriteSprites(List<Block> blocks)
+        internal List<Block> WriteSprites(List<Block> blocks)
         {
             foreach (var sprite in Current.PendingSpriteExports)
             {
@@ -20,6 +20,8 @@ namespace More.Compiler
 
                 Current.SpriteFileWritten(@out);
             }
+
+            return blocks;
         }
     }
 }

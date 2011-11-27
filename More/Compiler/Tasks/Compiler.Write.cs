@@ -8,7 +8,7 @@ namespace More.Compiler
 {
     partial class Compiler
     {
-        internal void Write(List<Block> blocks)
+        internal List<Block> Write(List<Block> blocks)
         {
             var output = Current.OutputStream;
 
@@ -17,6 +17,8 @@ namespace More.Compiler
             {
                 statement.Write(writer);
             }
+
+            return blocks;
         }
     }
 }

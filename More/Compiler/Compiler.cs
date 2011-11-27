@@ -12,12 +12,37 @@ using System.IO.Compression;
 
 namespace More.Compiler
 {
+    internal delegate List<Block> CompilationTask(List<Block> blocks);
+
     partial class Compiler
     {
         private static readonly Compiler Singleton = new Compiler();
 
         public bool Compile(string currentDir, string inputFile, TextReader @in, TextWriter output, IFileLookup lookup)
         {
+            CompilationTask noop = (List<Block> blocks) => blocks;
+
+            var tasks = new List<CompilationTask>()
+            {
+                EvaluateUsings,
+                VerifyVariableReferences,
+                ValidateCharsets,
+                MoveCssImports,
+                ExportSprites,
+                BindAndEvaluateMixins,
+                UnrollNestedBlocks,
+                MergeMedia,
+                CopyIncludes,
+                EvaluateValues,
+                ResolveImportant,
+                RemoveNops,
+                ValidateFontFace,
+                Current.Options.HasFlag(Options.Minify) ? Minify : noop,
+                Current.Options.HasFlag(Options.OptimizeCompression) ? OptimizeForCompression : noop,
+                Write,
+                WriteSprites
+            };
+
             try
             {
                 Current.SetWorkingDirectory(currentDir);
@@ -25,93 +50,15 @@ namespace More.Compiler
                 Current.SetFileLookup(lookup);
                 Current.SetOutputStream(output);
 
-                var initial = ParseStream(@in);
+                var blocks = ParseStream(@in);
 
-                if (initial == null) { return false; }
+                if (blocks == null) return false;
 
-                if (Current.HasErrors()) { return false; }
-
-                var flattened = EvaluateUsings(initial);
-
-                if (Current.HasErrors()) { return false; }
-
-                VerifyVariableReferences(flattened);
-
-                if (Current.HasErrors()) { return false; }
-
-                var valid = ValidateCharsets(flattened);
-
-                if (Current.HasErrors()) { return false; }
-
-                var ordered = MoveCssImports(valid);
-
-                if (Current.HasErrors()) { return false; }
-
-                var sprited = ExportSprites(ordered);
-
-                if (Current.HasErrors()) { return false; }
-
-                var bound = BindAndEvaluateMixins(sprited);
-
-                if (Current.HasErrors()) { return false; }
-
-                var unrolled = UnrollNestedBlocks(bound);
-
-                if (Current.HasErrors()) { return false; }
-
-                var mergedMedia = MergeMedia(unrolled);
-
-                if (Current.HasErrors()) { return false; }
-
-                var included = CopyIncludes(mergedMedia);
-
-                if (Current.HasErrors()) { return false; }
-
-                var evaluated = EvaluateValues(included);
-
-                if (Current.HasErrors()) { return false; }
-
-                var readyToWrite = ResolveImportant(evaluated);
-
-                if (Current.HasErrors()) { return false; }
-
-                var minimal = RemoveNops(readyToWrite);
-
-                if (Current.HasErrors()) { return false; }
-
-                ValidateFontFace(readyToWrite);
-
-                if (Current.HasErrors()) { return false; }
-
-                List<Block> minified;
-
-                if (Current.Options.HasFlag(Options.Minify))
+                foreach (var task in tasks)
                 {
-                    minified = Minify(minimal);
-
-                    if (Current.HasErrors()) { return false; }
+                    blocks = task(blocks);
+                    if (Current.HasErrors()) return false;
                 }
-                else
-                {
-                    minified = minimal;
-                }
-
-                List<Block> compressionOptimized;
-
-                if (Current.Options.HasFlag(Options.OptimizeCompression))
-                {
-                    compressionOptimized = OptimizeForCompression(minified);
-
-                    if (Current.HasErrors()) { return false; }
-                }
-                else
-                {
-                    compressionOptimized = minified;
-                }
-
-                Write(compressionOptimized);
-
-                WriteSprites(compressionOptimized);
 
                 return true;
             }

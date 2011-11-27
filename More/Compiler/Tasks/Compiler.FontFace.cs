@@ -9,10 +9,10 @@ namespace More.Compiler
 {
     partial class Compiler
     {
-        private void ValidateFontFace(List<Block> statements)
+        private List<Block> ValidateFontFace(List<Block> blocks)
         {
-            var fonts = statements.OfType<FontFaceBlock>().ToList();
-            if (fonts.Count == 0) return;
+            var fonts = blocks.OfType<FontFaceBlock>().ToList();
+            if (fonts.Count == 0) return blocks;
 
             var map = new Dictionary<string, FontFaceBlock>();
 
@@ -43,12 +43,12 @@ namespace More.Compiler
 
             var fontRules = new List<NameValueProperty>();
 
-            foreach (var block in statements.OfType<SelectorAndBlock>())
+            foreach (var block in blocks.OfType<SelectorAndBlock>())
             {
                 fontRules.AddRange(block.Properties.Cast<NameValueProperty>().Where(w => w.Name.Equals("font", StringComparison.InvariantCultureIgnoreCase) || w.Name.Equals("font-family")));
             }
 
-            foreach (var media in statements.OfType<MediaBlock>())
+            foreach (var media in blocks.OfType<MediaBlock>())
             {
                 foreach (var block in media.Blocks.OfType<SelectorAndBlock>())
                 {
@@ -56,7 +56,7 @@ namespace More.Compiler
                 }
             }
 
-            foreach (var keyframes in statements.OfType<KeyFramesBlock>())
+            foreach (var keyframes in blocks.OfType<KeyFramesBlock>())
             {
                 foreach (var frame in keyframes.Frames)
                 {
@@ -84,6 +84,8 @@ namespace More.Compiler
                     Current.RecordWarning(ErrorType.Compiler, map[font], "`" + font + "` does not appear to be used in any CSS rule.");
                 }
             }
+
+            return blocks;
         }
     }
 }

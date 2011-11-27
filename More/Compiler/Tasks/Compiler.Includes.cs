@@ -8,7 +8,12 @@ namespace More.Compiler
 {
     partial class Compiler
     {
-        private List<Block> CopyIncludes(List<Block> unrolled, List<SelectorAndBlock> parent = null)
+        internal List<Block> CopyIncludes(List<Block> unrolled)
+        {
+            return CopyIncludesImpl(unrolled);
+        }
+
+        private List<Block> CopyIncludesImpl(List<Block> unrolled, List<SelectorAndBlock> parent = null)
         {
             var ret = new List<Block>();
 
@@ -67,7 +72,7 @@ namespace More.Compiler
                 if (media != null)
                 {
                     var subBlocks = media.Blocks.ToList();
-                    var copied = CopyIncludes(subBlocks, parent: forLookup);
+                    var copied = CopyIncludesImpl(subBlocks, parent: forLookup);
 
                     ret.Add(new MediaBlock(media.ForMedia.ToList(), copied, media.Start, media.Stop, media.FilePath));
                 }
@@ -79,7 +84,7 @@ namespace More.Compiler
                     foreach (var frame in keyframes.Frames)
                     {
                         var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, frame.Properties, frame.Start, frame.Stop, frame.FilePath);
-                        var copied = CopyIncludes(new List<Block>() { blockEquiv }, parent: parent);
+                        var copied = CopyIncludesImpl(new List<Block>() { blockEquiv }, parent: parent);
 
                         frames.Add(new KeyFrame(frame.Percentages.ToList(), ((SelectorAndBlock)copied[0]).Properties.ToList(), frame.Start, frame.Stop, frame.FilePath));
                     }
@@ -90,7 +95,7 @@ namespace More.Compiler
                 if (fontface != null)
                 {
                     var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, fontface.Properties, fontface.Start, fontface.Stop, fontface.FilePath);
-                    var copied = (SelectorAndBlock)CopyIncludes(new List<Block>() { blockEquiv }, parent)[0];
+                    var copied = (SelectorAndBlock)CopyIncludesImpl(new List<Block>() { blockEquiv }, parent)[0];
 
                     ret.Add(new FontFaceBlock(copied.Properties.ToList(), copied.Start, copied.Stop, copied.FilePath));
                 }
