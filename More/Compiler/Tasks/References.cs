@@ -4,11 +4,19 @@ using System.Linq;
 using System.Text;
 using More.Model;
 
-namespace More.Compiler
+namespace More.Compiler.Tasks
 {
-    partial class Compiler
+    /// <summary>
+    /// This task walks all variable references and warns or errors if anything incorrect is found.
+    /// 
+    /// Variables are considered in error if they refer to other variables that do not exist, or are declared
+    /// later in the same scope.
+    /// 
+    /// Variables cannot be named "arguments" either, as that is a reserved name.
+    /// </summary>
+    public class References
     {
-        private void VerifyBlockVariableReferences(List<string> outer, IEnumerable<Property> rules)
+        private static void VerifyBlockVariableReferences(List<string> outer, IEnumerable<Property> rules)
         {
             var locallyDeclared = new List<string>();
 
@@ -61,7 +69,7 @@ namespace More.Compiler
             }
         }
 
-        private void VerifyMixinVariableReferences(List<string> globals, MixinBlock mixin)
+        private static void VerifyMixinVariableReferences(List<string> globals, MixinBlock mixin)
         {
             var locallyDeclared = new List<string>();
 
@@ -79,20 +87,20 @@ namespace More.Compiler
             VerifyBlockVariableReferences(outer, mixin.Properties);
         }
 
-        internal List<Block> VerifyVariableReferences(List<Block> blocks)
+        public static List<Block> Task(List<Block> blocks)
         {
             VerifyVariableReferencesImpl(blocks);
 
             return blocks;
         }
 
-        private void VerifyVariableReferencesImpl(List<Block> statements, List<string> globallyDeclared = null)
+        private static void VerifyVariableReferencesImpl(List<Block> blocks, List<string> globallyDeclared = null)
         {
-            var globals = statements.OfType<MoreVariable>().OrderBy(a => a.Id);
+            var globals = blocks.OfType<MoreVariable>().OrderBy(a => a.Id);
 
             globallyDeclared = globallyDeclared ?? new List<string>();
 
-            globallyDeclared.AddRange(statements.OfType<MixinBlock>().Select(s => s.Name));
+            globallyDeclared.AddRange(blocks.OfType<MixinBlock>().Select(s => s.Name));
             globallyDeclared.AddRange(BuiltInFunctions.All.Keys);
 
             foreach (var global in globals)
@@ -109,7 +117,7 @@ namespace More.Compiler
                 globallyDeclared.Add(global.Name);
             }
 
-            foreach (var rule in statements.OfType<SpriteBlock>())
+            foreach (var rule in blocks.OfType<SpriteBlock>())
             {
                 var rhs = rule.OutputFile.ReferredToVariables();
                 var earlyReferences = rhs.Where(r => !globallyDeclared.Contains(r));
@@ -133,7 +141,7 @@ namespace More.Compiler
                 }
             }
 
-            foreach (var keyframes in statements.OfType<KeyFramesBlock>())
+            foreach (var keyframes in blocks.OfType<KeyFramesBlock>())
             {
                 foreach (var varDecl in keyframes.Variables)
                 {
@@ -154,22 +162,22 @@ namespace More.Compiler
                 }
             }
 
-            foreach (var mixin in statements.OfType<MixinBlock>())
+            foreach (var mixin in blocks.OfType<MixinBlock>())
             {
                 VerifyMixinVariableReferences(globallyDeclared, mixin);
             }
 
-            foreach (var rule in statements.OfType<SelectorAndBlock>())
+            foreach (var rule in blocks.OfType<SelectorAndBlock>())
             {
                 VerifyBlockVariableReferences(globallyDeclared, rule.Properties);
             }
 
-            foreach (var font in statements.OfType<FontFaceBlock>())
+            foreach (var font in blocks.OfType<FontFaceBlock>())
             {
                 VerifyBlockVariableReferences(globallyDeclared, font.Properties);
             }
 
-            foreach (var rule in statements.OfType<CssCharset>())
+            foreach (var rule in blocks.OfType<CssCharset>())
             {
                 var rhs = rule.Charset.ReferredToVariables();
                 var earlyReferences = rhs.Where(r => !globallyDeclared.Contains(r));
@@ -180,7 +188,7 @@ namespace More.Compiler
                 }
             }
 
-            foreach (var rule in statements.OfType<Import>())
+            foreach (var rule in blocks.OfType<Model.Import>())
             {
                 var rhs = rule.ToImport.ReferredToVariables();
                 var earlyReferences = rhs.Where(r => !globallyDeclared.Contains(r));
@@ -191,7 +199,7 @@ namespace More.Compiler
                 }
             }
 
-            foreach (var parts in statements.OfType<MediaBlock>())
+            foreach (var parts in blocks.OfType<MediaBlock>())
             {
                 VerifyVariableReferencesImpl(parts.Blocks.ToList(), globallyDeclared);
             }

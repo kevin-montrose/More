@@ -6,14 +6,19 @@ using More.Model;
 
 namespace More.Compiler
 {
-    partial class Compiler
+    /// <summary>
+    /// This task removes all noop blocks.
+    /// 
+    /// A block is considered a noop if and only if it is completely empty.
+    /// </summary>
+    public class NoOps
     {
-        private static List<Block> RemoveNops(List<Block> readyToWrite)
+        public static List<Block> Task(List<Block> blocks)
         {
             var ret = new List<Block>();
 
             // Remove no-ops
-            foreach (var statement in readyToWrite)
+            foreach (var statement in blocks)
             {
                 var media = statement as MediaBlock;
 

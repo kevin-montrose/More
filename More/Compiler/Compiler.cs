@@ -9,6 +9,7 @@ using More.Helpers;
 using System.Threading;
 using System.Collections.Concurrent;
 using System.IO.Compression;
+using More.Compiler.Tasks;
 
 namespace More.Compiler
 {
@@ -25,22 +26,22 @@ namespace More.Compiler
             var tasks = new List<CompilationTask>()
             {
                 EvaluateUsings,
-                VerifyVariableReferences,
-                ValidateCharsets,
-                MoveCssImports,
-                ExportSprites,
-                BindAndEvaluateMixins,
-                UnrollNestedBlocks,
-                MergeMedia,
-                CopyIncludes,
-                EvaluateValues,
-                ResolveImportant,
-                RemoveNops,
-                ValidateFontFace,
-                Current.Options.HasFlag(Options.Minify) ? Minify : noop,
-                Current.Options.HasFlag(Options.OptimizeCompression) ? OptimizeForCompression : noop,
-                Write,
-                WriteSprites
+                References.Task,
+                Charsets.Task,
+                Tasks.Import.Task,
+                Sprite.Task,
+                Mixin.Task,
+                Unroll.Task,
+                Tasks.Media.Task,
+                Includes.Task,
+                Evaluate.Task,
+                Important.Task,
+                NoOps.Task,
+                FontFace.Task,
+                Current.Options.HasFlag(Options.Minify) ? Minify.Task : noop,
+                Current.Options.HasFlag(Options.OptimizeCompression) ? Compress.Task : noop,
+                Write.Task,
+                WriteSprites.Task
             };
 
             try

@@ -4,15 +4,18 @@ using System.Linq;
 using System.Text;
 using More.Model;
 
-namespace More.Compiler
+namespace More.Compiler.Tasks
 {
-    partial class Compiler
+    /// <summary>
+    /// This task unrolls all nested blocks.
+    /// </summary>
+    public class Unroll
     {
-        internal List<Block> UnrollNestedBlocks(List<Block> statements)
+        public static List<Block> Task(List<Block> blocks)
         {
             var ret = new List<Block>();
 
-            foreach (var statement in statements)
+            foreach (var statement in blocks)
             {
                 var block = statement as SelectorAndBlock;
 
@@ -25,7 +28,7 @@ namespace More.Compiler
                     var media = statement as MediaBlock;
                     if (media != null)
                     {
-                        var unrolled = UnrollNestedBlocks(media.Blocks.ToList());
+                        var unrolled = Task(media.Blocks.ToList());
                         ret.Add(new MediaBlock(media.ForMedia.ToList(), unrolled, media.Start, media.Stop, media.FilePath));
                     }
                     else

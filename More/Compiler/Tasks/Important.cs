@@ -4,11 +4,16 @@ using System.Linq;
 using System.Text;
 using More.Model;
 
-namespace More.Compiler
+namespace More.Compiler.Tasks
 {
-    partial class Compiler
+    /// <summary>
+    /// If any blocks have mutltiple properties with the same name, the property with !important (if any) will be taken.
+    /// 
+    /// If after this reduction, any duplicate properties still exist on a block this task records a warning.
+    /// </summary>
+    public class Important
     {
-        private List<Block> ResolveImportant(List<Block> blocks)
+        public static List<Block> Task(List<Block> blocks)
         {
             var ret = new List<Block>();
 
@@ -56,7 +61,7 @@ namespace More.Compiler
 
                 if (media != null)
                 {
-                    var resolved = ResolveImportant(media.Blocks.ToList());
+                    var resolved = Task(media.Blocks.ToList());
                     ret.Add(new MediaBlock(media.ForMedia.ToList(), resolved, media.Start, media.Stop, media.FilePath));
                 }
 
@@ -66,7 +71,7 @@ namespace More.Compiler
                     foreach (var frame in keyframes.Frames)
                     {
                         var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, frame.Properties, frame.Start, frame.Stop, frame.FilePath);
-                        var resolved = ResolveImportant(new List<Block>() { blockEquiv });
+                        var resolved = Task(new List<Block>() { blockEquiv });
 
                         frames.Add(new KeyFrame(frame.Percentages.ToList(), ((SelectorAndBlock)resolved[0]).Properties.ToList(), frame.Stop, frame.Stop, frame.FilePath));
                     }
@@ -77,7 +82,7 @@ namespace More.Compiler
                 if (fontface != null)
                 {
                     var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, fontface.Properties, fontface.Start, fontface.Stop, fontface.FilePath);
-                    var resolved = (SelectorAndBlock)ResolveImportant(new List<Block>() { blockEquiv })[0];
+                    var resolved = (SelectorAndBlock)Task(new List<Block>() { blockEquiv })[0];
 
                     ret.Add(new FontFaceBlock(resolved.Properties.ToList(), fontface.Start, fontface.Stop, fontface.FilePath));
                 }

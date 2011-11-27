@@ -5,11 +5,19 @@ using System.Text;
 using More.Model;
 using System.IO;
 
-namespace More.Compiler
+namespace More.Compiler.Tasks
 {
-    partial class Compiler
+    /// <summary>
+    /// Validates @font-face declarations.
+    /// 
+    /// Emits warnings if the font-face doesn't appear to be in use (we cannot safely remove these due
+    /// to the possibility they are in use in other CSS files or in inline styles).
+    /// 
+    /// Emits errors if src or font-family properties are missing in a declaration.
+    /// </summary>
+    public class FontFace
     {
-        private List<Block> ValidateFontFace(List<Block> blocks)
+        public static List<Block> Task(List<Block> blocks)
         {
             var fonts = blocks.OfType<FontFaceBlock>().ToList();
             if (fonts.Count == 0) return blocks;

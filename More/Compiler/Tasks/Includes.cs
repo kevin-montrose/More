@@ -4,23 +4,28 @@ using System.Linq;
 using System.Text;
 using More.Model;
 
-namespace More.Compiler
+namespace More.Compiler.Tasks
 {
-    partial class Compiler
+    /// <summary>
+    /// This task copies properties between blocks as requested by selector includes.
+    /// 
+    /// @(.hover) and so forth are dealt with here, in short.
+    /// </summary>
+    public class Includes
     {
-        internal List<Block> CopyIncludes(List<Block> unrolled)
+        public static List<Block> Task(List<Block> blocks)
         {
-            return CopyIncludesImpl(unrolled);
+            return Impl(blocks);
         }
 
-        private List<Block> CopyIncludesImpl(List<Block> unrolled, List<SelectorAndBlock> parent = null)
+        private static List<Block> Impl(List<Block> blocks, List<SelectorAndBlock> parent = null)
         {
             var ret = new List<Block>();
 
-            var forLookup = unrolled.OfType<SelectorAndBlock>().ToList();
+            var forLookup = blocks.OfType<SelectorAndBlock>().ToList();
 
             // At this point, unrolled blocks have only NameValue (unevaluated) and Includes
-            foreach (var statement in unrolled)
+            foreach (var statement in blocks)
             {
                 var block = statement as SelectorAndBlock;
                 var media = statement as MediaBlock;
@@ -72,7 +77,7 @@ namespace More.Compiler
                 if (media != null)
                 {
                     var subBlocks = media.Blocks.ToList();
-                    var copied = CopyIncludesImpl(subBlocks, parent: forLookup);
+                    var copied = Impl(subBlocks, parent: forLookup);
 
                     ret.Add(new MediaBlock(media.ForMedia.ToList(), copied, media.Start, media.Stop, media.FilePath));
                 }
@@ -84,7 +89,7 @@ namespace More.Compiler
                     foreach (var frame in keyframes.Frames)
                     {
                         var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, frame.Properties, frame.Start, frame.Stop, frame.FilePath);
-                        var copied = CopyIncludesImpl(new List<Block>() { blockEquiv }, parent: parent);
+                        var copied = Impl(new List<Block>() { blockEquiv }, parent: parent);
 
                         frames.Add(new KeyFrame(frame.Percentages.ToList(), ((SelectorAndBlock)copied[0]).Properties.ToList(), frame.Start, frame.Stop, frame.FilePath));
                     }
@@ -95,7 +100,7 @@ namespace More.Compiler
                 if (fontface != null)
                 {
                     var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, fontface.Properties, fontface.Start, fontface.Stop, fontface.FilePath);
-                    var copied = (SelectorAndBlock)CopyIncludesImpl(new List<Block>() { blockEquiv }, parent)[0];
+                    var copied = (SelectorAndBlock)Impl(new List<Block>() { blockEquiv }, parent)[0];
 
                     ret.Add(new FontFaceBlock(copied.Properties.ToList(), copied.Start, copied.Stop, copied.FilePath));
                 }

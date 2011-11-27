@@ -5,15 +5,18 @@ using System.Text;
 using More.Model;
 using More.Helpers;
 
-namespace More.Compiler
+namespace More.Compiler.Tasks
 {
-    partial class Compiler
+    /// <summary>
+    /// Reorders blocks in such a way as to maximize LZ77 compression.
+    /// </summary>
+    public class Compress
     {
-        public List<Block> OptimizeForCompression(List<Block> statements)
+        public static List<Block> Task(List<Block> blocks)
         {
-            var before = (decimal)LZ77Optimizer.GZipSize(statements.Cast<IWritable>());
+            var before = (decimal)LZ77Optimizer.GZipSize(blocks.Cast<IWritable>());
 
-            var ret = LZ77Optimizer.Optimize(statements);
+            var ret = LZ77Optimizer.Optimize(blocks);
 
             var after = (decimal)LZ77Optimizer.GZipSize(ret.Cast<IWritable>());
 

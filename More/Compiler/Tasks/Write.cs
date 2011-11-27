@@ -4,11 +4,14 @@ using System.Linq;
 using System.Text;
 using More.Model;
 
-namespace More.Compiler
+namespace More.Compiler.Tasks
 {
-    partial class Compiler
+    /// <summary>
+    /// Writes all blocks to the output stream set on Current.
+    /// </summary>
+    public class Write
     {
-        internal List<Block> Write(List<Block> blocks)
+        public static List<Block> Task(List<Block> blocks)
         {
             var output = Current.OutputStream;
 

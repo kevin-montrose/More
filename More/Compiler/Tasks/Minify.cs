@@ -6,11 +6,18 @@ using More.Model;
 using System.IO;
 using More.Helpers;
 
-namespace More.Compiler
+namespace More.Compiler.Tasks
 {
-    partial class Compiler
+    /// <summary>
+    /// This task re-writes values so that they take as little space as possible.
+    /// 
+    /// This includes coercing units (if the inch version is smaller than the centimeter
+    /// it will be used, and so on) and choosing ideal color versions (hex triples when possible,
+    /// dropping alpha when not needed, and so on).
+    /// </summary>
+    public class Minify
     {
-        private ColorValue MinifyColor(ColorValue value)
+        private static ColorValue MinifyColor(ColorValue value)
         {
             // There's no lossless conversion for RGBA values
             if (value is RGBAColorValue) return value;
@@ -51,7 +58,7 @@ namespace More.Compiler
             return new HexSextupleColorValue(red, green, blue);
         }
 
-        private NumberWithUnitValue MinifyNumberWithUnit(NumberWithUnitValue value)
+        private static NumberWithUnitValue MinifyNumberWithUnit(NumberWithUnitValue value)
         {
             var min = MinifyNumberValue(value);
 
@@ -93,7 +100,7 @@ namespace More.Compiler
             return ret;
         }
 
-        private NumberValue MinifyNumberValue(NumberValue value)
+        private static NumberValue MinifyNumberValue(NumberValue value)
         {
             var asStr = value.Value.ToString();
             if (asStr.Contains('.'))
@@ -108,7 +115,7 @@ namespace More.Compiler
             return new NumberValue(decimal.Parse(asStr));
         }
 
-        private Value MinifyValue(Value value)
+        private static Value MinifyValue(Value value)
         {
             var comma = value as CommaDelimittedValue;
             if (comma != null)
@@ -144,7 +151,7 @@ namespace More.Compiler
             return value;
         }
 
-        private Property MinifyRule(Property rule)
+        private static Property MinifyProperty(Property rule)
         {
             if (!(rule is NameValueProperty))
                 throw new InvalidOperationException("Minify cannot be run on non name-value rules, found [" + rule + "]");
@@ -155,11 +162,11 @@ namespace More.Compiler
             return new NameValueProperty(named.Name, MinifyValue(value));
         }
 
-        public List<Block> Minify(List<Block> statements)
+        public static List<Block> Task(List<Block> blocks)
         {
             var ret = new List<Block>();
 
-            foreach (var statement in statements)
+            foreach (var statement in blocks)
             {
                 var block = statement as SelectorAndBlock;
                 if (block != null)
@@ -167,7 +174,7 @@ namespace More.Compiler
                     var rules = new List<Property>();
                     foreach (var prop in block.Properties)
                     {
-                        rules.Add(MinifyRule(prop));
+                        rules.Add(MinifyProperty(prop));
                     }
 
                     ret.Add(new SelectorAndBlock(block.Selector, rules, block.Start, block.Stop, block.FilePath));
@@ -178,7 +185,7 @@ namespace More.Compiler
                 var media = statement as MediaBlock;
                 if (media != null)
                 {
-                    var subStatements = Minify(media.Blocks.ToList());
+                    var subStatements = Task(media.Blocks.ToList());
                     ret.Add(new MediaBlock(media.ForMedia.ToList(), subStatements, media.Start, media.Stop, media.FilePath));
                     continue;
                 }
@@ -192,7 +199,7 @@ namespace More.Compiler
                     foreach (var frame in keyframes.Frames)
                     {
                         var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, frame.Properties, frame.Start, frame.Stop, frame.FilePath);
-                        var mind = Minify(new List<Block>() { blockEquiv });
+                        var mind = Task(new List<Block>() { blockEquiv });
                         frames.Add(new KeyFrame(frame.Percentages.ToList(), ((SelectorAndBlock)mind[0]).Properties.ToList(), frame.Start, frame.Stop, frame.FilePath));
                     }
 

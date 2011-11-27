@@ -4,15 +4,21 @@ using System.Linq;
 using System.Text;
 using More.Model;
 
-namespace More.Compiler
+namespace More.Compiler.Tasks
 {
-    partial class Compiler
+    /// <summary>
+    /// When this task completes alll values will have been evaluated.
+    /// That is, scopes and bindings will no longer be significant.
+    /// 
+    /// "name: @a" will have been replaced with "name: value", in short.
+    /// </summary>
+    public class Evaluate
     {
-        private List<Block> EvaluateValues(List<Block> statements)
+        public static List<Block> Task(List<Block> blocks)
         {
             var ret = new List<Block>();
 
-            foreach (var statement in statements)
+            foreach (var statement in blocks)
             {
                 var block = statement as SelectorAndBlock;
                 var media = statement as MediaBlock;
@@ -45,7 +51,7 @@ namespace More.Compiler
 
                 if (media != null)
                 {
-                    var evaluated = EvaluateValues(media.Blocks.ToList());
+                    var evaluated = Task(media.Blocks.ToList());
 
                     ret.Add(new MediaBlock(media.ForMedia.ToList(), evaluated, media.Start, media.Stop, media.FilePath));
                 }
@@ -56,7 +62,7 @@ namespace More.Compiler
                     foreach (var frame in keyframes.Frames)
                     {
                         var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, frame.Properties, frame.Start, frame.Stop, frame.FilePath);
-                        var evald = EvaluateValues(new List<Block>() { blockEquiv });
+                        var evald = Task(new List<Block>() { blockEquiv });
                         frames.Add(new KeyFrame(frame.Percentages.ToList(), ((SelectorAndBlock)evald[0]).Properties.ToList(), frame.Start, frame.Stop, frame.FilePath));
                     }
 

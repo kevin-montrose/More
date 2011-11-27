@@ -10,7 +10,7 @@ using More.Compiler;
 
 namespace More.Model
 {
-    class Block : IPosition
+    public class Block : IPosition
     {
         public int Start { get; protected set; }
         public int Stop { get; protected set; }

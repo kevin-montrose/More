@@ -5,11 +5,14 @@ using System.Text;
 using More.Model;
 using System.IO;
 
-namespace More.Compiler
+namespace More.Compiler.Tasks
 {
-    partial class Compiler
+    /// <summary>
+    /// Writes all the sprites that have been generated and stored on Current to disk.
+    /// </summary>
+    public class WriteSprites
     {
-        internal List<Block> WriteSprites(List<Block> blocks)
+        public static List<Block> Task(List<Block> blocks)
         {
             foreach (var sprite in Current.PendingSpriteExports)
             {

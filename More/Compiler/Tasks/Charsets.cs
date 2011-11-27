@@ -4,18 +4,25 @@ using System.Linq;
 using System.Text;
 using More.Model;
 
-namespace More.Compiler
+namespace More.Compiler.Tasks
 {
-    partial class Compiler
+    /// <summary>
+    /// Validate @charset declarations, recording errors where more than a one charset is
+    /// defined for the emited CSS.
+    /// 
+    /// At the end of this task, at most one @charset appears in the blocks and is in the first
+    /// slot.
+    /// </summary>
+    public class Charsets
     {
-        private List<Block> ValidateCharsets(List<Block> statements)
+        public static List<Block> Task(List<Block> blocks)
         {
-            var charsets = statements.OfType<CssCharset>();
+            var charsets = blocks.OfType<CssCharset>();
 
-            if (charsets.Count() == 0) return statements;
+            if (charsets.Count() == 0) return blocks;
 
-            var ret = new List<Block>(statements.Count);
-            ret.AddRange(statements.Where(w => !(w is CssCharset)));
+            var ret = new List<Block>(blocks.Count);
+            ret.AddRange(blocks.Where(w => !(w is CssCharset)));
 
             var charsetStrings = charsets.Select(s => s.Charset.Value).Distinct();
 

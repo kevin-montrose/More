@@ -10,6 +10,7 @@ using System.Threading;
 using More.Helpers;
 using System.IO.Compression;
 using More.Compiler;
+using More.Compiler.Tasks;
 
 namespace MoreTests
 {
@@ -78,7 +79,7 @@ namespace MoreTests
 
             var compiler = Compiler.Get();
 
-            var bound = compiler.BindAndEvaluateMixins(statements);
+            var bound = Mixin.Task(statements);
 
             Assert.AreEqual(1, bound.Count);
             Assert.AreEqual(typeof(SelectorAndBlock), bound[0].GetType());
@@ -119,7 +120,7 @@ namespace MoreTests
 
             var compiler = Compiler.Get();
 
-            var bound = compiler.BindAndEvaluateMixins(statements);
+            var bound = Mixin.Task(statements);
 
             Assert.AreEqual(1, bound.Count);
             Assert.AreEqual(typeof(SelectorAndBlock), bound[0].GetType());
@@ -156,7 +157,7 @@ namespace MoreTests
 
             var compiler = Compiler.Get();
 
-            var bound = compiler.BindAndEvaluateMixins(statements);
+            var bound = Mixin.Task(statements);
 
             Assert.AreEqual(1, bound.Count);
 
@@ -189,7 +190,7 @@ namespace MoreTests
 
                 var compiler = Compiler.Get();
 
-                var bound = compiler.BindAndEvaluateMixins(statements);
+                var bound = Mixin.Task(statements);
 
                 Assert.Fail("Should have inifinitely recursed");
             }
@@ -212,7 +213,7 @@ namespace MoreTests
 
             var compiler = Compiler.Get();
 
-            var unrolled = compiler.UnrollNestedBlocks(statements.ToList()).Cast<SelectorAndBlock>().ToList();
+            var unrolled = Unroll.Task(statements.ToList()).Cast<SelectorAndBlock>().ToList();
 
             Assert.AreEqual(2, unrolled.Count);
             Assert.AreEqual("img", ((ElementSelector)unrolled[0].Selector).Name);
@@ -234,7 +235,7 @@ namespace MoreTests
 
             var compiler = Compiler.Get();
 
-            var unrolled = compiler.UnrollNestedBlocks(statements.ToList()).Cast<SelectorAndBlock>().ToList();
+            var unrolled = Unroll.Task(statements.ToList()).Cast<SelectorAndBlock>().ToList();
 
             Assert.AreEqual(3, unrolled.Count);
             Assert.AreEqual("img", ((ElementSelector)unrolled[0].Selector).Name);
@@ -266,7 +267,7 @@ namespace MoreTests
 
             var compiler = Compiler.Get();
 
-            var ready = compiler.UnrollNestedBlocks(compiler.BindAndEvaluateMixins(statements)).Cast<SelectorAndBlock>().ToList();
+            var ready = Unroll.Task(Mixin.Task(statements)).Cast<SelectorAndBlock>().ToList();
 
             Assert.AreEqual(5, ready.Count);
 

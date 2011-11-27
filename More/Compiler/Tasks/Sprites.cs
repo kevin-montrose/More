@@ -4,21 +4,26 @@ using System.Linq;
 using System.Text;
 using More.Model;
 
-namespace More.Compiler
+namespace More.Compiler.Tasks
 {
-    partial class Compiler
+    /// <summary>
+    /// This task handles rendering @sprite blocks.
+    /// 
+    /// When it returns, there will be no more SpriteBlock blocks.
+    /// </summary>
+    public class Sprite
     {
-        private List<Block> ExportSprites(List<Block> statements)
+        public static List<Block> Task(List<Block> blocks)
         {
             var inputFile = Current.InitialFilePath;
 
-            var spriteDecls = statements.OfType<SpriteBlock>().ToList();
+            var spriteDecls = blocks.OfType<SpriteBlock>().ToList();
             if (spriteDecls.Count == 0)
             {
-                return statements;
+                return blocks;
             }
 
-            var ret = statements.Where(w => w.GetType() != typeof(SpriteBlock)).ToList();
+            var ret = blocks.Where(w => w.GetType() != typeof(SpriteBlock)).ToList();
 
             foreach (var sprite in spriteDecls)
             {
