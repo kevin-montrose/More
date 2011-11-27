@@ -3,16 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using More.Model;
+using MoreInternals.Model;
 using NDesk.Options;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using More.Helpers;
-using More.Parser;
+using MoreInternals.Helpers;
+using MoreInternals.Parser;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using MoreInternals;
+using MoreInternals.Compiler;
 
 namespace More
 {
@@ -34,7 +36,7 @@ namespace More
             using (var stream = File.OpenRead(inputFile))
             using (var @in = new StreamReader(stream))
             {
-                return Compiler.Compiler.Get().Compile(currentDir, inputFile, @in, output, FileLookup.Singleton);
+                return Compiler.Get().Compile(currentDir, inputFile, @in, output, FileLookup.Singleton);
             }
         }
 
@@ -564,7 +566,7 @@ namespace More
 
                     try
                     {
-                        var compiler = Compiler.Compiler.Get();
+                        var compiler = Compiler.Get();
 
                         var header = "(" + Current.FileCache.Count + ") files in compiler cache";
 

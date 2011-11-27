@@ -3,14 +3,14 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using More.Model;
+using MoreInternals.Model;
 using System.IO;
-using More;
-using More.Parser;
+using MoreInternals;
+using MoreInternals.Parser;
 using System.Threading;
-using More.Helpers;
-using More.Compiler;
-using More.Compiler.Tasks;
+using MoreInternals.Helpers;
+using MoreInternals.Compiler;
+using MoreInternals.Compiler.Tasks;
 
 namespace MoreTests
 {

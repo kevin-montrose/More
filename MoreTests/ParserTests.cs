@@ -5,11 +5,11 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using System.Threading;
-using More.Model;
-using More;
-using More.Parser;
-using More.Compiler;
-using More.Helpers;
+using MoreInternals.Model;
+using MoreInternals;
+using MoreInternals.Parser;
+using MoreInternals.Compiler;
+using MoreInternals.Helpers;
 
 namespace MoreTests
 {
@@ -44,7 +44,7 @@ namespace MoreTests
             using (var stream = new StringReader(text))
             {
                 var compiler = Compiler.Get();
-                return More.Compiler.Tasks.Parse.ParseStreamImpl("!--parser test file " + toUse + " --!", stream);
+                return MoreInternals.Compiler.Tasks.Parse.ParseStreamImpl("!--parser test file " + toUse + " --!", stream);
             }
         }
 

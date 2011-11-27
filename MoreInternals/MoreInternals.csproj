@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{583D4854-C618-4554-A2EF-F75672076B8F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>MoreInternals</RootNamespace>
+    <AssemblyName>MoreInternals</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Compiler\StoppedCompilingException.cs" />
+    <Compile Include="Compiler\Tasks\Charsets.cs" />
+    <Compile Include="Compiler\Tasks\Compress.cs" />
+    <Compile Include="Compiler\Compiler.cs" />
+    <Compile Include="Compiler\Tasks\Evaluate.cs" />
+    <Compile Include="Compiler\Tasks\FontFace.cs" />
+    <Compile Include="Compiler\Tasks\Import.cs" />
+    <Compile Include="Compiler\Tasks\Important.cs" />
+    <Compile Include="Compiler\Tasks\Includes.cs" />
+    <Compile Include="Compiler\Tasks\Media.cs" />
+    <Compile Include="Compiler\Tasks\Minify.cs" />
+    <Compile Include="Compiler\Tasks\Mixins.cs" />
+    <Compile Include="Compiler\Tasks\NoOps.cs" />
+    <Compile Include="Compiler\Tasks\Parse.cs" />
+    <Compile Include="Compiler\Tasks\Sprites.cs" />
+    <Compile Include="Compiler\Tasks\Unroll.cs" />
+    <Compile Include="Compiler\Tasks\Using.cs" />
+    <Compile Include="Compiler\Tasks\References.cs" />
+    <Compile Include="Compiler\Tasks\Write.cs" />
+    <Compile Include="Compiler\Tasks\WriteSprites.cs" />
+    <Compile Include="Compiler\SpriteExport.cs" />
+    <Compile Include="Current.cs" />
+    <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="Helpers\CssWriter.cs" />
+    <Compile Include="Helpers\FileCache.cs" />
+    <Compile Include="Helpers\FileLookup.cs" />
+    <Compile Include="Helpers\LZ77Optimizer.cs" />
+    <Compile Include="Helpers\LZ77Optimizer.FastString.cs">
+      <DependentUpon>LZ77Optimizer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Model\Property.cs" />
+    <Compile Include="Model\Error.cs" />
+    <Compile Include="Model\IPosition.cs" />
+    <Compile Include="Model\MoreFunction.cs" />
+    <Compile Include="Model\Value.cs" />
+    <Compile Include="Model\Value.Operators.cs">
+      <DependentUpon>Value.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Model\Scope.cs" />
+    <Compile Include="Model\Selector.cs" />
+    <Compile Include="Model\Block.cs" />
+    <Compile Include="Parser\CommentlessStream.cs" />
+    <Compile Include="Parser\MoreValueParser.cs" />
+    <Compile Include="Parser\ParserStream.cs" />
+    <Compile Include="Parser\Parser.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
