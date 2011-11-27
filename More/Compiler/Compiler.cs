@@ -19,6 +19,8 @@ namespace More.Compiler
     {
         private static readonly Compiler Singleton = new Compiler();
 
+        private Compiler() { }
+
         public bool Compile(string currentDir, string inputFile, TextReader @in, TextWriter output, IFileLookup lookup)
         {
             CompilationTask noop = (List<Block> blocks) => blocks;

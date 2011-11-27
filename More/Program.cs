@@ -323,6 +323,8 @@ namespace More
 
         static bool MultiThreadedCompile(int maxParallelism, string workingDirectory, List<string> toCompile, bool overwrite, bool warnAsErrors, bool minify, bool optimize, bool verbose, string spriteProg, string spriteArguments)
         {
+            var commonFileCache = new FileCache();
+
             var @lock = new Semaphore(0, toCompile.Count);
             var contexts = new ConcurrentBag<Context>();
             var outMsg = new ConcurrentBag<string>();
@@ -335,7 +337,7 @@ namespace More
                     {
                         try
                         {
-                            var threadContext = new Context();
+                            var threadContext = new Context(commonFileCache);
                             contexts.Add(threadContext);
 
                             Current.SetContext(threadContext);
@@ -564,13 +566,13 @@ namespace More
                     {
                         var compiler = Compiler.Compiler.Get();
 
-                        var header = "(" + compiler.FileCache.Count + ") files in compiler cache";
+                        var header = "(" + Current.FileCache.Count + ") files in compiler cache";
 
                         text.WriteLine(header);
                         for (int i = 0; i < header.Length; i++) text.Write('=');
                         text.WriteLine();
 
-                        foreach (var path in compiler.FileCache.Keys)
+                        foreach (var path in Current.FileCache.Loaded())
                         {
                             string more = null;
 

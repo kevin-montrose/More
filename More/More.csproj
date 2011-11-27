@@ -71,6 +71,7 @@
     <Compile Include="Current.cs" />
     <Compile Include="ExtensionsMethods.cs" />
     <Compile Include="Helpers\CssWriter.cs" />
+    <Compile Include="Helpers\FileCache.cs" />
     <Compile Include="Helpers\FileLookup.cs" />
     <Compile Include="Helpers\LZ77Optimizer.cs" />
     <Compile Include="Helpers\LZ77Optimizer.FastString.cs">

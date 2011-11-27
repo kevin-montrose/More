@@ -10,27 +10,6 @@ namespace More.Compiler
 {
     partial class Compiler
     {
-        private object SyncLock = new object();
-
-        internal Dictionary<string, List<Block>> FileCache = new Dictionary<string, List<Block>>();
-        private HashSet<string> InProgress = new HashSet<string>();
-
-        private Compiler() { }
-
-        internal void ClearFileCache()
-        {
-            FileCache.Clear();
-            InProgress.Clear();
-        }
-
-        public bool InProgressParsing(string filePath)
-        {
-            lock (SyncLock)
-            {
-                return InProgress.Contains(filePath);
-            }
-        }
-
         public List<Block> ParseStream(TextReader @in)
         {
             var filePath = Current.InitialFilePath;
@@ -38,53 +17,15 @@ namespace More.Compiler
             return ParseStreamImpl(filePath, @in);
         }
 
-        internal List<Block> ParseStreamImpl(string filePath, TextReader @in)
+        private static List<Block> CheckPostImport(List<Block> ret)
         {
-            lock (SyncLock)
-            {
-                List<Block> cached;
-                if (FileCache.TryGetValue(filePath, out cached))
-                    return cached;
-
-                if (InProgress.Contains(filePath))
-                {
-                    while (!FileCache.ContainsKey(filePath))
-                        Monitor.Wait(SyncLock);
-
-                    return FileCache[filePath];
-                }
-                else
-                {
-                    InProgress.Add(filePath);
-                }
-            }
-
-            var newParser = Parser.Parser.CreateParser();
-
-            var ret = newParser.Parse(filePath, @in);
-
-            if (ret == null)
-            {
-                lock (SyncLock)
-                {
-                    FileCache[filePath] = ret;
-                    InProgress.Remove(filePath);
-                    Monitor.PulseAll(SyncLock);
-                }
-                return ret;
-            }
+            if (ret == null) return null;
 
             var lastImport = ret.LastOrDefault(r => r is Import);
             var firstNonImport = ret.FirstOrDefault(r => !(r is Import));
 
             if (lastImport == null || firstNonImport == null)
             {
-                lock (SyncLock)
-                {
-                    FileCache[filePath] = ret;
-                    InProgress.Remove(filePath);
-                    Monitor.PulseAll(SyncLock);
-                }
                 return ret;
             }
 
@@ -105,14 +46,23 @@ namespace More.Compiler
                 }
             }
 
-            lock (SyncLock)
-            {
-                FileCache[filePath] = ret;
-                InProgress.Remove(filePath);
-                Monitor.PulseAll(SyncLock);
-            }
-
             return ret;
+        }
+
+        internal List<Block> ParseStreamImpl(string filePath, TextReader @in)
+        {
+            var ret =
+                Current.FileCache.Demand(
+                    filePath,
+                    delegate(string path)
+                    {
+                        var newParser = Parser.Parser.CreateParser();
+
+                        return newParser.Parse(filePath, @in);
+                    }
+                );
+
+            return CheckPostImport(ret);
         }
     }
 }

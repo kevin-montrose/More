@@ -20,63 +20,77 @@ namespace More.Compiler
 
         private List<Block> EvaluateUsingsImpl(string initialFile, List<Block> initialStatements, IFileLookup lookup)
         {
-            var imports = new Dictionary<string, Tuple<Using, List<Block>>>();
-            imports[initialFile] = Tuple.Create((Using)null, initialStatements);
+            var imports = new List<Tuple<Using, List<Block>>>();
+            imports.Add(Tuple.Create((Using)null, initialStatements));
 
-            var unresolved = new Queue<Using>();
-            initialStatements.OfType<Using>().Each(a => unresolved.Enqueue(a));
-
-            Func<bool> anyNotInProgress =
-                delegate
-                {
-                    return
-                        unresolved.Any(a =>
-                        {
-                            var file = a.RawPath;
-                            file = file.Replace('/', Path.DirectorySeparatorChar).RebaseFile(initialFile);
-
-                            return !InProgressParsing(file);
-                        }
-                        );
-                };
+            var unresolved = new List<Tuple<string, Using>>();
+            unresolved.AddRange(
+                initialStatements.OfType<Using>().Select(
+                    u =>
+                        Tuple.Create(
+                            u.RawPath.Replace('/', Path.DirectorySeparatorChar).RebaseFile(initialFile),
+                            u
+                        )
+                )
+            );
 
             while (unresolved.Count > 0)
             {
-                var toResolve = unresolved.Dequeue();
+                var allFiles = unresolved.Select(s => s.Item1);
 
-                var file = toResolve.RawPath;
-                file = file.Replace('/', Path.DirectorySeparatorChar).RebaseFile(initialFile);
+                var loaded =
+                    Current.FileCache.Available(
+                        allFiles,
+                        delegate(string file)
+                        {
+                            var toResolve = unresolved.Single(w => w.Item1 == file);
 
-                if (InProgressParsing(file) && anyNotInProgress())
+                            using (var @in = lookup.Find(file))
+                            {
+                                var newParser = Parser.Parser.CreateParser();
+                                var statements = CheckPostImport(newParser.Parse(file, @in));
+
+                                if (statements == null)
+                                {
+                                    Current.RecordError(ErrorType.Compiler, toResolve.Item2, "Could not resolve @using '" + toResolve.Item2.RawPath + "'");
+                                    return null;
+                                }
+
+                                return statements;
+                            }
+                        }
+                    );
+
+                var @using = unresolved.Single(s => s.Item1 == loaded.Item1);
+
+                imports.Add(Tuple.Create(@using.Item2, loaded.Item2));
+
+                unresolved.RemoveAll(a => a.Item1 == loaded.Item1);
+
+                if (loaded.Item2 != null)
                 {
-                    unresolved.Enqueue(toResolve);
-                    continue;
-                }
-
-                using (var @in = lookup.Find(file))
-                {
-                    var statements = ParseStreamImpl(file, @in);
-
-                    if (statements == null)
+                    var references = loaded.Item2.OfType<Using>().Where(a => !imports.Any(x => x.Item1 == a));
+                    
+                    foreach(var subRef in references)
                     {
-                        Current.RecordError(ErrorType.Compiler, toResolve, "Could not resolve @using '" + toResolve.RawPath + "'");
-                        continue;
+                        unresolved.Add(
+                            Tuple.Create(
+                                subRef.RawPath.Replace('/', Path.DirectorySeparatorChar).RebaseFile(loaded.Item1),
+                                subRef
+                            )
+                        );
                     }
-
-                    imports[file] = Tuple.Create(toResolve, statements);
-
-                    statements.OfType<Using>().Where(a => !imports.ContainsKey(a.RawPath.RebaseFile(initialFile))).Each(a => unresolved.Enqueue(a));
                 }
             }
 
             // Can't nest @media via @using
             foreach (var loaded in imports)
             {
-                if (loaded.Value.Item1 == null || loaded.Value.Item1.ForMedia.Count() == 0) continue;
+                if (loaded.Item1 == null || loaded.Item1.ForMedia.Count() == 0) continue;
 
-                if (loaded.Value.Item2.OfType<MediaBlock>().Count() != 0)
+                if (loaded.Item2.OfType<MediaBlock>().Count() != 0)
                 {
-                    Current.RecordError(ErrorType.Compiler, loaded.Value.Item1, "Cannot nest @media rules via @imports");
+                    Current.RecordError(ErrorType.Compiler, loaded.Item1, "Cannot nest @media rules via @imports");
                 }
             }
 
@@ -85,20 +99,20 @@ namespace More.Compiler
 
             var ret = new List<Block>();
 
-            foreach (var loaded in imports.Where(w => w.Value.Item1 == null || w.Value.Item1.ForMedia.Count() == 0))
+            foreach (var loaded in imports.Where(w => w.Item1 == null || w.Item1.ForMedia.Count() == 0))
             {
-                ret.AddRange(loaded.Value.Item2);
+                ret.AddRange(loaded.Item2);
             }
 
-            foreach (var loaded in imports.Where(w => w.Value.Item1 != null && w.Value.Item1.ForMedia.Count() > 0))
+            foreach (var loaded in imports.Where(w => w.Item1 != null && w.Item1.ForMedia.Count() > 0))
             {
-                var statements = loaded.Value.Item2;
+                var statements = loaded.Item2;
                 ret.AddRange(statements.OfType<MixinBlock>());
                 ret.AddRange(statements.OfType<KeyFramesBlock>());
                 ret.AddRange(statements.OfType<FontFaceBlock>());
                 var inner = statements.Where(w => !(w is MixinBlock || w is KeyFramesBlock || w is FontFaceBlock));
 
-                ret.Add(new MediaBlock(loaded.Value.Item1.ForMedia.ToList(), inner.ToList(), loaded.Value.Item1.Start, loaded.Value.Item1.Stop, loaded.Value.Item1.FilePath));
+                ret.Add(new MediaBlock(loaded.Item1.ForMedia.ToList(), inner.ToList(), loaded.Item1.Start, loaded.Item1.Stop, loaded.Item1.FilePath));
             }
 
             return ret;

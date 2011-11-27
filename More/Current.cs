@@ -41,9 +41,12 @@ namespace More
         internal IFileLookup FileLookup { get; set; }
         internal List<SpriteExport> PendingSpriteExports { get; set; }
         internal TextWriter OutputStream { get; set; }
+        internal FileCache FileCache { get; set; }
 
-        public Context()
+        public Context(FileCache cache)
         {
+            FileCache = cache;
+
             SpriteFiles = new List<string>();
             InfoMessages = new List<string>();
             Errors = new Dictionary<ErrorType, List<Error>>();
@@ -93,7 +96,7 @@ namespace More
             // Dupes should be removed here, thus Union()
             var sprites = this.SpriteFiles.Union(other.SpriteFiles).ToList();
 
-            var ret = new Context();
+            var ret = new Context(this.FileCache);
             ret.Errors = errors;
             ret.Warnings = warnings;
             ret.InfoMessages = infos;
@@ -160,6 +163,11 @@ namespace More
         public static List<SpriteExport> PendingSpriteExports
         {
             get { return InnerContext.Value.PendingSpriteExports; }
+        }
+
+        public static FileCache FileCache
+        {
+            get { return InnerContext.Value.FileCache; }
         }
 
         public static void SetContext(Context context)

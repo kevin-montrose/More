@@ -9,6 +9,7 @@ using More.Model;
 using More;
 using More.Parser;
 using More.Compiler;
+using More.Helpers;
 
 namespace MoreTests
 {
@@ -20,7 +21,7 @@ namespace MoreTests
     {
         private bool TryParse(string text)
         {
-            Current.SetContext(new Context());
+            Current.SetContext(new Context(new FileCache()));
 
             try
             {
@@ -36,7 +37,7 @@ namespace MoreTests
         private static int TryParseNumber = 0;
         private List<Block> TryParseStatements(string text)
         {
-            Current.SetContext(new Context());
+            Current.SetContext(new Context(new FileCache()));
 
             var toUse = Interlocked.Increment(ref TryParseNumber);
 

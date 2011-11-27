@@ -24,7 +24,7 @@ namespace MoreTests
         {
             fakeFile = fakeFile ?? "compiler-fake-file " + Interlocked.Increment(ref TryCompileNumber) + ".more";
 
-            Current.SetContext(new Context());
+            Current.SetContext(new Context(new FileCache()));
 
             Current.SetWriterMode(WriterMode.Minimize);
             if (!minify)
@@ -57,7 +57,7 @@ namespace MoreTests
         private static int TryParseNumber = 0;
         private List<Block> TryParseStatements(string text)
         {
-            Current.SetContext(new Context());
+            Current.SetContext(new Context(new FileCache()));
 
             var toUse = Interlocked.Increment(ref TryParseNumber);
 
@@ -648,8 +648,6 @@ namespace MoreTests
                 File.Delete(tempPic);
             }
 
-            Compiler.Get().ClearFileCache();
-
             try
             {
                 var mixin =
@@ -738,7 +736,7 @@ namespace MoreTests
         [TestMethod]
         public void FileRebasing()
         {
-            Current.SetContext(new Context());
+            Current.SetContext(new Context(new FileCache()));
 
             Current.SetWorkingDirectory(@"C:\hello");
             Assert.AreEqual(@"C:\hello\world.txt", @"~\world.txt".RebaseFile());
