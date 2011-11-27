@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using More.Helpers;
 using More.Parser;
+using More.Compiler;
 
 namespace More.Model
 {

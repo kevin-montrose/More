@@ -7,7 +7,7 @@ using System.IO;
 using More.Model;
 using System.Drawing.Imaging;
 
-namespace More
+namespace More.Compiler
 {
     class Point
     {

@@ -9,6 +9,7 @@ using More;
 using More.Parser;
 using System.Threading;
 using More.Helpers;
+using More.Compiler;
 
 namespace MoreTests
 {

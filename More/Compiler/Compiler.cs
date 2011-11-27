@@ -10,7 +10,7 @@ using System.Threading;
 using System.Collections.Concurrent;
 using System.IO.Compression;
 
-namespace More
+namespace More.Compiler
 {
     class StoppedCompilingException : Exception { }
 

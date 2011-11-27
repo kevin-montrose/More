@@ -34,7 +34,7 @@ namespace More
             using (var stream = File.OpenRead(inputFile))
             using (var @in = new StreamReader(stream))
             {
-                return Compiler.Get().Compile(currentDir, inputFile, @in, output, FileLookup.Singleton);
+                return Compiler.Compiler.Get().Compile(currentDir, inputFile, @in, output, FileLookup.Singleton);
             }
         }
 
@@ -562,7 +562,7 @@ namespace More
 
                     try
                     {
-                        var compiler = Compiler.Get();
+                        var compiler = Compiler.Compiler.Get();
 
                         var header = "(" + compiler.FileCache.Count + ") files in compiler cache";
 

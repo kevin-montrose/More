@@ -47,8 +47,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Compiler.cs" />
-    <Compile Include="Compiler.Sprites.cs">
+    <Compile Include="Compiler\Compiler.cs" />
+    <Compile Include="Compiler\Compiler.Sprites.cs">
       <DependentUpon>Compiler.cs</DependentUpon>
     </Compile>
     <Compile Include="Current.cs" />

@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
+using System.Threading;
 using More.Model;
 using More;
 using More.Parser;
-using System.Threading;
+using More.Compiler;
 
 namespace MoreTests
 {

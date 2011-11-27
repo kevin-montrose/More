@@ -6,6 +6,7 @@ using System.IO;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using More.Parser;
+using More.Compiler;
 
 namespace More.Model
 {
