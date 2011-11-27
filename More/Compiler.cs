@@ -20,7 +20,7 @@ namespace More
 
         private object SyncLock = new object();
 
-        private Dictionary<string, List<Block>> FileCache = new Dictionary<string, List<Block>>();
+        internal Dictionary<string, List<Block>> FileCache = new Dictionary<string, List<Block>>();
         private HashSet<string> InProgress = new HashSet<string>();
 
         private Compiler() { }

@@ -558,6 +558,45 @@ namespace More
                     text.WriteLine("---------");
                     text.WriteLine(e.Message);
                     text.WriteLine(e.StackTrace);
+                    text.WriteLine();
+
+                    try
+                    {
+                        var compiler = Compiler.Get();
+
+                        var header = "(" + compiler.FileCache.Count + ") files in compiler cache";
+
+                        text.WriteLine(header);
+                        for (int i = 0; i < header.Length; i++) text.Write('=');
+                        text.WriteLine();
+
+                        foreach (var path in compiler.FileCache.Keys)
+                        {
+                            string more = null;
+
+                            try
+                            {
+                                more = File.ReadAllText(path);
+                            }
+                            catch (Exception) { /* Indicative of IO trouble */ }
+
+                            if (more.HasValue())
+                            {
+                                var pathHeader = "[" + path + "] of " + more.Length + " characters";
+                                text.WriteLine(pathHeader);
+                                for (int i = 0; i < pathHeader.Length; i++) text.Write('-');
+                                text.WriteLine();
+                                text.WriteLine(more);
+                            }
+                            else
+                            {
+                                text.WriteLine("**[" + path + "] could not read**");
+                            }
+
+                            text.WriteLine();
+                        }
+                    }
+                    catch (Exception) { /* Abandon all hope, ye who enter here */ }
                 }
 
                 Console.WriteLine(" done!");
