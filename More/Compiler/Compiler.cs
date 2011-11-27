@@ -12,8 +12,6 @@ using System.IO.Compression;
 
 namespace More.Compiler
 {
-    class StoppedCompilingException : Exception { }
-
     partial class Compiler
     {
         private static readonly Compiler Singleton = new Compiler();
@@ -25,6 +23,7 @@ namespace More.Compiler
                 Current.SetWorkingDirectory(currentDir);
                 Current.SetInitialFile(inputFile);
                 Current.SetFileLookup(lookup);
+                Current.SetOutputStream(output);
 
                 var initial = ParseStream(@in);
 
@@ -110,21 +109,9 @@ namespace More.Compiler
                     compressionOptimized = minified;
                 }
 
-                var writer = Current.GetWriter(output);
-                foreach (var statement in compressionOptimized.Cast<IWritable>())
-                {
-                    statement.Write(writer);
-                }
+                Write(compressionOptimized);
 
-                foreach (var sprite in Current.PendingSpriteExports)
-                {
-                    var @out = sprite.OutputFile.Replace('/', Path.DirectorySeparatorChar);
-
-                    sprite.Sprite.Save(@out);
-                    sprite.Sprite.Dispose();
-
-                    Current.SpriteFileWritten(@out);
-                }
+                WriteSprites(compressionOptimized);
 
                 return true;
             }

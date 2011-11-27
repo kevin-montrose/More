@@ -40,6 +40,7 @@ namespace More
         internal List<string> SpriteFiles { get; set; }
         internal IFileLookup FileLookup { get; set; }
         internal List<SpriteExport> PendingSpriteExports { get; set; }
+        internal TextWriter OutputStream { get; set; }
 
         public Context()
         {
@@ -150,6 +151,12 @@ namespace More
             set { InnerContext.Value.FileLookup = value; }
         }
 
+        public static TextWriter OutputStream
+        {
+            get { return InnerContext.Value.OutputStream; }
+            set { InnerContext.Value.OutputStream = value; }
+        }
+
         public static List<SpriteExport> PendingSpriteExports
         {
             get { return InnerContext.Value.PendingSpriteExports; }
@@ -158,6 +165,11 @@ namespace More
         public static void SetContext(Context context)
         {
             InnerContext.Value = context;
+        }
+
+        public static void SetOutputStream(TextWriter output)
+        {
+            OutputStream = output;
         }
 
         public static void SetFileLookup(IFileLookup fileLookup)
