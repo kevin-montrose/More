@@ -21,7 +21,7 @@ namespace MoreInternals.Compiler
 
         private Compiler() { }
 
-        public bool Compile(string currentDir, string inputFile, TextReader @in, TextWriter output, IFileLookup lookup)
+        public bool Compile(string currentDir, string inputFile, IFileLookup lookup)
         {
             CompilationTask noop = (List<Block> blocks) => blocks;
 
@@ -49,18 +49,31 @@ namespace MoreInternals.Compiler
             try
             {
                 Current.SetWorkingDirectory(currentDir);
-                Current.SetInitialFile(inputFile);
                 Current.SetFileLookup(lookup);
-                Current.SetOutputStream(output);
 
-                var blocks = Parse.Task(@in);
+                inputFile = inputFile.RebaseFile();
+                Current.SetInitialFile(inputFile);
 
-                if (blocks == null) return false;
-
-                foreach (var task in tasks)
+                List<Block> blocks;
+                using (var stream = lookup.Find(inputFile))
                 {
-                    blocks = task(blocks);
-                    if (Current.HasErrors()) return false;
+                    blocks = Parse.Task(stream);
+                }
+
+                var outFileName = Path.GetFileNameWithoutExtension(inputFile)+".css";
+                var outPath = Path.GetDirectoryName(inputFile) + Path.DirectorySeparatorChar+outFileName;
+
+                using (var output = lookup.OpenWrite(outPath))
+                {
+                    Current.SetOutputStream(output);
+
+                    if (blocks == null) return false;
+
+                    foreach (var task in tasks)
+                    {
+                        blocks = task(blocks);
+                        if (Current.HasErrors()) return false;
+                    }
                 }
 
                 return true;

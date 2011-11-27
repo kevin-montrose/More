@@ -28,16 +28,9 @@ namespace More
             Crash = 3
         }
 
-        internal static bool Compile(string currentDir, string inputFile, TextWriter output)
+        internal static bool Compile(string currentDir, string inputFile)
         {
-            Current.SetWorkingDirectory(currentDir);
-            inputFile = inputFile.RebaseFile();
-
-            using (var stream = File.OpenRead(inputFile))
-            using (var @in = new StreamReader(stream))
-            {
-                return Compiler.Get().Compile(currentDir, inputFile, @in, output, FileLookup.Singleton);
-            }
+            return Compiler.Get().Compile(currentDir, inputFile, FileLookup.Singleton);
         }
 
         private static List<string> FindFiles(string inDirectory, string matchingPattern, bool recurse)
@@ -360,28 +353,25 @@ namespace More
                             var outputFile = OutputFileFor(compile, overwrite: overwrite);
                             buffer.AppendLine("\t" + compile);
                             buffer.Append("\tto " + outputFile);
-                            using (var newFile = File.OpenWrite(outputFile))
-                            using (var output = new StreamWriter(newFile))
+
+                            Current.SetOptions(warnAsErrors ? Options.WarningsAsErrors : Options.None);
+                            var timer = new Stopwatch();
+                            timer.Start();
+
+                            var result = Compile(workingDirectory, compile);
+
+                            timer.Stop();
+
+                            if (result)
                             {
-                                Current.SetOptions(warnAsErrors ? Options.WarningsAsErrors : Options.None);
-                                var timer = new Stopwatch();
-                                timer.Start();
-
-                                var result = Compile(workingDirectory, compile, output);
-
-                                timer.Stop();
-
-                                if (result)
-                                {
-                                    buffer.AppendLine(" in " + timer.ElapsedMilliseconds + "ms");
-                                }
-                                else
-                                {
-                                    buffer.AppendLine(" failed after " + timer.ElapsedMilliseconds + "ms");
-                                }
-
-                                outMsg.Add(buffer.ToString());
+                                buffer.AppendLine(" in " + timer.ElapsedMilliseconds + "ms");
                             }
+                            else
+                            {
+                                buffer.AppendLine(" failed after " + timer.ElapsedMilliseconds + "ms");
+                            }
+
+                            outMsg.Add(buffer.ToString());
                         }
                         finally
                         {

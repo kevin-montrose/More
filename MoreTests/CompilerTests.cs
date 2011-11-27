@@ -45,13 +45,11 @@ namespace MoreTests
                 Current.SetOptions(Options.OptimizeCompression);
             }
 
-            using (var input = new StringReader(text))
-            using (var output = new StringWriter())
-            {
-                var compiler = Compiler.Get();
-                compiler.Compile(Environment.CurrentDirectory, fakeFile, input, output, lookup ?? new NullFileLookup());
-                return output.ToString();
-            }
+            var fileLookup = new TestLookup(new Dictionary<string, string>() { { fakeFile, text } }, lookup);
+
+            var compiler = Compiler.Get();
+            compiler.Compile(Environment.CurrentDirectory, fakeFile, fileLookup);
+            return fileLookup.WriteMap.ElementAt(0).Value;
         }
 
         private static int TryParseNumber = 0;
@@ -1388,7 +1386,8 @@ namespace MoreTests
                                 { Path.DirectorySeparatorChar + "b", b },
                                 { Path.DirectorySeparatorChar + "c", c },
                                 { Path.DirectorySeparatorChar + "d", d }
-                            }
+                            },
+                            null
                         )
                 );
 
@@ -1485,7 +1484,7 @@ namespace MoreTests
 
             lookupMap[@"\compress.more"] = File.ReadAllText(path);
 
-            var lookup = new TestLookup(lookupMap);
+            var lookup = new TestLookup(lookupMap, null);
 
             var min = TryCompile("@using 'compress.more';", minify: true, optimize: true, lookup: lookup);
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
@@ -1642,7 +1641,8 @@ namespace MoreTests
                             new Dictionary<string, string>() 
                             {
                                 { Path.DirectorySeparatorChar + "q", q }
-                            }
+                            },
+                            null
                         )
                 );
 

@@ -38,14 +38,14 @@ namespace MoreTests
                 Current.SetContext(new Context(new FileCache()));
             }
 
+            var fakeFile = "error-fake-file" + Interlocked.Increment(ref TryCompileNumber) + ".more";
+            var fileLookup = new TestLookup(new Dictionary<string, string>() { { fakeFile, text } }, lookup);
+
             Current.SetWriterMode(WriterMode.Minimize);
-            using (var input = new StringReader(text))
-            using (var output = new StringWriter())
-            {
-                var compiler = Compiler.Get();
-                compiler.Compile(Environment.CurrentDirectory, "error-fake-file" + Interlocked.Increment(ref TryCompileNumber) + ".more", input, output, lookup ?? new NullFileLookup());
-                return output.ToString();
-            }
+            
+            var compiler = Compiler.Get();
+            compiler.Compile(Environment.CurrentDirectory, fakeFile, fileLookup);
+            return fileLookup.WriteMap.ElementAt(0).Value;
         }
 
         [TestMethod]
