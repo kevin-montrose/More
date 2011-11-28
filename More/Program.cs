@@ -395,12 +395,12 @@ namespace More
                 mergedContext = mergedContext.Merge(contexts.ElementAt(i));
             }
 
-            var infoMessages = mergedContext.InfoMessages.ToList();
+            var infoMessages = mergedContext.GetInfoMessages().ToList();
             var errors = mergedContext.GetErrors();
 
             if (spriteProg.HasValue())
             {
-                foreach (var sprite in mergedContext.SpriteFiles)
+                foreach (var sprite in mergedContext.GetSpriteFiles())
                 {
                     var commandErrors = RunSpriteCommand(spriteProg, workingDirectory, sprite, spriteArguments, infoMessages);
 

@@ -12,7 +12,7 @@ namespace MoreInternals.Helpers
         TextWriter OpenWrite(string path);
     }
 
-    class FileLookup : IFileLookup
+    public class FileLookup : IFileLookup
     {
         public static readonly FileLookup Singleton = new FileLookup();
 

@@ -15,7 +15,7 @@ namespace MoreInternals.Compiler
 {
     internal delegate List<Block> CompilationTask(List<Block> blocks);
 
-    partial class Compiler
+    public partial class Compiler
     {
         private static readonly Compiler Singleton = new Compiler();
 
