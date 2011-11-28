@@ -28,9 +28,28 @@ namespace More
             Crash = 3
         }
 
-        internal static bool Compile(string currentDir, string inputFile)
+        internal static bool Compile(string currentDir, string inputFile, Context context, bool minify, bool optimize, bool warnAsErrors)
         {
-            return Compiler.Get().Compile(currentDir, inputFile, FileLookup.Singleton);
+            var opts = Options.None;
+            var writerMode = WriterMode.Pretty;
+
+            if (minify)
+            {
+                opts |= Options.Minify;
+                writerMode = WriterMode.Minimize;
+            }
+
+            if (optimize)
+            {
+                opts |= Options.OptimizeCompression;
+            }
+
+            if (warnAsErrors)
+            {
+                opts |= Options.WarningsAsErrors;
+            }
+
+            return Compiler.Get().Compile(currentDir, inputFile, FileLookup.Singleton, context, opts, writerMode);
         }
 
         private static List<string> FindFiles(string inDirectory, string matchingPattern, bool recurse)
@@ -333,20 +352,7 @@ namespace More
                         try
                         {
                             var threadContext = new Context(commonFileCache);
-                            contexts.Add(threadContext);
-
-                            Current.SetContext(threadContext);
-
-                            if (minify)
-                            {
-                                Current.SetOptions(Options.Minify);
-                                Current.SetWriterMode(WriterMode.Minimize);
-                            }
-
-                            if (optimize)
-                            {
-                                Current.SetOptions(Options.OptimizeCompression);
-                            }
+                            contexts.Add(threadContext);                            
 
                             var buffer = new StringBuilder();
 
@@ -354,11 +360,10 @@ namespace More
                             buffer.AppendLine("\t" + compile);
                             buffer.Append("\tto " + outputFile);
 
-                            Current.SetOptions(warnAsErrors ? Options.WarningsAsErrors : Options.None);
                             var timer = new Stopwatch();
                             timer.Start();
 
-                            var result = Compile(workingDirectory, compile);
+                            var result = Compile(workingDirectory, compile, threadContext, minify, optimize, warnAsErrors);
 
                             timer.Stop();
 

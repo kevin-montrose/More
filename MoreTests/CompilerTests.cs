@@ -24,31 +24,21 @@ namespace MoreTests
         {
             fakeFile = fakeFile ?? "compiler-fake-file " + Interlocked.Increment(ref TryCompileNumber) + ".more";
 
-            Current.SetContext(new Context(new FileCache()));
-
-            Current.SetWriterMode(WriterMode.Minimize);
-            if (!minify)
+            Options opts = Options.None;
+            if (minify)
             {
-                Current.ClearOptions(Options.Minify);
-            }
-            else
-            {
-                Current.SetOptions(Options.Minify);
+                opts |= Options.Minify;
             }
 
-            if (!optimize)
+            if (optimize)
             {
-                Current.ClearOptions(Options.OptimizeCompression);
-            }
-            else
-            {
-                Current.SetOptions(Options.OptimizeCompression);
+                opts |= Options.OptimizeCompression;
             }
 
             var fileLookup = new TestLookup(new Dictionary<string, string>() { { fakeFile, text } }, lookup);
 
             var compiler = Compiler.Get();
-            compiler.Compile(Environment.CurrentDirectory, fakeFile, fileLookup);
+            compiler.Compile(Environment.CurrentDirectory, fakeFile, fileLookup, new Context(new FileCache()), opts, WriterMode.Minimize);
             return fileLookup.WriteMap.ElementAt(0).Value;
         }
 

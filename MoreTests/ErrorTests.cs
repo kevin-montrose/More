@@ -33,18 +33,28 @@ namespace MoreTests
         private static int TryCompileNumber = 0;
         private string TryCompile(string text, IFileLookup lookup = null, bool reset = true)
         {
+            Context context;
+            Options opts;
+            WriterMode mode;
+
             if (reset)
             {
-                Current.SetContext(new Context(new FileCache()));
+                context = new Context(new FileCache());
+                opts = Options.None;
+                mode = WriterMode.Minimize;
+            }
+            else
+            {
+                context = Current.InnerContext.Value;
+                opts = Current.Options;
+                mode = Current.WriterMode;
             }
 
             var fakeFile = "error-fake-file" + Interlocked.Increment(ref TryCompileNumber) + ".more";
             var fileLookup = new TestLookup(new Dictionary<string, string>() { { fakeFile, text } }, lookup);
 
-            Current.SetWriterMode(WriterMode.Minimize);
-            
             var compiler = Compiler.Get();
-            compiler.Compile(Environment.CurrentDirectory, fakeFile, fileLookup);
+            compiler.Compile(Environment.CurrentDirectory, fakeFile, fileLookup, context, opts, mode);
             return fileLookup.WriteMap.ElementAt(0).Value;
         }
 

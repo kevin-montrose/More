@@ -21,8 +21,12 @@ namespace MoreInternals.Compiler
 
         private Compiler() { }
 
-        public bool Compile(string currentDir, string inputFile, IFileLookup lookup)
+        public bool Compile(string currentDir, string inputFile, IFileLookup lookup, Context context, Options options, WriterMode writerMode)
         {
+            Current.SetContext(context);
+            Current.SetWriterMode(writerMode);
+            Current.SetOptions(options);
+
             CompilationTask noop = (List<Block> blocks) => blocks;
 
             var tasks = new List<CompilationTask>()

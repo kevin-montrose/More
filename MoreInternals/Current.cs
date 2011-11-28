@@ -110,7 +110,7 @@ namespace MoreInternals
 
     static class Current
     {
-        private static ThreadLocal<Context> InnerContext = new ThreadLocal<Context>();
+        internal static ThreadLocal<Context> InnerContext = new ThreadLocal<Context>();
 
         public static Scope GlobalScope
         {
@@ -327,10 +327,7 @@ namespace MoreInternals
 
         public static void SetOptions(Options opts)
         {
-            if(!Options.HasFlag(opts))
-            {
-                Options = Options | opts;
-            }
+            Options = opts;
         }
 
         public static void ClearOptions(Options opts)
