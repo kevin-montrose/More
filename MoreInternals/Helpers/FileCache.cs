@@ -10,7 +10,7 @@ using System.Collections.ObjectModel;
 
 namespace MoreInternals.Helpers
 {
-    class FileCache
+    public class FileCache
     {
         private object SyncLock = new object();
 

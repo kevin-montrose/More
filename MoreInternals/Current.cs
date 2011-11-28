@@ -11,14 +11,14 @@ using MoreInternals.Compiler;
 
 namespace MoreInternals
 {
-    enum WriterMode
+    public enum WriterMode
     {
         Pretty,
         Minimize
     }
 
     [Flags]
-    enum Options
+    public enum Options
     {
         None = 0,
         WarningsAsErrors,
@@ -26,22 +26,23 @@ namespace MoreInternals
         OptimizeCompression
     }
 
-    class Context
+    public class Context
     {
+        public Options Options { get; internal set; }
+        public string WorkingDirectory { get; internal set; }
+        public WriterMode WriterMode { get; internal set; }
+        public IFileLookup FileLookup { get; internal set; }
+        public FileCache FileCache { get; internal set; }
+
         internal Scope GlobalScope { get; set; }
-        internal Options Options { get; set; }
-        internal string WorkingDirectory { get; set; }
         internal string InitialFilePath { get; set; }
         internal string CurrentFilePath { get; set; }
-        internal WriterMode WriterMode { get; set; }
         internal Dictionary<ErrorType, List<Error>> Errors { get; set; }
         internal Dictionary<ErrorType, List<Error>> Warnings { get; set; }
         internal List<string> InfoMessages { get; set; }
         internal List<string> SpriteFiles { get; set; }
-        internal IFileLookup FileLookup { get; set; }
         internal List<SpriteExport> PendingSpriteExports { get; set; }
         internal TextWriter OutputStream { get; set; }
-        internal FileCache FileCache { get; set; }
 
         public Context(FileCache cache)
         {
@@ -56,7 +57,24 @@ namespace MoreInternals
             PendingSpriteExports = new List<SpriteExport>();
         }
 
-        internal Context Merge(Context other)
+        public IEnumerable<string> GetInfoMessages() { return InfoMessages.AsReadOnly(); }
+        public IEnumerable<string> GetSpriteFiles() { return SpriteFiles.AsReadOnly(); }
+        
+        public ILookup<ErrorType, Error> GetErrors()
+        {
+            var all = Errors.SelectMany(i => i.Value);
+
+            return all.ToLookup(i => i.Type);
+        }
+
+        public ILookup<ErrorType, Error> GetWarnings()
+        {
+            var all = Warnings.SelectMany(i => i.Value);
+
+            return all.ToLookup(i => i.Type);
+        }
+
+        public Context Merge(Context other)
         {
             if (this.Options != other.Options ||
               this.WriterMode != other.WriterMode)

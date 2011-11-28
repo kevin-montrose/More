@@ -6,7 +6,7 @@ using System.IO;
 
 namespace MoreInternals.Helpers
 {
-    interface IFileLookup
+    public interface IFileLookup
     {
         TextReader Find(string path);
         TextWriter OpenWrite(string path);

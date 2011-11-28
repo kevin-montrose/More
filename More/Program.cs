@@ -28,6 +28,8 @@ namespace More
             Crash = 3
         }
 
+        private static FileCache FileCache = new FileCache();
+
         internal static bool Compile(string currentDir, string inputFile, Context context, bool minify, bool optimize, bool warnAsErrors)
         {
             var opts = Options.None;
@@ -107,7 +109,6 @@ namespace More
 
         private static void PrintErrors(List<Error> parseErrors = null, List<Error> compileErrors = null)
         {
-            parseErrors = parseErrors ?? Current.GetErrors(ErrorType.Parser);
             if (parseErrors.Count > 0)
             {
                 Console.WriteLine("Parse Errors");
@@ -150,7 +151,6 @@ namespace More
                 }
             }
 
-            compileErrors = compileErrors ?? Current.GetErrors(ErrorType.Compiler);
             if (compileErrors.Count > 0)
             {
                 Console.WriteLine("Compilation Errors");
@@ -196,7 +196,6 @@ namespace More
 
         private static void PrintWarnings(List<Error> parseWarn = null, List<Error> compileWarn = null)
         {
-            parseWarn = parseWarn ?? Current.GetWarnings(ErrorType.Parser);
             if (parseWarn.Count > 0)
             {
                 Console.WriteLine("Parse Warnings");
@@ -239,7 +238,6 @@ namespace More
                 }
             }
 
-            compileWarn = compileWarn ?? Current.GetWarnings(ErrorType.Compiler);
             if (compileWarn.Count > 0)
             {
                 Console.WriteLine("Compilation Warnings");
@@ -283,8 +281,11 @@ namespace More
             }
         }
 
-        static void RunSpriteCommand(string command, string workingDir, string file, string spriteArguments)
+        static List<Error> RunSpriteCommand(string command, string workingDir, string file, string spriteArguments, List<string> infoMessages)
         {
+            var ret = new Dictionary<ErrorType, List<Error>>();
+            var errors = new List<Error>();
+
             try
             {
                 string finalArgs;
@@ -316,29 +317,29 @@ namespace More
 
                 if (proc.ExitCode != 0)
                 {
-                    Current.RecordError(OutOfProcError.Create(ErrorType.Compiler, "Error by [" + command + "] for [" + file + "] exited with code " + proc.ExitCode));
+                    errors.Add(OutOfProcError.Create(ErrorType.Compiler, "Error by [" + command + "] for [" + file + "] exited with code " + proc.ExitCode));
                 }
 
                 if (output.HasValue())
                 {
-                    Current.RecordInfo("Written by [" + command + "] for [" + file + "]:\r\n" + output);
+                    infoMessages.Add("Written by [" + command + "] for [" + file + "]:\r\n" + output);
                 }
 
                 if (errorOutput.Length != 0)
                 {
-                    Current.RecordError(OutOfProcError.Create(ErrorType.Compiler, "Error by [" + command + "] for [" + file + "]:\r\n" + errorOutput.ToString()));
+                    errors.Add(OutOfProcError.Create(ErrorType.Compiler, "Error by [" + command + "] for [" + file + "]:\r\n" + errorOutput.ToString()));
                 }
             }
             catch (Exception e)
             {
-                Current.RecordError(OutOfProcError.Create(ErrorType.Compiler, "Error encountered executing [" + command + "], \"" + e.Message + "\""));
+                errors.Add(OutOfProcError.Create(ErrorType.Compiler, "Error encountered executing [" + command + "], \"" + e.Message + "\""));
             }
+
+            return errors;
         }
 
         static bool MultiThreadedCompile(int maxParallelism, string workingDirectory, List<string> toCompile, bool overwrite, bool warnAsErrors, bool minify, bool optimize, bool verbose, string spriteProg, string spriteArguments)
         {
-            var commonFileCache = new FileCache();
-
             var @lock = new Semaphore(0, toCompile.Count);
             var contexts = new ConcurrentBag<Context>();
             var outMsg = new ConcurrentBag<string>();
@@ -351,7 +352,7 @@ namespace More
                     {
                         try
                         {
-                            var threadContext = new Context(commonFileCache);
+                            var threadContext = new Context(FileCache);
                             contexts.Add(threadContext);                            
 
                             var buffer = new StringBuilder();
@@ -394,13 +395,16 @@ namespace More
                 mergedContext = mergedContext.Merge(contexts.ElementAt(i));
             }
 
-            Current.SetContext(mergedContext);
+            var infoMessages = mergedContext.InfoMessages.ToList();
+            var errors = mergedContext.GetErrors();
 
             if (spriteProg.HasValue())
             {
-                foreach (var sprite in Current.GetWrittenSpriteFiles())
+                foreach (var sprite in mergedContext.SpriteFiles)
                 {
-                    RunSpriteCommand(spriteProg, workingDirectory, sprite, spriteArguments);
+                    var commandErrors = RunSpriteCommand(spriteProg, workingDirectory, sprite, spriteArguments, infoMessages);
+
+                    errors = errors.SelectMany(s => s.ToList()).Union(commandErrors).ToLookup(k => k.Type);
                 }
             }
 
@@ -414,33 +418,33 @@ namespace More
                 if (outMsg.Count > 0) Console.WriteLine();
             }
 
-            if (Current.HasErrors())
+            if (errors.Count > 0)
             {
-                var parseErrors = Current.GetErrors(ErrorType.Parser).Distinct().ToList();
-                var compileErrors = Current.GetErrors(ErrorType.Compiler).Distinct().ToList();
+                var parseErrors = errors.Where(e => e.Key == ErrorType.Parser).SelectMany(s => s.ToList()).Distinct().ToList();
+                var compileErrors = errors.Where(e => e.Key == ErrorType.Compiler).SelectMany(s => s.ToList()).Distinct().ToList();
 
                 PrintErrors(parseErrors: parseErrors, compileErrors: compileErrors);
             }
 
-            if (Current.HasWarnings())
+            if (mergedContext.GetWarnings().Count > 0)
             {
-                var parseWarnings = Current.GetWarnings(ErrorType.Parser).Distinct().ToList();
-                var compileWarnings = Current.GetWarnings(ErrorType.Compiler).Distinct().ToList();
+                var parseWarnings = mergedContext.GetWarnings().Where(e => e.Key == ErrorType.Parser).SelectMany(s => s.ToList()).Distinct().ToList();
+                var compileWarnings = mergedContext.GetWarnings().Where(e => e.Key == ErrorType.Compiler).SelectMany(s => s.ToList()).Distinct().ToList();
 
                 PrintWarnings(parseWarn: parseWarnings, compileWarn: compileWarnings);
             }
 
-            if (verbose && Current.GetInfo().Count > 0)
+            if (verbose && infoMessages.Count > 0)
             {
                 Console.WriteLine("INFO");
                 Console.WriteLine("====");
-                foreach (var i in Current.GetInfo())
+                foreach (var i in infoMessages)
                 {
                     Console.WriteLine(i);
                 }
             }
 
-            return !Current.HasErrors();
+            return mergedContext.GetErrors().Count == 0;
         }
 
         private static bool VerifyParameters(string workingDirectory, int maxDegreeParallelism, string spriteProg)
@@ -563,13 +567,13 @@ namespace More
                     {
                         var compiler = Compiler.Get();
 
-                        var header = "(" + Current.FileCache.Count + ") files in compiler cache";
+                        var header = "(" + FileCache.Count + ") files in compiler cache";
 
                         text.WriteLine(header);
                         for (int i = 0; i < header.Length; i++) text.Write('=');
                         text.WriteLine();
 
-                        foreach (var path in Current.FileCache.Loaded())
+                        foreach (var path in FileCache.Loaded())
                         {
                             string more = null;
 

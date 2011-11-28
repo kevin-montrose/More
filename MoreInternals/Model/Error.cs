@@ -8,13 +8,13 @@ using System.IO;
 namespace MoreInternals.Model
 {
     [Flags]
-    enum ErrorType
+    public enum ErrorType
     {
         Parser,
         Compiler
     }
 
-    class Error
+    public class Error
     {
         public int StartPosition { get; protected set; }
         public int EndPosition { get; protected set; }
