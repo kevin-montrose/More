@@ -70,30 +70,52 @@ namespace MoreInternals.Compiler.Tasks
                 retStr = buffer.ToString();
             }
 
-            if (!Value.ConvertableUnits.ContainsKey(value.Unit))
+            if (Value.ConvertableSizeUnits.ContainsKey(value.Unit))
             {
-                return ret;
+                var inMM = min.Value * Value.ConvertableSizeUnits[value.Unit];
+
+                foreach (var unit in Value.ConvertableSizeUnits.Keys)
+                {
+                    var inUnit = inMM / Value.ConvertableSizeUnits[unit];
+
+                    var newMin = new NumberWithUnitValue(MinifyNumberValue(new NumberValue(inUnit)).Value, unit);
+                    string newMinStr;
+
+                    using (var buffer = new StringWriter())
+                    {
+                        newMin.Write(buffer);
+                        newMinStr = buffer.ToString();
+                    }
+
+                    if (newMinStr.Length < retStr.Length)
+                    {
+                        ret = newMin;
+                        retStr = newMinStr;
+                    }
+                }
             }
 
-            var inMM = min.Value * Value.ConvertableUnits[value.Unit];
-
-            foreach (var unit in Value.ConvertableUnits.Keys)
+            if (Value.ConvertableTimeUnits.ContainsKey(value.Unit))
             {
-                var inUnit = inMM / Value.ConvertableUnits[unit];
+                var inS = min.Value * Value.ConvertableTimeUnits[value.Unit];
 
-                var newMin = new NumberWithUnitValue(MinifyNumberValue(new NumberValue(inUnit)).Value, unit);
-                string newMinStr;
-
-                using (var buffer = new StringWriter())
+                foreach (var unit in Value.ConvertableTimeUnits.Keys)
                 {
-                    newMin.Write(buffer);
-                    newMinStr = buffer.ToString();
-                }
+                    var inUnit = inS / Value.ConvertableTimeUnits[unit];
+                    var newMin = new NumberWithUnitValue(MinifyNumberValue(new NumberValue(inUnit)).Value, unit);
+                    string newMinStr;
 
-                if (newMinStr.Length < retStr.Length)
-                {
-                    ret = newMin;
-                    retStr = newMinStr;
+                    using (var buffer = new StringWriter())
+                    {
+                        newMin.Write(buffer);
+                        newMinStr = buffer.ToString();
+                    }
+
+                    if (newMinStr.Length < retStr.Length)
+                    {
+                        ret = newMin;
+                        retStr = newMinStr;
+                    }
                 }
             }
 
@@ -217,8 +239,8 @@ namespace MoreInternals.Compiler.Tasks
             {
                 value.Append('/');
                 value.Append(ValueToString(height.Value));
-                value.Append(' ');
             }
+            value.Append(' ');
 
             value.Append(ValueToString(fontFamily.Single().Value));
 

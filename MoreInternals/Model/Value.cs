@@ -31,7 +31,9 @@ namespace MoreInternals.Model
         CM,
         MM,
         PT,
-        PC
+        PC,
+        S,
+        MS
     }
 
     /// <summary>

@@ -398,6 +398,12 @@ namespace MoreInternals.Parser
                 return Unit.Percent;
             }
 
+            if (inStr.StartsWith("s", StringComparison.InvariantCultureIgnoreCase))
+            {
+                pushBack = inStr.Skip(1).ToList();
+                return Unit.S;
+            }
+
             foreach (var name in UnitTwoLetterDictionary.Keys)
             {
                 if (inStr.StartsWith(name, StringComparison.InvariantCultureIgnoreCase))

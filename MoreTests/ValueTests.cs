@@ -137,6 +137,63 @@ namespace MoreTests
         }
 
         [TestMethod]
+        public void Units()
+        {
+            var em = (NumberWithUnitValue)Value.Parse("1em");
+            var ex = (NumberWithUnitValue)Value.Parse("2ex");
+            var gd = (NumberWithUnitValue)Value.Parse("3gd");
+            var rem = (NumberWithUnitValue)Value.Parse("4rem");
+            var vw = (NumberWithUnitValue)Value.Parse("5vw");
+            var vh = (NumberWithUnitValue)Value.Parse("6vh");
+            var vm = (NumberWithUnitValue)Value.Parse("7vm");
+            var ch = (NumberWithUnitValue)Value.Parse("8ch");
+            var px = (NumberWithUnitValue)Value.Parse("9px");
+            var percent = (NumberWithUnitValue)Value.Parse("10%");
+            var inch = (NumberWithUnitValue)Value.Parse("11in");
+            var cm = (NumberWithUnitValue)Value.Parse("12cm");
+            var mm = (NumberWithUnitValue)Value.Parse("13mm");
+            var pt = (NumberWithUnitValue)Value.Parse("14pt");
+            var pc = (NumberWithUnitValue)Value.Parse("15pc");
+            var s = (NumberWithUnitValue)Value.Parse("16s");
+            var ms = (NumberWithUnitValue)Value.Parse("17ms");
+
+            Assert.AreEqual(1m, em.Value);
+            Assert.AreEqual(Unit.EM, em.Unit);
+            Assert.AreEqual(2m, ex.Value);
+            Assert.AreEqual(Unit.EX, ex.Unit);
+            Assert.AreEqual(3m, gd.Value);
+            Assert.AreEqual(Unit.GD, gd.Unit);
+            Assert.AreEqual(4m, rem.Value);
+            Assert.AreEqual(Unit.REM, rem.Unit);
+            Assert.AreEqual(5m, vw.Value);
+            Assert.AreEqual(Unit.VW, vw.Unit);
+            Assert.AreEqual(6m, vh.Value);
+            Assert.AreEqual(Unit.VH, vh.Unit);
+            Assert.AreEqual(7m, vm.Value);
+            Assert.AreEqual(Unit.VM, vm.Unit);
+            Assert.AreEqual(8m, ch.Value);
+            Assert.AreEqual(Unit.CH, ch.Unit);
+            Assert.AreEqual(9m, px.Value);
+            Assert.AreEqual(Unit.PX, px.Unit);
+            Assert.AreEqual(10m, percent.Value);
+            Assert.AreEqual(Unit.Percent, percent.Unit);
+            Assert.AreEqual(11m, inch.Value);
+            Assert.AreEqual(Unit.IN, inch.Unit);
+            Assert.AreEqual(12m, cm.Value);
+            Assert.AreEqual(Unit.CM, cm.Unit);
+            Assert.AreEqual(13m, mm.Value);
+            Assert.AreEqual(Unit.MM, mm.Unit);
+            Assert.AreEqual(14m, pt.Value);
+            Assert.AreEqual(Unit.PT, pt.Unit);
+            Assert.AreEqual(15m, pc.Value);
+            Assert.AreEqual(Unit.PC, pc.Unit);
+            Assert.AreEqual(16m, s.Value);
+            Assert.AreEqual(Unit.S, s.Unit);
+            Assert.AreEqual(17m, ms.Value);
+            Assert.AreEqual(Unit.MS, ms.Unit);
+        }
+
+        [TestMethod]
         public void CompoundValues()
         {
             var c1 = Value.Parse(@"5px 5 hello ""hello world""");

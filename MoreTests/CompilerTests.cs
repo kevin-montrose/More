@@ -1419,6 +1419,8 @@ namespace MoreTests
                     g: 10mm;
                     h: 1.00;
                     i: 2.54cm;
+                    j: 1000ms;
+                    k: 234ms;
                   }";
 
             var min = TryCompile(c, minify: true);
@@ -1430,7 +1432,7 @@ namespace MoreTests
             Assert.IsNotNull(max);
             Assert.AreNotEqual(min, max);
 
-            Assert.AreEqual("img{a:#abc;b:#64321e;c:rgba(80,40,20,1);d:green;e:green;f:rgba(128,0,128,1);g:1cm;h:1;i:1in;}", min);
+            Assert.AreEqual("img{a:#abc;b:#64321e;c:rgba(80,40,20,1);d:green;e:green;f:rgba(128,0,128,1);g:1cm;h:1;i:1in;j:1s;k:234ms;}", min);
         }
 
         private int GZipSize(string str)
@@ -1576,11 +1578,16 @@ namespace MoreTests
                         from { @mx(0); }
                         to { @mx(0); }
                       }
+
+                      .holder{
+                        animation-name: anim;
+                        animation-duration: 5s + 10ms;
+                      }
                       "
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("@keyframes anim{0%{a:8px;}to{b:9;c:red;}}@-moz-keyframes ff{0%{a:6px;b:12px;}50%{a:0px;b:10px;}to{c:15px;a:13px;b:6px;}}@-webkit-keyframes sa{55%,22%,10%{a:0px;}0%{b:4;c:red;}to{b:4;c:red;}}", written);
+            Assert.AreEqual(".holder{animation-name:anim;animation-duration:5.01s;}@keyframes anim{0%{a:8px;}to{b:9;c:red;}}@-moz-keyframes ff{0%{a:6px;b:12px;}50%{a:0px;b:10px;}to{c:15px;a:13px;b:6px;}}@-webkit-keyframes sa{55%,22%,10%{a:0px;}0%{b:4;c:red;}to{b:4;c:red;}}", written);
         }
 
         [TestMethod]
@@ -1851,6 +1858,24 @@ namespace MoreTests
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("id{font:italic small-caps bold 10px/12px 'Times New Roman';rule:value;}@keyframes some-anim{0%{font:italic 10px/12px 'Times New Roman';}to{nothing:nothing;}}@media tv{.class{font:italic bold 20px/25px Arial;other:rule;}}", written);
+        }
+
+        [TestMethod]
+        public void UnitConversions()
+        {
+            var c =
+                @".class{
+                    a: 5s + 6ms;
+
+                    b: 5in + 3cm;
+                    c: 5pt + 4mm;
+                    d: 7pc + 4in;
+                  }";
+
+            var written = TryCompile(c, minify: true);
+
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual(".class{a:5.006s;b:157mm;c:0.5765cm;d:131.231mm;}", written);
         }
     }
 }

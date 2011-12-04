@@ -19,7 +19,7 @@ namespace MoreInternals.Model
     partial class Value
     {
         // Anything not in the this list is not a convertable unit, the ratios are to millimeters
-        internal static ReadOnlyDictionary<Unit, decimal> ConvertableUnits = new ReadOnlyDictionary<Unit, decimal>(
+        internal static ReadOnlyDictionary<Unit, decimal> ConvertableSizeUnits = new ReadOnlyDictionary<Unit, decimal>(
             new Dictionary<Unit, decimal>()
             {
                 { Unit.MM, 1m },
@@ -27,6 +27,14 @@ namespace MoreInternals.Model
                 { Unit.CM, 10m },
                 { Unit.PT, 0.353m },
                 { Unit.PC, 4.233m }
+            }
+        );
+
+        internal static ReadOnlyDictionary<Unit, decimal> ConvertableTimeUnits = new ReadOnlyDictionary<Unit, decimal>(
+            new Dictionary<Unit, decimal>()
+            {
+                { Unit.MS, 1m },
+                { Unit.S, 1000m }
             }
         );
 
@@ -40,13 +48,16 @@ namespace MoreInternals.Model
 
             decimal fromRatio, toRatio;
 
-            if (!ConvertableUnits.TryGetValue(fromUnit, out fromRatio) || !ConvertableUnits.TryGetValue(toUnit, out toRatio))
+            if (!ConvertableSizeUnits.TryGetValue(fromUnit, out fromRatio) || !ConvertableSizeUnits.TryGetValue(toUnit, out toRatio))
             {
-                converted = 0;
-                return false;
+                if (!ConvertableTimeUnits.TryGetValue(fromUnit, out fromRatio) || !ConvertableTimeUnits.TryGetValue(toUnit, out toRatio))
+                {
+                    converted = 0;
+                    return false;
+                }
             }
 
-            converted = (from / fromRatio) * toRatio;
+            converted = (from * fromRatio) / toRatio;
             return true;
         }
 
