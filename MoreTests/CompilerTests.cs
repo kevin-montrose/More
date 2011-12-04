@@ -1808,5 +1808,49 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual(".bar{foo:#eee;}.bar:hover{buzz:123;}.fizz{foo:#eee;}", written);
         }
+
+        [TestMethod]
+        public void MinifyToFont()
+        {
+            var c =
+                @"id {
+                    rule: value;
+                    font-style: italic;
+                    font-variant: small-caps;
+                    font-weight: bold;
+                    font-size: 10px;
+                    line-height: 12px;
+                    font-family: ""Times New Roman"";
+                  }
+
+                  @media tv {
+                    .class {
+                        other: rule;
+                        font-style: italic;
+                        font-weight: bold;
+                        font-size: 20px;
+                        line-height: 25px;
+                        font-family: Arial;
+                    }
+                  }
+
+                  @keyframes some-anim {
+                    from{
+                        font-style: italic;
+                        font-size: 10px;
+                        line-height: 12px;
+                        font-family: ""Times New Roman"";
+                    }
+
+                    to {
+                        nothing: nothing;
+                    }
+                  }";
+
+            var written = TryCompile(c, minify: true);
+
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("id{font:italic small-caps bold 10px/12px 'Times New Roman';rule:value;}@keyframes some-anim{0%{font:italic 10px/12px 'Times New Roman';}to{nothing:nothing;}}@media tv{.class{font:italic bold 20px/25px Arial;other:rule;}}", written);
+        }
     }
 }

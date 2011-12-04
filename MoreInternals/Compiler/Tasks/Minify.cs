@@ -162,6 +162,82 @@ namespace MoreInternals.Compiler.Tasks
             return new NameValueProperty(named.Name, MinifyValue(value));
         }
 
+        private static IEnumerable<Property> MinifyPropertyList(IEnumerable<Property> p)
+        {
+            var props = p.Cast<NameValueProperty>();
+
+            // Don't introduce a new font property if one already exists.
+            if (props.Any(a => a.Name == "font")) return p;
+
+            var ret = new List<Property>();
+
+            // If possible, rewrite font-* properties (+ a few others) into a single font property
+            // [font-style font-variant font-weight] font-size[/line-height] font-family
+
+            var fontSize = props.Where(w => w.Name == "font-size");
+            var fontFamily = props.Where(w => w.Name == "font-family");
+
+            // missing or duplicate font-size and font-family make this an untenable optimization
+            if (fontSize.Count() != 1 || fontFamily.Count() != 1) return p;
+
+            var fontStyle = props.Where(w => w.Name == "font-style");
+            var fontVariant = props.Where(w => w.Name == "font-variant");
+            var fontWeight = props.Where(w => w.Name == "font-weight");
+            var lineHeight = props.Where(w => w.Name == "line-height");
+
+            // duplicate of these properties make this untenable
+            if (fontSize.Count() > 1 || fontVariant.Count() > 1 || fontWeight.Count() > 1 || lineHeight.Count() > 1) return p;
+
+            var value = new StringBuilder();
+
+            var style = fontStyle.SingleOrDefault();
+            if (style != null)
+            {
+                value.Append(ValueToString(style.Value));
+                value.Append(' ');
+            }
+
+            var variant = fontVariant.SingleOrDefault();
+            if (variant != null)
+            {
+                value.Append(ValueToString(variant.Value));
+                value.Append(' ');
+            }
+
+            var weight = fontWeight.SingleOrDefault();
+            if (weight != null)
+            {
+                value.Append(ValueToString(weight.Value));
+                value.Append(' ');
+            }
+
+            var height = lineHeight.SingleOrDefault();
+            value.Append(ValueToString(fontSize.Single().Value));
+            if (height != null)
+            {
+                value.Append('/');
+                value.Append(ValueToString(height.Value));
+                value.Append(' ');
+            }
+
+            value.Append(ValueToString(fontFamily.Single().Value));
+
+            ret.Add(new NameValueProperty("font", new StringValue(value.ToString().Trim())));
+            ret.AddRange(props.Where(w => !w.Name.In("font-size", "font-family", "font-style", "font-variant", "font-weight", "line-height")));
+
+            return ret;
+        }
+
+        private static string ValueToString(Value value)
+        {
+            using (var mem = new StringWriter())
+            {
+                value.Write(mem);
+
+                return mem.ToString();
+            }
+        }
+
         public static List<Block> Task(List<Block> blocks)
         {
             var ret = new List<Block>();
@@ -177,10 +253,11 @@ namespace MoreInternals.Compiler.Tasks
                         rules.Add(MinifyProperty(prop));
                     }
 
+                    rules = MinifyPropertyList(rules).ToList();
+
                     ret.Add(new SelectorAndBlock(block.Selector, rules, block.Start, block.Stop, block.FilePath));
                     continue;
                 }
-
 
                 var media = statement as MediaBlock;
                 if (media != null)
