@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MoreInternals.Model
 {
-    interface IPosition
+    public interface IPosition
     {
         int Start { get; }
         int Stop { get; }

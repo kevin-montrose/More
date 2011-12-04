@@ -1177,5 +1177,83 @@ namespace MoreTests
             var format = (FormatValue)urlAndFormat.Values.ElementAt(1);
             Assert.AreEqual("OTF", ((QuotedStringValue)format.Value).Value);
         }
+
+        [TestMethod]
+        public void SimpleMediaQuery()
+        {
+            Current.SetContext(new Context(new FileCache()));
+
+            var query = MediaQueryParser.Parse("not screen and (color), print and (color)", Position.NoSite);
+
+            var comma = query as CommaDelimitedMedia;
+            Assert.IsNotNull(comma);
+            Assert.AreEqual(2, comma.Clauses.Count());
+            
+            var not = comma.Clauses.ElementAt(0) as NotMedia;
+            Assert.IsNotNull(not);
+            var notAnd = not.Clause as AndMedia;
+            Assert.IsNotNull(notAnd);
+            var notLeft = notAnd.LeftHand as MediaType;
+            var notRight = notAnd.RightHand as FeatureMedia;
+            Assert.IsNotNull(notLeft);
+            Assert.IsNotNull(notRight);
+            Assert.AreEqual(Media.screen, notLeft.Type);
+            Assert.AreEqual("color", notRight.Feature);
+
+            var print = comma.Clauses.ElementAt(1) as AndMedia;
+            Assert.IsNotNull(print);
+            var printLeft = print.LeftHand as MediaType;
+            var printRight = print.RightHand as FeatureMedia;
+            Assert.IsNotNull(printLeft);
+            Assert.IsNotNull(printRight);
+            Assert.AreEqual(Media.print, printLeft.Type);
+            Assert.AreEqual("color", printRight.Feature);
+        }
+
+        [TestMethod]
+        public void MinMaxMediaQuery()
+        {
+            Current.SetContext(new Context(new FileCache()));
+
+            var query = MediaQueryParser.Parse("only screen and (min-color: @a * @b) and (max-width: 400px) and (grid: progressive)", Position.NoSite);
+
+            var only = query as OnlyMedia;
+            Assert.IsNotNull(only);
+            var and = only.Clause as AndMedia;
+            Assert.IsNotNull(and);
+
+            var and2 = and.LeftHand as AndMedia;
+            var grid = and.RightHand as EqualFeatureMedia;
+            Assert.IsNotNull(and2);
+            Assert.IsNotNull(grid);
+            Assert.AreEqual("grid", grid.Feature);
+            var gridValue = grid.Equals as StringValue;
+            Assert.IsNotNull(gridValue);
+            Assert.AreEqual("progressive", gridValue.Value);
+
+            var and3 = and2.LeftHand as AndMedia;
+            var maxWidth = and2.RightHand as MaxFeatureMedia;
+            Assert.IsNotNull(and3);
+            Assert.IsNotNull(maxWidth);
+            Assert.AreEqual("width", maxWidth.Feature);
+            var widthValue = maxWidth.Max as NumberWithUnitValue;
+            Assert.AreEqual(400m, widthValue.Value);
+            Assert.AreEqual(Unit.PX, widthValue.Unit);
+
+            var screen = and3.LeftHand as MediaType;
+            var minColor = and3.RightHand as MinFeatureMedia;
+            Assert.IsNotNull(screen);
+            Assert.IsNotNull(minColor);
+            Assert.AreEqual(Media.screen, screen.Type);
+            Assert.AreEqual("color", minColor.Feature);
+            var colorValue = minColor.Min as MathValue;
+            Assert.IsNotNull(colorValue);
+            var a = colorValue.LeftHand as FuncValue;
+            var b = colorValue.RightHand as FuncValue;
+            Assert.IsNotNull(a);
+            Assert.IsNotNull(b);
+            Assert.AreEqual("a", a.Name);
+            Assert.AreEqual("b", b.Name);
+        }
     }
 }

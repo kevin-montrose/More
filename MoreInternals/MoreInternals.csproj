@@ -77,6 +77,7 @@
     <Compile Include="Helpers\LZ77Optimizer.FastString.cs">
       <DependentUpon>LZ77Optimizer.cs</DependentUpon>
     </Compile>
+    <Compile Include="Model\MediaQuery.cs" />
     <Compile Include="Model\Property.cs" />
     <Compile Include="Model\Error.cs" />
     <Compile Include="Model\IPosition.cs" />
@@ -89,6 +90,7 @@
     <Compile Include="Model\Selector.cs" />
     <Compile Include="Model\Block.cs" />
     <Compile Include="Parser\CommentlessStream.cs" />
+    <Compile Include="Parser\MediaQueryParser.cs" />
     <Compile Include="Parser\MoreValueParser.cs" />
     <Compile Include="Parser\ParserStream.cs" />
     <Compile Include="Parser\Parser.cs" />
