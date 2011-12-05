@@ -285,7 +285,7 @@ namespace MoreInternals.Compiler.Tasks
                 if (media != null)
                 {
                     var subStatements = Task(media.Blocks.ToList());
-                    ret.Add(new MediaBlock(media.ForMedia.ToList(), subStatements, media.Start, media.Stop, media.FilePath));
+                    ret.Add(new MediaBlock(media.MediaQuery, subStatements, media.Start, media.Stop, media.FilePath));
                     continue;
                 }
 

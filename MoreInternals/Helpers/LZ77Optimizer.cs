@@ -193,7 +193,7 @@ namespace MoreInternals.Helpers
             {
                 var optimized = Optimize(media.Blocks.ToList());
 
-                newMedias.Add(new MediaBlock(media.ForMedia.ToList(), optimized, media.Start, media.Stop, media.FilePath));
+                newMedias.Add(new MediaBlock(media.MediaQuery, optimized, media.Start, media.Stop, media.FilePath));
             }
             medias = newMedias;
 

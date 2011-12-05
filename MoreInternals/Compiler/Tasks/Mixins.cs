@@ -99,7 +99,7 @@ namespace MoreInternals.Compiler.Tasks
                     innerRet.Add(block.BindAndEvaluateMixins(innerScope));
                 }
 
-                ret.Add(new MediaBlock(media.ForMedia.ToList(), innerRet, media.Start, media.Stop, media.FilePath));
+                ret.Add(new MediaBlock(media.MediaQuery, innerRet, media.Start, media.Stop, media.FilePath));
             }
 
             foreach (var font in statements.OfType<FontFaceBlock>())

@@ -15,7 +15,7 @@ namespace MoreInternals.Helpers
         void WriteRule(NameValueProperty rule);
         void WriteImport(Value toImport, IEnumerable<Media> forMedia);
         void WriteCharset(QuotedStringValue charset);
-        void WriteMedia(IEnumerable<Media> forMedia);
+        void WriteMedia(MediaQuery forMedia);
         void WriteKeyframes(KeyFramesBlock keyframes);
         void WriteFontFace(FontFaceBlock fontface);
     }
@@ -76,10 +76,10 @@ namespace MoreInternals.Helpers
             _wrapped.Write("\";");
         }
 
-        public void WriteMedia(IEnumerable<Media> forMedia)
+        public void WriteMedia(MediaQuery forMedia)
         {
             _wrapped.Write("@media ");
-            _wrapped.Write(string.Join(",", forMedia));
+            forMedia.Write(_wrapped);
         }
 
         public void WriteFontFace(FontFaceBlock fontface)
@@ -200,10 +200,10 @@ namespace MoreInternals.Helpers
             _wrapped.Write("\";");
         }
 
-        public void WriteMedia(IEnumerable<Media> forMedia)
+        public void WriteMedia(MediaQuery forMedia)
         {
             _wrapped.Write("@media ");
-            _wrapped.Write(string.Join(",", forMedia));
+            forMedia.Write(_wrapped);
         }
 
         public void WriteFontFace(FontFaceBlock fontface)

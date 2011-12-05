@@ -225,12 +225,12 @@ namespace MoreInternals.Model
     {
         public string RawPath { get; private set; }
 
-        public IEnumerable<Media> ForMedia { get; private set; }
+        public MediaQuery MediaQuery { get; private set; }
 
-        public Using(string rawPath, List<Media> media, int start, int stop, string file)
+        public Using(string rawPath, MediaQuery media, int start, int stop, string file)
         {
             RawPath = rawPath;
-            ForMedia = media.AsReadOnly();
+            MediaQuery = media;
 
             Start = start;
             Stop = stop;
@@ -590,12 +590,12 @@ namespace MoreInternals.Model
 
     class MediaBlock : Block, IWritable
     {
-        public IEnumerable<Media> ForMedia { get; private set; }
+        public MediaQuery MediaQuery { get; private set; }
         public IEnumerable<Block> Blocks { get; private set; }
 
-        public MediaBlock(List<Media> media, List<Block> statements, int start, int stop, string file)
+        public MediaBlock(MediaQuery media, List<Block> statements, int start, int stop, string file)
         {
-            ForMedia = media.AsReadOnly();
+            MediaQuery = media;
             Blocks = statements.AsReadOnly();
 
             Start = start;
@@ -605,7 +605,7 @@ namespace MoreInternals.Model
 
         public void Write(ICssWriter output)
         {
-            output.WriteMedia(ForMedia);
+            output.WriteMedia(MediaQuery);
             output.StartClass();
             foreach (var statement in Blocks.OfType<IWritable>())
             {

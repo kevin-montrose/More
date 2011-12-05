@@ -53,7 +53,7 @@ namespace MoreInternals.Compiler.Tasks
                 {
                     var evaluated = Task(media.Blocks.ToList());
 
-                    ret.Add(new MediaBlock(media.ForMedia.ToList(), evaluated, media.Start, media.Stop, media.FilePath));
+                    ret.Add(new MediaBlock(media.MediaQuery, evaluated, media.Start, media.Stop, media.FilePath));
                 }
 
                 if (keyframes != null)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace MoreInternals.Model
 {
@@ -17,6 +18,8 @@ namespace MoreInternals.Model
             Stop = pos.Stop;
             FilePath = pos.FilePath;
         }
+
+        internal abstract void Write(TextWriter writer);
     }
 
     class MediaType : MediaQuery
@@ -27,6 +30,11 @@ namespace MoreInternals.Model
             : base(forPosition)
         {
             Type = type;
+        }
+
+        internal override void Write(TextWriter writer)
+        {
+            writer.Write(Enum.GetName(typeof(Media), Type).ToLowerInvariant());
         }
 
         public override string ToString()
@@ -45,6 +53,12 @@ namespace MoreInternals.Model
             Clause = inner;
         }
 
+        internal override void Write(TextWriter writer)
+        {
+            writer.Write("not ");
+            Clause.Write(writer);
+        }
+
         public override string ToString()
         {
             return "not " + Clause.ToString();
@@ -59,6 +73,12 @@ namespace MoreInternals.Model
             : base(forPosition)
         {
             Clause = inner;
+        }
+
+        internal override void Write(TextWriter writer)
+        {
+            writer.Write("only ");
+            Clause.Write(writer);
         }
 
         public override string ToString()
@@ -79,6 +99,13 @@ namespace MoreInternals.Model
             RightHand = right;
         }
 
+        internal override void Write(TextWriter writer)
+        {
+            LeftHand.Write(writer);
+            writer.Write(" and ");
+            RightHand.Write(writer);
+        }
+
         public override string ToString()
         {
             return LeftHand.ToString() + " and " + RightHand.ToString();
@@ -93,6 +120,18 @@ namespace MoreInternals.Model
             : base(forPosition)
         {
             Clauses = clauses.AsReadOnly();
+        }
+
+        internal override void Write(TextWriter writer)
+        {
+            var first = Clauses.First();
+            first.Write(writer);
+
+            foreach (var next in Clauses.Skip(1))
+            {
+                writer.Write(',');
+                next.Write(writer);
+            }
         }
 
         public override string ToString()
@@ -113,6 +152,15 @@ namespace MoreInternals.Model
             Min = min;
         }
 
+        internal override void Write(TextWriter writer)
+        {
+            writer.Write("(min-");
+            writer.Write(Feature);
+            writer.Write(':');
+            Min.Write(writer);
+            writer.Write(')');
+        }
+
         public override string ToString()
         {
             return "(min-" + Feature + ": " + Min.ToString() + ")";
@@ -131,6 +179,15 @@ namespace MoreInternals.Model
             Max = max;
         }
 
+        internal override void Write(TextWriter writer)
+        {
+            writer.Write("(max-");
+            writer.Write(Feature);
+            writer.Write(':');
+            Max.Write(writer);
+            writer.Write(')');
+        }
+
         public override string ToString()
         {
             return "(max-" + Feature + ": " + Max.ToString() + ")";
@@ -140,18 +197,27 @@ namespace MoreInternals.Model
     class EqualFeatureMedia : MediaQuery
     {
         public string Feature { get; private set; }
-        public Value Equals { get; private set; }
+        public Value EqualsValue { get; private set; }
 
         public EqualFeatureMedia(string feature, Value equals, IPosition forPosition)
             :base(forPosition)
         {
             Feature = feature;
-            Equals = equals;
+            EqualsValue = equals;
+        }
+
+        internal override void Write(TextWriter writer)
+        {
+            writer.Write('(');
+            writer.Write(Feature);
+            writer.Write(':');
+            EqualsValue.Write(writer);
+            writer.Write(')');
         }
 
         public override string ToString()
         {
-            return "(" + Feature + ": " + Equals.ToString() + ")";
+            return "(" + Feature + ": " + EqualsValue.ToString() + ")";
         }
     }
 
@@ -163,6 +229,13 @@ namespace MoreInternals.Model
             :base(forPosition)
         {
             Feature = feature;
+        }
+
+        internal override void Write(TextWriter writer)
+        {
+            writer.Write('(');
+            writer.Write(Feature);
+            writer.Write(')');
         }
 
         public override string ToString()

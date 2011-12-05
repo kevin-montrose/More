@@ -14,7 +14,7 @@ namespace MoreInternals.Compiler.Tasks
     /// 
     /// becomes
     /// 
-    /// @media { foo bar }
+    /// @media tv { foo bar }
     /// 
     /// basically.
     /// </summary>
@@ -22,14 +22,18 @@ namespace MoreInternals.Compiler.Tasks
     {
         public static List<Block> Task(List<Block> blocks)
         {
-            var ret = new List<Block>();
+            // TODO: This logic can be applied, just not as generally anymore.
+            //       Need a way to compare media queries for equality first.
+            return blocks;
+
+            /*var ret = new List<Block>();
 
             ret.AddRange(blocks.Where(w => !(w is MediaBlock)));
 
             var mediaRules =
                 blocks
                     .OfType<MediaBlock>()
-                    .GroupBy(g => string.Join(",", g.ForMedia.OrderBy(m => m)));
+                    .GroupBy(g => string.Join(",", g.MediaQuery.OrderBy(m => m)));
 
             foreach (var m in mediaRules)
             {
@@ -42,7 +46,7 @@ namespace MoreInternals.Compiler.Tasks
                 ret.Add(new MediaBlock(media, rules, -1, -1, null));
             }
 
-            return ret;
+            return ret;*/
         }
     }
 }

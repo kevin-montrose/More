@@ -29,7 +29,7 @@ namespace MoreInternals.Compiler.Tasks
                     if (media != null)
                     {
                         var unrolled = Task(media.Blocks.ToList());
-                        ret.Add(new MediaBlock(media.ForMedia.ToList(), unrolled, media.Start, media.Stop, media.FilePath));
+                        ret.Add(new MediaBlock(media.MediaQuery, unrolled, media.Start, media.Stop, media.FilePath));
                     }
                     else
                     {

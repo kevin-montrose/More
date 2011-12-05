@@ -39,7 +39,7 @@ namespace MoreInternals.Compiler
                 }
                 );
 
-                ret.Add(new MediaBlock(media.ForMedia.ToList(), subStatements, media.Start, media.Stop, media.FilePath));
+                ret.Add(new MediaBlock(media.MediaQuery, subStatements, media.Start, media.Stop, media.FilePath));
             }
 
             ret =

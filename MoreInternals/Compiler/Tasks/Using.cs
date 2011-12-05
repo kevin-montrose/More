@@ -93,7 +93,7 @@ namespace MoreInternals.Compiler.Tasks
             // Can't nest @media via @using
             foreach (var loaded in imports)
             {
-                if (loaded.Item1 == null || loaded.Item1.ForMedia.Count() == 0) continue;
+                if (loaded.Item1 == null || (loaded.Item1.MediaQuery is MediaType && ((MediaType)loaded.Item1.MediaQuery).Type == Model.Media.all)) continue;
 
                 if (loaded.Item2.OfType<MediaBlock>().Count() != 0)
                 {
@@ -106,12 +106,12 @@ namespace MoreInternals.Compiler.Tasks
 
             var ret = new List<Block>();
 
-            foreach (var loaded in imports.Where(w => w.Item1 == null || w.Item1.ForMedia.Count() == 0))
+            foreach (var loaded in imports.Where(w => w.Item1 == null || (w.Item1.MediaQuery is MediaType && ((MediaType)w.Item1.MediaQuery).Type == Model.Media.all)))
             {
                 ret.AddRange(loaded.Item2);
             }
 
-            foreach (var loaded in imports.Where(w => w.Item1 != null && w.Item1.ForMedia.Count() > 0))
+            foreach (var loaded in imports.Where(w => w.Item1 != null && !(w.Item1.MediaQuery is MediaType && ((MediaType)w.Item1.MediaQuery).Type == Model.Media.all)))
             {
                 var statements = loaded.Item2;
                 ret.AddRange(statements.OfType<MixinBlock>());
@@ -119,7 +119,7 @@ namespace MoreInternals.Compiler.Tasks
                 ret.AddRange(statements.OfType<FontFaceBlock>());
                 var inner = statements.Where(w => !(w is MixinBlock || w is KeyFramesBlock || w is FontFaceBlock));
 
-                ret.Add(new MediaBlock(loaded.Item1.ForMedia.ToList(), inner.ToList(), loaded.Item1.Start, loaded.Item1.Stop, loaded.Item1.FilePath));
+                ret.Add(new MediaBlock(loaded.Item1.MediaQuery, inner.ToList(), loaded.Item1.Start, loaded.Item1.Stop, loaded.Item1.FilePath));
             }
 
             return ret;

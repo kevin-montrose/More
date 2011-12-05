@@ -62,7 +62,7 @@ namespace MoreInternals.Compiler.Tasks
                 if (media != null)
                 {
                     var resolved = Task(media.Blocks.ToList());
-                    ret.Add(new MediaBlock(media.ForMedia.ToList(), resolved, media.Start, media.Stop, media.FilePath));
+                    ret.Add(new MediaBlock(media.MediaQuery, resolved, media.Start, media.Stop, media.FilePath));
                 }
 
                 if (keyframes != null)

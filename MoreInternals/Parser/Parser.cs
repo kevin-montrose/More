@@ -36,25 +36,7 @@ namespace MoreInternals.Parser
                 throw new StoppedParsingException();
             }
 
-            var mediaList = new List<Media>();
-            foreach (var m in mediaStr.Split(','))
-            {
-                Media mParsed;
-                if (!Enum.TryParse<Media>(m.Trim(), ignoreCase: true, result: out mParsed))
-                {
-                    Current.RecordWarning(ErrorType.Parser, Model.Position.Create(start, stream.Position, Current.CurrentFilePath), "Unknown media type '" + m.Trim() + "', ignoring.");
-                }
-                else
-                {
-                    mediaList.Add(mParsed);
-                }
-            }
-
-            if (mediaList.Count == 0)
-            {
-                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "No recognized media found");
-                throw new StoppedParsingException();
-            }
+            var mediaQuery = MediaQueryParser.Parse(mediaStr, Position.Create(start, stream.Position, Current.CurrentFilePath));
 
             var contained = new List<Block>();
 
@@ -93,7 +75,7 @@ namespace MoreInternals.Parser
             // Skip past }
             stream.Advance();
 
-            return new MediaBlock(mediaList, contained, start, stream.Position, Current.CurrentFilePath);
+            return new MediaBlock(mediaQuery, contained, start, stream.Position, Current.CurrentFilePath);
         }
 
         internal static CssCharset ParseCharsetDirective(ParserStream stream)
@@ -140,25 +122,20 @@ namespace MoreInternals.Parser
             var file = new StringBuilder();
             stream.ScanUntil(file, quote.Value);
 
+            int mediaStart = stream.Position;
             var mediaBuff = new StringBuilder();
             stream.ScanUntil(mediaBuff, ';');
+            int mediaEnd = stream.Position;
 
-            var media = new List<Media>();
+            MediaQuery media;
             var mediaStr = mediaBuff.ToString().Trim();
             if (mediaStr.Length > 0)
             {
-                foreach (var m in mediaStr.Split(','))
-                {
-                    Media med;
-                    if (!Enum.TryParse<Media>(m.Trim(), ignoreCase: true, result: out med))
-                    {
-                        Current.RecordWarning(ErrorType.Parser, Model.Position.Create(start, stream.Position, Current.CurrentFilePath), "Unknown media type '" + m.Trim() + "', ignoring.");
-                    }
-                    else
-                    {
-                        media.Add(med);
-                    }
-                }
+                media = MediaQueryParser.Parse(mediaStr, Position.Create(mediaStart, mediaEnd, Current.CurrentFilePath));
+            }
+            else
+            {
+                media = new MediaType(Media.all, Position.NoSite);
             }
 
             return new Using(file.ToString(), media, start, stream.Position, Current.CurrentFilePath);

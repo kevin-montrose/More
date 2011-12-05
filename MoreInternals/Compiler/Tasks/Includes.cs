@@ -79,7 +79,7 @@ namespace MoreInternals.Compiler.Tasks
                     var subBlocks = media.Blocks.ToList();
                     var copied = Impl(subBlocks, parent: forLookup);
 
-                    ret.Add(new MediaBlock(media.ForMedia.ToList(), copied, media.Start, media.Stop, media.FilePath));
+                    ret.Add(new MediaBlock(media.MediaQuery, copied, media.Start, media.Stop, media.FilePath));
                 }
 
                 if (keyframes != null)

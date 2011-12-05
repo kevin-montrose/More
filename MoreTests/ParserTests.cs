@@ -1088,9 +1088,17 @@ namespace MoreTests
             Assert.AreEqual(typeof(Using), @using.GetType());
             var asUsing = (Using)@using;
             Assert.AreEqual("hello-world.txt", asUsing.RawPath);
-            Assert.AreEqual(2, asUsing.ForMedia.Count());
-            Assert.IsTrue(asUsing.ForMedia.Any(a => a == Media.tv));
-            Assert.IsTrue(asUsing.ForMedia.Any(a => a == Media.print));
+
+            var media = asUsing.MediaQuery;
+            var mediaComma = media as CommaDelimitedMedia;
+            Assert.IsNotNull(mediaComma);
+            Assert.AreEqual(2, mediaComma.Clauses.Count());
+            var tv = mediaComma.Clauses.ElementAt(0) as MediaType;
+            var print = mediaComma.Clauses.ElementAt(1) as MediaType;
+            Assert.IsNotNull(tv);
+            Assert.IsNotNull(print);
+            Assert.AreEqual(Media.tv, tv.Type);
+            Assert.AreEqual(Media.print, print.Type);
         }
 
         [TestMethod]
@@ -1227,7 +1235,7 @@ namespace MoreTests
             Assert.IsNotNull(and2);
             Assert.IsNotNull(grid);
             Assert.AreEqual("grid", grid.Feature);
-            var gridValue = grid.Equals as StringValue;
+            var gridValue = grid.EqualsValue as StringValue;
             Assert.IsNotNull(gridValue);
             Assert.AreEqual("progressive", gridValue.Value);
 
