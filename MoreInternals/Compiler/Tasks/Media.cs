@@ -9,12 +9,12 @@ namespace MoreInternals.Compiler.Tasks
     /// <summary>
     /// Groups all @media blocks by the declared type of media.
     /// 
-    /// @media tv { foo }
-    /// @media tv { bar }
+    /// @media tv { foo; }
+    /// @media tv { bar; }
     /// 
     /// becomes
     /// 
-    /// @media tv { foo bar }
+    /// @media tv { foo; bar; }
     /// 
     /// basically.
     /// </summary>
@@ -22,9 +22,54 @@ namespace MoreInternals.Compiler.Tasks
     {
         public static List<Block> Task(List<Block> blocks)
         {
-            // TODO: This logic can be applied, just not as generally anymore.
-            //       Need a way to compare media queries for equality first.
-            return blocks;
+            var ret = new List<Block>();
+            ret.AddRange(blocks.Where(w => !(w is MediaBlock)));
+
+            var mediaBlocks = blocks.OfType<MediaBlock>();
+            bool @continue = true;
+            
+            while (@continue)
+            {
+                @continue = false;
+
+                var collapsed = new List<MediaBlock>();
+                var removed = new List<MediaBlock>();
+
+                foreach (var thisMedia in mediaBlocks)
+                {
+                    if (removed.Contains(thisMedia)) continue;
+
+                    var thisQuery = thisMedia.MediaQuery;
+                    var subBlocks = new List<Block>();
+
+                    subBlocks.AddRange(thisMedia.Blocks);
+
+                    foreach (var otherMedia in mediaBlocks)
+                    {
+                        if (otherMedia == thisMedia || removed.Contains(otherMedia)) continue;
+
+                        var otherQuery = otherMedia.MediaQuery;
+
+                        if (thisQuery.Equals(otherQuery))
+                        {
+                            subBlocks.AddRange(otherMedia.Blocks);
+                            removed.Add(otherMedia);
+                        }
+                    }
+
+                    collapsed.Add(new MediaBlock(thisQuery, subBlocks, thisMedia.Start, thisMedia.Stop, thisMedia.FilePath));
+                }
+
+                if (removed.Count > 0)
+                {
+                    @continue = true;
+                    mediaBlocks = collapsed;
+                }
+            }
+
+            ret.AddRange(mediaBlocks);
+
+            return ret;
 
             /*var ret = new List<Block>();
 

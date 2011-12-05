@@ -1391,56 +1391,47 @@ namespace MoreInternals.Model
 
     class UrlValue : Value
     {
-        public string UrlPath { get; private set; }
+        public Value UrlPath { get; private set; }
 
-        internal UrlValue(string path)
+        internal UrlValue(Value path)
         {
             UrlPath = path;
         }
 
-        public static UrlValue Parse(string raw)
+        public static UrlValue Parse(string raw, IPosition forPos)
         {
             int i = raw.IndexOf('(');
-            var j = raw.LastIndexOf(')');
+            var j = raw.IndexOf(')', i);
 
             var path = raw.Substring(i + 1, j - (i + 1)).Trim();
 
-            if (path.StartsWith("\"") || path.StartsWith("'"))
-            {
-                path = path.Substring(1, path.Length - 2);
-            }
+            return new UrlValue(MoreValueParser.Parse(path, Position.Create(forPos.Start + i, forPos.Stop + j, forPos.FilePath)));
+        }
 
-            return new UrlValue(path);
+        public override Value Bind(Scope scope)
+        {
+            var ret = new UrlValue(UrlPath.Bind(scope));
+            ret.Start = this.Start;
+            ret.Start = this.Stop;
+            ret.FilePath = this.FilePath;
+
+            return ret;
         }
 
         internal override Value Evaluate()
         {
-            return this;
+            var ret = new UrlValue(UrlPath.Evaluate());
+            ret.Start = this.Start;
+            ret.Start = this.Stop;
+            ret.FilePath = this.FilePath;
+
+            return ret;
         }
 
         internal override void Write(TextWriter output)
         {
             output.Write("url(");
-
-            if (UrlPath.Contains('\''))
-            {
-                output.Write('\"');
-                output.Write(UrlPath);
-                output.Write('\"');
-                output.Write(')');
-                return;
-            }
-
-            if (UrlPath.Contains('\"'))
-            {
-                output.Write('\'');
-                output.Write(UrlPath);
-                output.Write('\'');
-                output.Write(')');
-                return;
-            }
-
-            output.Write(UrlPath);
+            UrlPath.Write(output);
             output.Write(')');
         }
 

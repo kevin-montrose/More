@@ -151,12 +151,12 @@ namespace MoreInternals.Parser
             var toParse = buffer.ToString().Trim();
 
             Value val;
-            List<Media> media = new List<Media>();
+            MediaQuery media;
             string mediaStr;
 
             if (Regex.IsMatch(toParse, @"url\s*?\(", RegexOptions.IgnoreCase))
             {
-                var i = toParse.LastIndexOf(')');
+                var i = toParse.IndexOf(')');
 
                 if (i == -1)
                 {
@@ -191,18 +191,11 @@ namespace MoreInternals.Parser
             mediaStr = mediaStr.Trim();
             if (mediaStr.Length > 0)
             {
-                foreach (var m in mediaStr.Split(','))
-                {
-                    Media mParsed;
-                    if (!Enum.TryParse<Media>(m.Trim(), ignoreCase: true, result: out mParsed))
-                    {
-                        Current.RecordWarning(ErrorType.Parser, Model.Position.Create(start, stream.Position, Current.CurrentFilePath), "Unknown media type '" + m.Trim() + "', ignoring.");
-                    }
-                    else
-                    {
-                        media.Add(mParsed);
-                    }
-                }
+                media = MediaQueryParser.Parse(mediaStr, Position.Create(start, stream.Position, Current.CurrentFilePath));
+            }
+            else
+            {
+                media = new MediaType(Media.all, Position.Create(start, stream.Position, Current.CurrentFilePath));
             }
 
             return new Import(val, media, start, stream.Position);

@@ -104,18 +104,30 @@ namespace MoreTests
             Assert.IsTrue(statements.All(t => t.GetType() == typeof(Import)));
 
             Assert.AreEqual("hello.txt", ((QuotedStringValue)((Import)statements[0]).ToImport).Value);
-            Assert.AreEqual("../indeed.css", ((UrlValue)((Import)statements[1]).ToImport).UrlPath);
+            Assert.AreEqual("../indeed.css", ((StringValue)((UrlValue)((Import)statements[1]).ToImport).UrlPath).Value);
             Assert.AreEqual("world.txt", ((QuotedStringValue)((Import)statements[2]).ToImport).Value);
-            Assert.AreEqual("../other-stuff.css", ((UrlValue)((Import)statements[3]).ToImport).UrlPath);
+            Assert.AreEqual("../other-stuff.css", ((StringValue)((UrlValue)((Import)statements[3]).ToImport).UrlPath).Value);
 
-            Assert.AreEqual(0, ((Import)statements[0]).ForMedia.Count());
-            Assert.AreEqual(0, ((Import)statements[1]).ForMedia.Count());
-            Assert.AreEqual(1, ((Import)statements[2]).ForMedia.Count());
-            Assert.AreEqual(2, ((Import)statements[3]).ForMedia.Count());
+            var s1m = ((Import)statements[0]).MediaQuery as MediaType;
+            Assert.IsNotNull(s1m);
+            Assert.AreEqual(Media.all, s1m.Type);
 
-            Assert.IsTrue(((Import)statements[2]).ForMedia.Contains(Media.tv));
-            Assert.IsTrue(((Import)statements[3]).ForMedia.Contains(Media.braille));
-            Assert.IsTrue(((Import)statements[3]).ForMedia.Contains(Media.print));
+            var s2m = ((Import)statements[1]).MediaQuery as MediaType;
+            Assert.IsNotNull(s2m);
+            Assert.AreEqual(Media.all, s2m.Type);
+
+            var s3m = ((Import)statements[2]).MediaQuery as MediaType;
+            Assert.IsNotNull(s3m);
+            Assert.AreEqual(Media.tv, s3m.Type);
+
+            var s4m = ((Import)statements[3]).MediaQuery as CommaDelimitedMedia;
+            Assert.IsNotNull(s4m);
+            var s4m1 = s4m.Clauses.ElementAt(0) as MediaType;
+            var s4m2 = s4m.Clauses.ElementAt(1) as MediaType;
+            Assert.IsNotNull(s4m1);
+            Assert.IsNotNull(s4m2);
+            Assert.AreEqual(Media.braille, s4m1.Type);
+            Assert.AreEqual(Media.print, s4m2.Type);
         }
 
         [TestMethod]

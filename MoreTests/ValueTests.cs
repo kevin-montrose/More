@@ -95,9 +95,9 @@ namespace MoreTests
             var urlValue1 = (UrlValue)url1;
             var urlValue2 = (UrlValue)url2;
             var urlValue3 = (UrlValue)url3;
-            Assert.AreEqual("/hello/world1.png", urlValue1.UrlPath);
-            Assert.AreEqual("/hello/world2.png", urlValue2.UrlPath);
-            Assert.AreEqual("/hello/world3.png", urlValue3.UrlPath);
+            Assert.AreEqual("/hello/world1.png", ((StringValue)urlValue1.UrlPath).Value);
+            Assert.AreEqual("/hello/world2.png", ((QuotedStringValue)urlValue2.UrlPath).Value);
+            Assert.AreEqual("/hello/world3.png", ((QuotedStringValue)urlValue3.UrlPath).Value);
 
             var rgbValue1 = (RGBColorValue)rgb1;
             var rgbValue2 = (RGBColorValue)rgb2;

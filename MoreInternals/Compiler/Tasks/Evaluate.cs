@@ -24,7 +24,8 @@ namespace MoreInternals.Compiler.Tasks
                 var media = statement as MediaBlock;
                 var keyframes = statement as KeyFramesBlock;
                 var fontface = statement as FontFaceBlock;
-                if (block == null && media == null && keyframes == null && fontface == null)
+                var import = statement as Model.Import;
+                if (block == null && media == null && keyframes == null && fontface == null && import == null)
                 {
                     ret.Add(statement);
                     continue;
@@ -53,7 +54,7 @@ namespace MoreInternals.Compiler.Tasks
                 {
                     var evaluated = Task(media.Blocks.ToList());
 
-                    ret.Add(new MediaBlock(media.MediaQuery, evaluated, media.Start, media.Stop, media.FilePath));
+                    ret.Add(new MediaBlock(media.MediaQuery.Evaluate(), evaluated, media.Start, media.Stop, media.FilePath));
                 }
 
                 if (keyframes != null)
@@ -84,6 +85,11 @@ namespace MoreInternals.Compiler.Tasks
                     }
 
                     ret.Add(new FontFaceBlock(processedRules, fontface.Start, fontface.Stop, fontface.FilePath));
+                }
+
+                if (import != null)
+                {
+                    ret.Add(import.Evaluate());
                 }
             }
 

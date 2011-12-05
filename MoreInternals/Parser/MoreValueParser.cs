@@ -147,14 +147,9 @@ namespace MoreInternals.Parser
                     {
                         var value = ParseGroup(stream, forPosition).Value;
 
-                        if(value is StringValue)
+                        if(value is StringValue || value is QuotedStringValue)
                         {
-                            return new UrlValue(((StringValue)value).Value);
-                        }
-
-                        if(value is QuotedStringValue)
-                        {
-                            return new UrlValue(((QuotedStringValue)value).Value);
+                            return new UrlValue(value);
                         }
 
                         Current.RecordError(ErrorType.Parser, forPosition, "Expected string or quoted string");

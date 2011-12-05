@@ -85,12 +85,12 @@ namespace MoreInternals.Model
     class Import : Block, IWritable
     {
         public Value ToImport { get; private set; }
-        public IEnumerable<Media> ForMedia { get; private set; }
+        public MediaQuery MediaQuery { get; private set; }
 
-        public Import(Value import, List<Media> forMedia, int start, int stop)
+        public Import(Value import, MediaQuery forMedia, int start, int stop)
         {
             ToImport = import;
-            ForMedia = forMedia.AsReadOnly();
+            MediaQuery = forMedia;
 
             Start = start;
             Stop = stop;
@@ -98,12 +98,17 @@ namespace MoreInternals.Model
 
         internal Import Bind(Scope scope)
         {
-            return new Import(ToImport.Bind(scope), ForMedia.ToList(), Start, Stop);
+            return new Import(ToImport.Bind(scope), MediaQuery.Bind(scope), Start, Stop);
+        }
+
+        internal Import Evaluate()
+        {
+            return new Import(ToImport.Evaluate(), MediaQuery.Evaluate(), Start, Stop);
         }
 
         public void Write(ICssWriter output)
         {
-            output.WriteImport(ToImport, ForMedia);
+            output.WriteImport(ToImport, MediaQuery);
         }
     }
 

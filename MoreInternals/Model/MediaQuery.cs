@@ -19,6 +19,19 @@ namespace MoreInternals.Model
             FilePath = pos.FilePath;
         }
 
+        internal static string AsString(Value val)
+        {
+            using (var writer = new StringWriter())
+            {
+                val.Write(writer);
+
+                return writer.ToString();
+            }
+        }
+
+        internal abstract MediaQuery Bind(Scope scope);
+        internal abstract MediaQuery Evaluate();
+
         internal abstract void Write(TextWriter writer);
     }
 
@@ -37,9 +50,32 @@ namespace MoreInternals.Model
             writer.Write(Enum.GetName(typeof(Media), Type).ToLowerInvariant());
         }
 
+        internal override MediaQuery Bind(Scope scope)
+        {
+            return this;
+        }
+
+        internal override MediaQuery Evaluate()
+        {
+            return this;
+        }
+
         public override string ToString()
         {
             return Type.ToString();
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as MediaType;
+            if (other == null) return false;
+
+            return this.Type == other.Type;
+        }
+
+        public override int GetHashCode()
+        {
+            return Type.GetHashCode();
         }
     }
 
@@ -59,9 +95,32 @@ namespace MoreInternals.Model
             Clause.Write(writer);
         }
 
+        internal override MediaQuery Bind(Scope scope)
+        {
+            return new NotMedia(Clause.Bind(scope), this);
+        }
+
+        internal override MediaQuery Evaluate()
+        {
+            return new NotMedia(Clause.Evaluate(), this);
+        }
+
         public override string ToString()
         {
             return "not " + Clause.ToString();
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as NotMedia;
+            if (other == null) return false;
+
+            return this.Clause.Equals(other.Clause);
+        }
+
+        public override int GetHashCode()
+        {
+            return Clause.GetHashCode();
         }
     }
 
@@ -81,9 +140,32 @@ namespace MoreInternals.Model
             Clause.Write(writer);
         }
 
+        internal override MediaQuery Bind(Scope scope)
+        {
+            return new OnlyMedia(Clause.Bind(scope), this);
+        }
+
+        internal override MediaQuery Evaluate()
+        {
+            return new OnlyMedia(Clause.Evaluate(), this);
+        }
+
         public override string ToString()
         {
             return "only " + Clause.ToString();
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as OnlyMedia;
+            if (other == null) return false;
+
+            return this.Clause.Equals(other.Clause);
+        }
+
+        public override int GetHashCode()
+        {
+            return Clause.GetHashCode();
         }
     }
 
@@ -106,9 +188,68 @@ namespace MoreInternals.Model
             RightHand.Write(writer);
         }
 
+        internal override MediaQuery Bind(Scope scope)
+        {
+            return new AndMedia(LeftHand.Bind(scope), RightHand.Bind(scope), this);
+        }
+
+        internal override MediaQuery Evaluate()
+        {
+            return new AndMedia(LeftHand.Evaluate(), RightHand.Evaluate(), this);
+        }
+
         public override string ToString()
         {
             return LeftHand.ToString() + " and " + RightHand.ToString();
+        }
+
+        private static List<MediaQuery> Flatten(params MediaQuery[] queries)
+        {
+            var ret = new List<MediaQuery>();
+
+            foreach (var q in queries)
+            {
+                if (!(q is AndMedia))
+                {
+                    ret.Add(q);
+                    continue;
+                }
+
+                var and = (AndMedia)q;
+                ret.AddRange(Flatten(and.LeftHand, and.RightHand));
+            }
+
+            return ret;
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as AndMedia;
+            if (other == null) return false;
+
+            var thisFlat = Flatten(this.LeftHand, this.RightHand);
+            var thatFlat = Flatten(other.LeftHand, other.RightHand);
+
+            if(thisFlat.Count != thatFlat.Count) return false;
+
+            foreach (var thisClause in thisFlat)
+            {
+                var anyEqual = false;
+
+                foreach (var thatClause in thatFlat)
+                {
+                    anyEqual |= thisClause.Equals(thatClause);
+                }
+
+                if (!anyEqual) return false;
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            return LeftHand.GetHashCode() ^ (RightHand.GetHashCode() * -1);
         }
     }
 
@@ -134,9 +275,54 @@ namespace MoreInternals.Model
             }
         }
 
+        internal override MediaQuery Bind(Scope scope)
+        {
+            return new CommaDelimitedMedia(Clauses.Select(c => c.Bind(scope)).ToList(), this);
+        }
+
+        internal override MediaQuery Evaluate()
+        {
+            return new CommaDelimitedMedia(Clauses.Select(c => c.Evaluate()).ToList(), this);
+        }
+
         public override string ToString()
         {
             return string.Join(", ", Clauses.Select(s => s.ToString()));
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as CommaDelimitedMedia;
+            if (other == null) return false;
+
+            foreach (var thisClause in this.Clauses)
+            {
+                var foundMatch = false;
+
+                foreach (var otherClause in other.Clauses)
+                {
+                    foundMatch |= thisClause.Equals(otherClause);
+                }
+
+                if (!foundMatch) return false;
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            var ret = 0x12345678;
+            bool invert = false;
+            foreach (var c in Clauses)
+            {
+                ret ^= c.GetHashCode();
+
+                if (invert) ret *= -1;
+                invert = !invert;
+            }
+
+            return ret;
         }
     }
 
@@ -161,9 +347,37 @@ namespace MoreInternals.Model
             writer.Write(')');
         }
 
+        internal override MediaQuery Bind(Scope scope)
+        {
+            return new MinFeatureMedia(Feature, Min.Bind(scope), this);
+        }
+
+        internal override MediaQuery Evaluate()
+        {
+            return new MinFeatureMedia(Feature, Min.Evaluate(), this);
+        }
+
         public override string ToString()
         {
             return "(min-" + Feature + ": " + Min.ToString() + ")";
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as MinFeatureMedia;
+            if (other == null) return false;
+
+            var thisMinStr = AsString(this.Min);
+            var otherMinStr = AsString(other.Min);
+
+            return
+                this.Feature == other.Feature &&
+                thisMinStr == otherMinStr;
+        }
+
+        public override int GetHashCode()
+        {
+            return Feature.GetHashCode() ^ AsString(Min).GetHashCode();
         }
     }
 
@@ -188,9 +402,37 @@ namespace MoreInternals.Model
             writer.Write(')');
         }
 
+        internal override MediaQuery Bind(Scope scope)
+        {
+            return new MaxFeatureMedia(Feature, Max.Bind(scope), this);
+        }
+
+        internal override MediaQuery Evaluate()
+        {
+            return new MaxFeatureMedia(Feature, Max.Evaluate(), this);
+        }
+
         public override string ToString()
         {
             return "(max-" + Feature + ": " + Max.ToString() + ")";
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as MaxFeatureMedia;
+            if (other == null) return false;
+
+            var thisMaxStr = AsString(this.Max);
+            var otherMaxStr = AsString(other.Max);
+
+            return
+                this.Feature == other.Feature &&
+                thisMaxStr == otherMaxStr;
+        }
+
+        public override int GetHashCode()
+        {
+            return Feature.GetHashCode() ^ AsString(Max).GetHashCode();
         }
     }
 
@@ -215,9 +457,37 @@ namespace MoreInternals.Model
             writer.Write(')');
         }
 
+        internal override MediaQuery Bind(Scope scope)
+        {
+            return new EqualFeatureMedia(Feature, EqualsValue.Bind(scope), this);
+        }
+
+        internal override MediaQuery Evaluate()
+        {
+            return new EqualFeatureMedia(Feature, EqualsValue.Evaluate(), this);
+        }
+
         public override string ToString()
         {
             return "(" + Feature + ": " + EqualsValue.ToString() + ")";
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as EqualFeatureMedia;
+            if (other == null) return false;
+
+            var thisEqualsStr = AsString(this.EqualsValue);
+            var otherEqualsStr = AsString(other.EqualsValue);
+
+            return
+                this.Feature == other.Feature &&
+                thisEqualsStr == otherEqualsStr;
+        }
+
+        public override int GetHashCode()
+        {
+            return Feature.GetHashCode() ^ AsString(EqualsValue).GetHashCode();
         }
     }
 
@@ -238,9 +508,33 @@ namespace MoreInternals.Model
             writer.Write(')');
         }
 
+        internal override MediaQuery Bind(Scope scope)
+        {
+            return this;
+        }
+
+        internal override MediaQuery Evaluate()
+        {
+            return this;
+        }
+
         public override string ToString()
         {
             return "(" + Feature + ")";
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as FeatureMedia;
+            if (other == null) return false;
+
+            return
+                this.Feature == other.Feature;
+        }
+
+        public override int GetHashCode()
+        {
+            return Feature.GetHashCode();
         }
     }
 }

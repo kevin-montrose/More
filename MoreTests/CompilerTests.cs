@@ -1233,7 +1233,7 @@ namespace MoreTests
 
             var written = TryCompile(txt);
 
-            Assert.AreEqual("@import 'hello-world.txt';@import url(other.txt) tv;img{rule:value;}", written);
+            Assert.AreEqual("@import 'hello-world.txt';@import url('other.txt') tv;img{rule:value;}", written);
 
             var warnings = Current.GetWarnings(ErrorType.Parser);
             Assert.AreEqual(1, warnings.Count);
@@ -1382,7 +1382,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual(".outer{outer:outer;a:10;}@media tv{img{tv:tv;}#d{d:d;}}@media print{p{print:print;}}@media print,tv{.both{both:both;}.both:hover{hover:hover;}}", written);
+            Assert.AreEqual(".outer{outer:outer;a:10;}@media tv{img{tv:tv;}#d{d:d;}}@media print{p{print:print;}}@media tv,print{.both{both:both;}.both:hover{hover:hover;}}", written);
         }
 
         [TestMethod]
@@ -1876,6 +1876,40 @@ namespace MoreTests
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual(".class{a:5.006s;b:157mm;c:0.5765cm;d:131.231mm;}", written);
+        }
+
+        [TestMethod]
+        public void ParameterizedMediaQuery()
+        {
+            var c =
+                @"@a = 5px;
+                  @b = prefixed;
+
+                  @media only tv and (min-width: @a), not print and (grid: @b) and (max-height: 5 * @a), braille and (line-height: 10em)
+                  {
+                     .class {
+                        rule: value;
+                     }
+                  }";
+
+            var written = TryCompile(c);
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("@media only tv and (min-width:5px),not print and (grid:prefixed) and (max-height:25px),braille and (line-height:10em){.class{rule:value;}}", written);
+        }
+
+        [TestMethod]
+        public void ParameterizedImport()
+        {
+            var c =
+                @"@a = 5px;
+                  @b = hello;
+
+                  @import url('/@b/world') only tv and (width: @a);";
+
+            var written = TryCompile(c);
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+
+            Assert.AreEqual("@import url('/hello/world') only tv and (width:5px);", written);
         }
     }
 }

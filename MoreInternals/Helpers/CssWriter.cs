@@ -13,7 +13,7 @@ namespace MoreInternals.Helpers
         void StartClass();
         void EndClass();
         void WriteRule(NameValueProperty rule);
-        void WriteImport(Value toImport, IEnumerable<Media> forMedia);
+        void WriteImport(Value toImport, MediaQuery forMedia);
         void WriteCharset(QuotedStringValue charset);
         void WriteMedia(MediaQuery forMedia);
         void WriteKeyframes(KeyFramesBlock keyframes);
@@ -52,16 +52,16 @@ namespace MoreInternals.Helpers
             _wrapped.Write(';');
         }
 
-        public void WriteImport(Value toImport, IEnumerable<Media> forMedia)
+        public void WriteImport(Value toImport, MediaQuery forMedia)
         {
             _wrapped.Write("@import");
             _wrapped.Write(' ');
             toImport.Write(_wrapped);
 
-            if (forMedia.Count() > 0)
+            if (!(forMedia is MediaType) || ((MediaType)forMedia).Type != Media.all)
             {
                 _wrapped.Write(' ');
-                _wrapped.Write(string.Join(",",forMedia.Select(s => s.ToString())));
+                forMedia.Write(_wrapped);
             }
 
             _wrapped.Write(';');
@@ -176,16 +176,16 @@ namespace MoreInternals.Helpers
             _wrapped.WriteLine(';');
         }
 
-        public void WriteImport(Value toImport, IEnumerable<Media> forMedia)
+        public void WriteImport(Value toImport, MediaQuery forMedia)
         {
             _wrapped.Write("@import");
             _wrapped.Write(' ');
             toImport.Write(_wrapped);
 
-            if (forMedia.Count() > 0)
+            if (!(forMedia is MediaType) || ((MediaType)forMedia).Type != Media.all)
             {
                 _wrapped.Write(' ');
-                _wrapped.Write(string.Join(",",forMedia.Select(s => s.ToString())));
+                forMedia.Write(_wrapped);
             }
 
             _wrapped.Write(';');
