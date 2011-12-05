@@ -1355,19 +1355,22 @@ namespace MoreTests
                     }
                   }";
             var d = " #d { d:d; }";
-            var e =
-                @".outer {
+            var e = " #e { e: e; }";
+            var f =
+                @"@b = 5; @c = 6; @e = 7;
+                  .outer {
                       outer: outer;
                       @mx(10);
                   }
                   @using 'a' tv;
                   @using 'b' print;
                   @using 'c' tv,print;
-                  @using 'd' tv;";
+                  @using 'd' tv;
+                  @using 'e' only tv and (width: @b + @c * @e);";
 
             var written =
                 TryCompile(
-                    e,
+                    f,
                     lookup:
                         new TestLookup(
                             new Dictionary<string, string>() 
@@ -1375,14 +1378,15 @@ namespace MoreTests
                                 { Path.DirectorySeparatorChar + "a", a },
                                 { Path.DirectorySeparatorChar + "b", b },
                                 { Path.DirectorySeparatorChar + "c", c },
-                                { Path.DirectorySeparatorChar + "d", d }
+                                { Path.DirectorySeparatorChar + "d", d },
+                                { Path.DirectorySeparatorChar + "e", e }
                             },
                             null
                         )
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual(".outer{outer:outer;a:10;}@media tv{img{tv:tv;}#d{d:d;}}@media print{p{print:print;}}@media tv,print{.both{both:both;}.both:hover{hover:hover;}}", written);
+            Assert.AreEqual(".outer{outer:outer;a:10;}@media tv{img{tv:tv;}#d{d:d;}}@media print{p{print:print;}}@media tv,print{.both{both:both;}.both:hover{hover:hover;}}@media only tv and (width:47){#e{e:e;}}", written);
         }
 
         [TestMethod]
