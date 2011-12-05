@@ -20,19 +20,6 @@ namespace MoreInternals.Parser
             _wrapped = wrapped;
         }
 
-        public string ReadToEnd()
-        {
-            var ret = new StringBuilder();
-
-            int i;
-            while ((i = Read()) != -1)
-            {
-                ret.Append((char)i);
-            }
-
-            return ret.ToString();
-        }
-
         public int Peek()
         {
             int i = -1;

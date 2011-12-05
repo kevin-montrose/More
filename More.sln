@@ -4,10 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{40C63C1B-38FE-4241-AFBB-F57AF5A3F61E}"
 	ProjectSection(SolutionItems) = preProject
 		LICENSE = LICENSE
-		Local.testsettings = Local.testsettings
 		More.vsmdi = More.vsmdi
+		MoreTests.testsettings = MoreTests.testsettings
 		README = README
-		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreTests", "MoreTests\MoreTests.csproj", "{FEC94D74-32C4-470D-A603-3931FFAA5753}"
