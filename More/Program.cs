@@ -107,13 +107,13 @@ namespace More
             return string.Format("Line: {0}, Column: {1}", line, column);
         }
 
-        private static void PrintErrors(List<Error> parseErrors = null, List<Error> compileErrors = null)
+        private static void Print(string errorClass, List<Error> parse = null, List<Error> compile = null)
         {
-            if (parseErrors.Count > 0)
+            if (parse.Count > 0)
             {
-                Console.WriteLine("Parse Errors");
+                Console.WriteLine("Parse " + errorClass);
                 Console.WriteLine("============");
-                foreach (var fileErrors in parseErrors.GroupBy(e => e.File))
+                foreach (var fileErrors in parse.GroupBy(e => e.File))
                 {
                     Console.WriteLine(fileErrors.Key);
 
@@ -129,7 +129,7 @@ namespace More
                     foreach (var error in fileErrors.OrderBy(i => i.StartPosition).ThenBy(i => i.EndPosition))
                     {
                         string snippet;
-                        using(var reader = new StringReader(text))
+                        using (var reader = new StringReader(text))
                         {
                             snippet = error.Snippet(reader);
                         }
@@ -151,98 +151,11 @@ namespace More
                 }
             }
 
-            if (compileErrors.Count > 0)
+            if (compile.Count > 0)
             {
-                Console.WriteLine("Compilation Errors");
+                Console.WriteLine("Compilation " + errorClass);
                 Console.WriteLine("==================");
-                foreach (var fileErrors in compileErrors.GroupBy(e => e.File))
-                {
-                    Console.WriteLine(fileErrors.Key);
-
-                    string text;
-                    if (File.Exists(fileErrors.Key))
-                    {
-                        text = File.ReadAllText(fileErrors.Key);
-                    }
-                    else
-                    {
-                        text = "";
-                    }
-                    foreach (var error in fileErrors.OrderBy(i => i.StartPosition).ThenBy(i => i.EndPosition))
-                    {
-                        string snippet;
-                        using (var reader = new StringReader(text))
-                        {
-                            snippet = error.Snippet(reader);
-                        }
-
-                        if (error.StartPosition != error.EndPosition)
-                        {
-                            Console.WriteLine("between " + PositionIn(text, error.StartPosition) + " and " + PositionIn(text, error.EndPosition));
-                        }
-                        else
-                        {
-                            Console.WriteLine("near " + PositionIn(text, error.StartPosition));
-                        }
-
-                        Console.WriteLine(snippet.Trim());
-                        Console.WriteLine(error.Message);
-                    }
-
-                    Console.WriteLine();
-                }
-            }
-        }
-
-        private static void PrintWarnings(List<Error> parseWarn = null, List<Error> compileWarn = null)
-        {
-            if (parseWarn.Count > 0)
-            {
-                Console.WriteLine("Parse Warnings");
-                Console.WriteLine("==============");
-                foreach (var fileErrors in parseWarn.GroupBy(e => e.File))
-                {
-                    Console.WriteLine(fileErrors.Key);
-
-                    string text;
-                    if (File.Exists(fileErrors.Key))
-                    {
-                        text = File.ReadAllText(fileErrors.Key);
-                    }
-                    else
-                    {
-                        text = "";
-                    }
-                    foreach (var error in fileErrors.OrderBy(i => i.StartPosition).ThenBy(i => i.EndPosition))
-                    {
-                        string snippet;
-                        using (var reader = new StringReader(text))
-                        {
-                            snippet = error.Snippet(reader);
-                        }
-
-                        if (error.StartPosition != error.EndPosition)
-                        {
-                            Console.WriteLine("between " + PositionIn(text, error.StartPosition) + " and " + PositionIn(text, error.EndPosition));
-                        }
-                        else
-                        {
-                            Console.WriteLine("near " + PositionIn(text, error.StartPosition));
-                        }
-
-                        Console.WriteLine(snippet.Trim());
-                        Console.WriteLine(error.Message);
-                    }
-
-                    Console.WriteLine();
-                }
-            }
-
-            if (compileWarn.Count > 0)
-            {
-                Console.WriteLine("Compilation Warnings");
-                Console.WriteLine("====================");
-                foreach (var fileErrors in compileWarn.GroupBy(e => e.File))
+                foreach (var fileErrors in compile.GroupBy(e => e.File))
                 {
                     Console.WriteLine(fileErrors.Key);
 
@@ -423,7 +336,7 @@ namespace More
                 var parseErrors = errors.Where(e => e.Key == ErrorType.Parser).SelectMany(s => s.ToList()).Distinct().ToList();
                 var compileErrors = errors.Where(e => e.Key == ErrorType.Compiler).SelectMany(s => s.ToList()).Distinct().ToList();
 
-                PrintErrors(parseErrors: parseErrors, compileErrors: compileErrors);
+                Print("Errors", parseErrors, compileErrors);
             }
 
             if (mergedContext.GetWarnings().Count > 0)
@@ -431,7 +344,7 @@ namespace More
                 var parseWarnings = mergedContext.GetWarnings().Where(e => e.Key == ErrorType.Parser).SelectMany(s => s.ToList()).Distinct().ToList();
                 var compileWarnings = mergedContext.GetWarnings().Where(e => e.Key == ErrorType.Compiler).SelectMany(s => s.ToList()).Distinct().ToList();
 
-                PrintWarnings(parseWarn: parseWarnings, compileWarn: compileWarnings);
+                Print("Warnings", parseWarnings, compileWarnings);
             }
 
             if (verbose && infoMessages.Count > 0)
