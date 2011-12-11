@@ -191,4 +191,33 @@ namespace MoreInternals.Model
             FilePath = file;
         }
     }
+
+    class ResetProperty : Property
+    {
+        public Selector Selector { get; private set; }
+
+        internal ResetProperty(Selector sel, int start, int stop, string file)
+        {
+            Selector = sel;
+
+            Start = start;
+            Stop = stop;
+            FilePath = file;
+        }
+    }
+
+    class ResetSelfProperty : Property
+    {
+        internal ResetSelfProperty(int start, int stop, string file)
+        {
+            Start = start;
+            Stop = stop;
+            FilePath = file;
+        }
+
+        public ResetProperty BindToSelector(Selector sel)
+        {
+            return new ResetProperty(sel, Start, Stop, FilePath);
+        }
+    }
 }

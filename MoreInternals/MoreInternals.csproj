@@ -62,6 +62,7 @@
     <Compile Include="Compiler\Tasks\NoOps.cs" />
     <Compile Include="Compiler\Tasks\Parse.cs" />
     <Compile Include="Compiler\Tasks\Reset.cs" />
+    <Compile Include="Compiler\Tasks\ResetIncludes.cs" />
     <Compile Include="Compiler\Tasks\ResetReOrder.cs" />
     <Compile Include="Compiler\Tasks\Sprites.cs" />
     <Compile Include="Compiler\Tasks\Unroll.cs" />

@@ -38,6 +38,7 @@ namespace MoreInternals.Compiler
                 Reset.Task,
                 Sprite.Task,
                 Mixin.Task,
+                ResetIncludes.Task,
                 Unroll.Task,
                 Tasks.Media.Task,
                 Includes.Task,

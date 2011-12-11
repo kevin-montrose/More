@@ -1311,5 +1311,28 @@ namespace MoreTests
             var block = reset.Blocks.ElementAt(1) as SelectorAndBlock;
             Assert.IsNotNull(block);
         }
+
+        [TestMethod]
+        public void ResetRule()
+        {
+            var statements =
+                TryParseStatements(
+                    @"id {
+                        a:b;
+                        @reset(.class);
+                      }"
+                );
+
+            Assert.AreEqual(1, statements.Count);
+            var block = statements.ElementAt(0) as SelectorAndBlock;
+            Assert.IsNotNull(block);
+            Assert.AreEqual(2, block.Properties.Count());
+            var rule = block.Properties.ElementAt(0) as NameValueProperty;
+            var reset = block.Properties.ElementAt(1) as ResetProperty;
+            Assert.IsNotNull(rule);
+            Assert.IsNotNull(reset);
+            var resetSel = reset.Selector;
+            Assert.AreEqual(typeof(ClassSelector), resetSel.GetType());
+        }
     }
 }

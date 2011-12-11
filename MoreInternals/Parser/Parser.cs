@@ -845,6 +845,16 @@ namespace MoreInternals.Parser
                 return new IncludeSelectorProperty(Selector.Parse(paramsStr, paramStart, paramStop, Current.CurrentFilePath), overrides, start, stream.Position, Current.CurrentFilePath);
             }
 
+            if (name.ToString().Trim().Equals("reset", StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (paramsStr.Trim().Length != 0)
+                {
+                    return new ResetProperty(Selector.Parse(paramsStr, paramStart, paramStop, Current.CurrentFilePath), start, stream.Position, Current.CurrentFilePath);
+                }
+
+                return new ResetSelfProperty(start, stream.Position, Current.CurrentFilePath);
+            }
+
             return new MixinApplicationProperty(nameStr, ParseApplicationParameters(paramsStr, startParams), optional: optional, overrides: overrides, start: start, stop: stream.Position, filePath: Current.CurrentFilePath);
         }
 
