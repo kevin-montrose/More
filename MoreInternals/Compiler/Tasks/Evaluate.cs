@@ -47,7 +47,7 @@ namespace MoreInternals.Compiler.Tasks
                         }
                     }
 
-                    ret.Add(new SelectorAndBlock(block.Selector, processedRules, block.Start, block.Stop, block.FilePath));
+                    ret.Add(new SelectorAndBlock(block.Selector, processedRules, block.ResetContext, block.Start, block.Stop, block.FilePath));
                 }
 
                 if (media != null)
@@ -62,7 +62,7 @@ namespace MoreInternals.Compiler.Tasks
                     var frames = new List<KeyFrame>();
                     foreach (var frame in keyframes.Frames)
                     {
-                        var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, frame.Properties, frame.Start, frame.Stop, frame.FilePath);
+                        var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, frame.Properties, null, frame.Start, frame.Stop, frame.FilePath);
                         var evald = Task(new List<Block>() { blockEquiv });
                         frames.Add(new KeyFrame(frame.Percentages.ToList(), ((SelectorAndBlock)evald[0]).Properties.ToList(), frame.Start, frame.Stop, frame.FilePath));
                     }

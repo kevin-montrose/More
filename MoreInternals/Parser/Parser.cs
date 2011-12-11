@@ -527,6 +527,68 @@ namespace MoreInternals.Parser
             return new FontFaceBlock(rules, start, stream.Position, Current.CurrentFilePath);
         }
 
+        internal static ResetBlock ParseResetDirective(ParserStream stream, int start)
+        {
+            var ignored = new StringBuilder();
+            stream.ScanUntil(ignored, '{');
+
+            var contained = new List<Block>();
+
+            char c;
+            while ((c = stream.Peek()) != '}')
+            {
+                if (char.IsWhiteSpace(c))
+                {
+                    stream.AdvancePastWhiteSpace();
+                    continue;
+                }
+
+                // More directive (probably)
+                if (c == '@')
+                {
+                    contained.Add(ParseDirective(stream));
+                    continue;
+                }
+
+                // Selector + block time!
+                contained.Add(ParseSelectorAndBlock(stream));
+            }
+
+            var notAllowed = contained.Where(x => !(x is SelectorAndBlock || x is MoreVariable));
+
+            foreach (var illegal in notAllowed)
+            {
+                Current.RecordError(ErrorType.Parser, illegal, "@reset can only contain blocks and variable declarations");
+            }
+
+            if (notAllowed.Count() != 0)
+            {
+                throw new StoppedParsingException();
+            }
+
+            // The whole @reset{} block disappears pretty quickly, but the actual
+            //   blocks need to know what they were "near" for variable resolution.
+            var variables = contained.OfType<MoreVariable>();
+            var bound = new List<Block>();
+            foreach (var x in contained)
+            {
+                var asBlock = x as SelectorAndBlock;
+                if (asBlock != null)
+                {
+                    bound.Add(asBlock.InReset(variables));
+                }
+                else
+                {
+                    bound.Add(x);
+                }
+            }
+
+            // Skip past }
+            stream.Advance();
+
+            return new ResetBlock(bound, start, stream.Position, Current.CurrentFilePath);
+        }
+
         internal static Block ParseDirective(ParserStream stream)
         {
             const string import = "import";
@@ -538,12 +600,13 @@ namespace MoreInternals.Parser
             const string mozKeyframes = "-moz-keyframes";
             const string webKeyframes = "-webkit-keyframes";
             const string fontFace = "font-face";
+            const string reset = "reset";
 
             stream.Advance(); // Advance past @
 
             var bufferStart = stream.Position;
             var buffer = new StringBuilder();
-            var next = stream.WhichNextInsensitive(buffer, @using, sprite, import, charset, media, keyframes, mozKeyframes, webKeyframes, fontFace);
+            var next = stream.WhichNextInsensitive(buffer, @using, sprite, import, charset, media, keyframes, mozKeyframes, webKeyframes, fontFace, reset);
 
             if (next == @using)
             {
@@ -582,6 +645,11 @@ namespace MoreInternals.Parser
             if (next == fontFace)
             {
                 return ParseFontFace(stream, bufferStart);
+            }
+
+            if (next == reset)
+            {
+                return ParseResetDirective(stream, bufferStart);
             }
 
             stream.PushBack(buffer.ToString());
@@ -900,7 +968,7 @@ namespace MoreInternals.Parser
             var sel = Selector.Parse(selectorStr, selectorStart, selectorStop, Current.CurrentFilePath);
             var cssRules = ParseCssRules(stream);
 
-            return new SelectorAndBlock(sel, cssRules, mark, stream.Position, Current.CurrentFilePath);
+            return new SelectorAndBlock(sel, cssRules, null, mark, stream.Position, Current.CurrentFilePath);
         }
 
         public List<Block> Parse(string filePath, TextReader reader)

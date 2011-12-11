@@ -111,6 +111,9 @@ namespace MoreInternals.Model
 
         internal List<NameValueProperty> LookupMatch(List<SelectorAndBlock> unrolled, HashSet<int> callChain = null, List<SelectorAndBlock> parent = null)
         {
+            // blocks in @reset declarations cannot be referred to via @() selector includes.
+            unrolled = unrolled.Where(w => !w.IsReset).ToList();
+
             callChain = callChain ?? new HashSet<int>();
 
             var ret = new List<NameValueProperty>();

@@ -56,7 +56,7 @@ namespace MoreInternals.Compiler.Tasks
                         }
                     }
 
-                    ret.Add(new SelectorAndBlock(block.Selector, rules, block.Start, block.Stop, block.FilePath));
+                    ret.Add(new SelectorAndBlock(block.Selector, rules, block.ResetContext, block.Start, block.Stop, block.FilePath));
                 }
 
                 if (media != null)
@@ -70,7 +70,7 @@ namespace MoreInternals.Compiler.Tasks
                     var frames = new List<KeyFrame>();
                     foreach (var frame in keyframes.Frames)
                     {
-                        var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, frame.Properties, frame.Start, frame.Stop, frame.FilePath);
+                        var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, frame.Properties, null, frame.Start, frame.Stop, frame.FilePath);
                         var resolved = Task(new List<Block>() { blockEquiv });
 
                         frames.Add(new KeyFrame(frame.Percentages.ToList(), ((SelectorAndBlock)resolved[0]).Properties.ToList(), frame.Stop, frame.Stop, frame.FilePath));
@@ -81,7 +81,7 @@ namespace MoreInternals.Compiler.Tasks
 
                 if (fontface != null)
                 {
-                    var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, fontface.Properties, fontface.Start, fontface.Stop, fontface.FilePath);
+                    var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, fontface.Properties, null, fontface.Start, fontface.Stop, fontface.FilePath);
                     var resolved = (SelectorAndBlock)Task(new List<Block>() { blockEquiv })[0];
 
                     ret.Add(new FontFaceBlock(resolved.Properties.ToList(), fontface.Start, fontface.Stop, fontface.FilePath));

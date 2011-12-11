@@ -1275,5 +1275,41 @@ namespace MoreTests
             Assert.AreEqual("a", a.Name);
             Assert.AreEqual("b", b.Name);
         }
+
+        [TestMethod]
+        public void ResetBlock()
+        {
+            var blocks =
+                TryParseStatements(
+                    @"@reset {
+                        @x = 5;
+                        .class {
+                          rule: value;
+                          :hover {
+                            inner: @x;
+                          }
+                        }
+                      }
+
+                      #id {
+                        a: b;
+                      }"
+                );
+
+            Assert.AreEqual(2, blocks.Count);
+            var reset = blocks[0] as ResetBlock;
+            Assert.IsNotNull(reset);
+            var id = blocks[1] as SelectorAndBlock;
+            Assert.IsNotNull(id);
+            
+            Assert.AreEqual(1, id.Properties.Count());
+
+            Assert.AreEqual(2, reset.Blocks.Count());
+            var var = reset.Blocks.ElementAt(0) as MoreVariable;
+            Assert.IsNotNull(var);
+            Assert.AreEqual("x", var.Name);
+            var block = reset.Blocks.ElementAt(1) as SelectorAndBlock;
+            Assert.IsNotNull(block);
+        }
     }
 }

@@ -264,7 +264,13 @@ namespace MoreInternals.Compiler.Tasks
         {
             var ret = new List<Block>();
 
-            foreach (var statement in blocks)
+            ret.AddRange(blocks.OfType<CssCharset>());
+            ret.AddRange(blocks.OfType<Model.Import>());
+            ret.AddRange(blocks.Where(w => w is SelectorAndBlock && ((SelectorAndBlock)w).IsReset));
+
+            var remainder = blocks.Where(w => !ret.Contains(w));
+
+            foreach (var statement in remainder)
             {
                 var block = statement as SelectorAndBlock;
                 if (block != null)
@@ -277,7 +283,7 @@ namespace MoreInternals.Compiler.Tasks
 
                     rules = MinifyPropertyList(rules).ToList();
 
-                    ret.Add(new SelectorAndBlock(block.Selector, rules, block.Start, block.Stop, block.FilePath));
+                    ret.Add(new SelectorAndBlock(block.Selector, rules, block.ResetContext, block.Start, block.Stop, block.FilePath));
                     continue;
                 }
 
@@ -297,7 +303,7 @@ namespace MoreInternals.Compiler.Tasks
                     // minify each frame
                     foreach (var frame in keyframes.Frames)
                     {
-                        var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, frame.Properties, frame.Start, frame.Stop, frame.FilePath);
+                        var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, frame.Properties, null, frame.Start, frame.Stop, frame.FilePath);
                         var mind = Task(new List<Block>() { blockEquiv });
                         frames.Add(new KeyFrame(frame.Percentages.ToList(), ((SelectorAndBlock)mind[0]).Properties.ToList(), frame.Start, frame.Stop, frame.FilePath));
                     }

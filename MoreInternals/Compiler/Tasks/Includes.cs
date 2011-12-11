@@ -71,7 +71,7 @@ namespace MoreInternals.Compiler.Tasks
                         simple.Add(o);
                     }
 
-                    ret.Add(new SelectorAndBlock(block.Selector, simple, block.Start, block.Stop, block.FilePath));
+                    ret.Add(new SelectorAndBlock(block.Selector, simple, block.ResetContext, block.Start, block.Stop, block.FilePath));
                 }
 
                 if (media != null)
@@ -88,7 +88,7 @@ namespace MoreInternals.Compiler.Tasks
 
                     foreach (var frame in keyframes.Frames)
                     {
-                        var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, frame.Properties, frame.Start, frame.Stop, frame.FilePath);
+                        var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, frame.Properties, null, frame.Start, frame.Stop, frame.FilePath);
                         var copied = Impl(new List<Block>() { blockEquiv }, parent: parent);
 
                         frames.Add(new KeyFrame(frame.Percentages.ToList(), ((SelectorAndBlock)copied[0]).Properties.ToList(), frame.Start, frame.Stop, frame.FilePath));
@@ -99,7 +99,7 @@ namespace MoreInternals.Compiler.Tasks
 
                 if (fontface != null)
                 {
-                    var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, fontface.Properties, fontface.Start, fontface.Stop, fontface.FilePath);
+                    var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, fontface.Properties, null, fontface.Start, fontface.Stop, fontface.FilePath);
                     var copied = (SelectorAndBlock)Impl(new List<Block>() { blockEquiv }, parent)[0];
 
                     ret.Add(new FontFaceBlock(copied.Properties.ToList(), copied.Start, copied.Stop, copied.FilePath));

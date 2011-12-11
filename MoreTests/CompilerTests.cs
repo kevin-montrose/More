@@ -1915,5 +1915,61 @@ namespace MoreTests
 
             Assert.AreEqual("@import url('/hello/world') only tv and (width:5px);", written);
         }
+
+        [TestMethod]
+        public void IncludesDontMatchResets()
+        {
+            var c =
+                @"@reset{
+                    img { 
+                      width: 50px; 
+                      height: 50px;
+
+                      .class {
+                        display: inline-block;
+                      }
+                    }
+                  }
+
+                  p { line-height: 2em; }
+
+                  div { @(img); @(p); }";
+
+            var written = TryCompile(c);
+
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("img{width:50px;height:50px;}img .class{display:inline-block;}p{line-height:2em;}div{line-height:2em;}", written);
+        }
+
+        [TestMethod]
+        public void ResetVariables()
+        {
+            var c =
+                @"d { @outerMx(); }
+
+                  @a = 10;
+                  @reset {
+                    @b = @a + 5;
+                    @mx = @outerMx;
+
+                    sub {
+                      a: @a;
+                      b: @b;
+
+                      :hover {
+                        @c = @a * @b;
+                        c: @c;
+                        @mx();
+                      }
+                    }
+                  }
+
+                  @outerMx(){ d: d; }";
+
+            var written = TryCompile(c);
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+
+            Assert.AreEqual("sub{a:10;b:15;}sub :hover{c:150;d:d;}d{d:d;}", written);
+        }
     }
 }

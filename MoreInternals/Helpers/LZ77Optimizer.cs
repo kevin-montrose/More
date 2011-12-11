@@ -121,6 +121,7 @@ namespace MoreInternals.Helpers
                 new SelectorAndBlock(
                     selector,
                     block.Properties.Cast<NameValueProperty>().OrderBy(o => o.Name).ToList(),
+                    block.ResetContext,
                     block.Start,
                     block.Stop,
                     block.FilePath
@@ -184,9 +185,9 @@ namespace MoreInternals.Helpers
 
         public static List<Block> Optimize(List<Block> statements)
         {
-            var blocks = statements.OfType<SelectorAndBlock>().ToList();
+            var blocks = statements.OfType<SelectorAndBlock>().Where(w => !w.IsReset).ToList();
             var medias = statements.OfType<MediaBlock>().ToList();
-            var other = statements.Where(o => !(o is SelectorAndBlock || o is MediaBlock)).ToList();
+            var other = statements.Where(o => !(blocks.Contains(o) || medias.Contains(o))).ToList();
 
             var newMedias = new List<MediaBlock>();
             foreach (var media in medias)

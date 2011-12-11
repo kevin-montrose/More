@@ -246,17 +246,25 @@ namespace MoreInternals.Model
     /* Selector START_CLASS [CssRules] END_CLASS */
     class SelectorAndBlock : Block, IWritable
     {
+        public bool IsReset { get { return ResetContext != null; } }
+        public IEnumerable<MoreVariable> ResetContext { get; private set; }
         public Selector Selector { get; private set; }
         public IEnumerable<Property> Properties { get; private set; }
 
-        public SelectorAndBlock(Selector selector, IEnumerable<Property> cssRules, int start, int stop, string filePath)
+        public SelectorAndBlock(Selector selector, IEnumerable<Property> cssRules, IEnumerable<MoreVariable> resetContext, int start, int stop, string filePath)
         {
             Selector = selector;
             Properties = cssRules.ToList().AsReadOnly();
+            ResetContext = resetContext != null ? resetContext.ToList().AsReadOnly() : null;
 
             Start = start;
             Stop = stop;
             FilePath = filePath;
+        }
+
+        internal SelectorAndBlock InReset(IEnumerable<MoreVariable> context)
+        {
+            return new SelectorAndBlock(this.Selector, this.Properties, context, this.Start, this.Stop, this.FilePath);
         }
 
         private static MixinBlock CreateAnonMixin(IncludeSelectorValue val)
@@ -315,7 +323,20 @@ namespace MoreInternals.Model
                 throw new StoppedCompilingException();
             }
 
+            var injectReset = IsReset && scope == null;
             scope = scope ?? Current.GlobalScope;
+
+            if (injectReset)
+            {
+                var vars = new Dictionary<string, Value>();
+                foreach (var var in ResetContext)
+                {
+                    vars[var.Name] = var.Value.Bind(scope);
+                }
+
+                scope = scope.Push(vars, new Dictionary<string, MixinBlock>(), Position.NoSite);
+            }
+
             invokationChain = invokationChain ?? new LinkedList<MixinApplicationProperty>();
 
             var retRules = new List<Property>();
@@ -484,7 +505,7 @@ namespace MoreInternals.Model
 
                 invokationChain.AddLast(rule);
 
-                var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, mixin.Properties, -1, -1, null);
+                var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, mixin.Properties, null, -1, -1, null);
                 var boundMixin = blockEquiv.BindAndEvaluateMixins(localScope, depth + 1, invokationChain);
 
                 invokationChain.RemoveLast();
@@ -507,7 +528,7 @@ namespace MoreInternals.Model
 
             retRules.AddRange(inclRules);
 
-            return new SelectorAndBlock(this.Selector, retRules, this.Start, this.Stop, this.FilePath);
+            return new SelectorAndBlock(this.Selector, retRules, this.ResetContext, this.Start, this.Stop, this.FilePath);
         }
 
         internal List<SelectorAndBlock> UnrollNestedBlocks()
@@ -517,7 +538,7 @@ namespace MoreInternals.Model
             var theseRules = Properties.Where(r => r.GetType() == typeof(NameValueProperty) || r.GetType() == typeof(IncludeSelectorProperty));
             var blocks = Properties.OfType<NestedBlockProperty>();
 
-            ret.Add(new SelectorAndBlock(this.Selector, theseRules, this.Start, this.Stop, this.FilePath));
+            ret.Add(new SelectorAndBlock(this.Selector, theseRules, this.ResetContext, this.Start, this.Stop, this.FilePath));
 
             foreach (var block in blocks)
             {
@@ -527,7 +548,7 @@ namespace MoreInternals.Model
                     {
                         foreach (var perm in CombineSelectors(this.Selector, e.Selector, this.Selector.Start, this.Selector.Stop, this.Selector.FilePath))
                         {
-                            ret.Add(new SelectorAndBlock(perm, e.Properties, this.Start, this.Stop, this.FilePath));
+                            ret.Add(new SelectorAndBlock(perm, e.Properties, this.ResetContext, this.Start, this.Stop, this.FilePath));
                         }
                     }
                 );
@@ -590,6 +611,11 @@ namespace MoreInternals.Model
                 output.WriteRule(rule);
             }
             output.EndClass();
+        }
+
+        public override string ToString()
+        {
+            return Selector.ToString() + " { [" + Properties.Count() + "] }";
         }
     }
 
@@ -681,6 +707,20 @@ namespace MoreInternals.Model
         public void Write(ICssWriter output)
         {
             output.WriteFontFace(this);
+        }
+    }
+
+    class ResetBlock : Block
+    {
+        public IEnumerable<Block> Blocks { get; private set; }
+
+        public ResetBlock(List<Block> blocks, int start, int stop, string file)
+        {
+            Blocks = blocks.AsReadOnly();
+
+            Start = start;
+            Stop = stop;
+            FilePath = file;
         }
     }
 }

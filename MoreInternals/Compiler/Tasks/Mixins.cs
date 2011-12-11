@@ -78,7 +78,7 @@ namespace MoreInternals.Compiler.Tasks
                 var frames = new List<KeyFrame>();
                 foreach (var frame in animation.Frames)
                 {
-                    var blockEquivalent = new SelectorAndBlock(InvalidSelector.Singleton, frame.Properties, frame.Start, frame.Stop, frame.FilePath);
+                    var blockEquivalent = new SelectorAndBlock(InvalidSelector.Singleton, frame.Properties, null, frame.Start, frame.Stop, frame.FilePath);
                     var bound = blockEquivalent.BindAndEvaluateMixins(innerScope);
 
                     frames.Add(new KeyFrame(frame.Percentages.ToList(), bound.Properties.ToList(), frame.Start, frame.Stop, frame.FilePath));
@@ -104,7 +104,7 @@ namespace MoreInternals.Compiler.Tasks
 
             foreach (var font in statements.OfType<FontFaceBlock>())
             {
-                var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, font.Properties, font.Start, font.Stop, font.FilePath);
+                var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, font.Properties, null, font.Start, font.Stop, font.FilePath);
                 var bound = blockEquiv.BindAndEvaluateMixins(globalScope);
 
                 ret.Add(new FontFaceBlock(bound.Properties.ToList(), font.Start, font.Stop, font.FilePath));
