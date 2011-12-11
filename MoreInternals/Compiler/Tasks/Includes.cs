@@ -39,6 +39,7 @@ namespace MoreInternals.Compiler.Tasks
 
                 if (block != null)
                 {
+                    var other = block.Properties.Where(w => !(w is NameValueProperty || w is IncludeSelectorProperty)).ToList();
                     var simple = block.Properties.OfType<NameValueProperty>().ToList();
                     var includes = block.Properties.OfType<IncludeSelectorProperty>();
 
@@ -71,7 +72,9 @@ namespace MoreInternals.Compiler.Tasks
                         simple.Add(o);
                     }
 
-                    ret.Add(new SelectorAndBlock(block.Selector, simple, block.ResetContext, block.Start, block.Stop, block.FilePath));
+                    other.AddRange(simple);
+
+                    ret.Add(new SelectorAndBlock(block.Selector, other, block.ResetContext, block.Start, block.Stop, block.FilePath));
                 }
 
                 if (media != null)

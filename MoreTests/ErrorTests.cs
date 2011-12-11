@@ -168,35 +168,35 @@ namespace MoreTests
             var c1Errors = Current.GetErrors(ErrorType.Parser);
             Assert.AreEqual(1, c1Errors.Count);
             Assert.AreEqual(c1, c1Errors[0].Snippet(new StringReader(c1)));
-            Assert.AreEqual("Expected ';'", c1Errors[0].Message);
+            Assert.AreEqual("Expected ';' or '{'", c1Errors[0].Message);
 
             var c2Statments = TryParseStatements(c2);
             Assert.IsNull(c2Statments);
             var c2Errors = Current.GetErrors(ErrorType.Parser);
             Assert.AreEqual(1, c2Errors.Count);
             Assert.AreEqual(c2, c2Errors[0].Snippet(new StringReader(c2)));
-            Assert.AreEqual("Expected ';'", c2Errors[0].Message);
+            Assert.AreEqual("Expected ';' or '{'", c2Errors[0].Message);
 
             var c3Statments = TryParseStatements(c3);
             Assert.IsNull(c3Statments);
             var c3Errors = Current.GetErrors(ErrorType.Parser);
             Assert.AreEqual(1, c3Errors.Count);
             Assert.AreEqual(c3, c3Errors[0].Snippet(new StringReader(c3)));
-            Assert.AreEqual("Expected '{' or ':'", c3Errors[0].Message);
+            Assert.AreEqual("Expected ';' or '{'", c3Errors[0].Message);
 
             var c4Statments = TryParseStatements(c4);
             Assert.IsNull(c4Statments);
             var c4Errors = Current.GetErrors(ErrorType.Parser);
             Assert.AreEqual(1, c4Errors.Count);
             Assert.AreEqual(c4, c4Errors[0].Snippet(new StringReader(c4)));
-            Assert.AreEqual("Expected '{' or ':'", c4Errors[0].Message);
+            Assert.AreEqual("Expected ':'", c4Errors[0].Message);
 
             var c5Statments = TryParseStatements(c5);
             Assert.IsNull(c5Statments);
             var c5Errors = Current.GetErrors(ErrorType.Parser);
             Assert.AreEqual(1, c5Errors.Count);
             Assert.AreEqual(".class { value; }", c5Errors[0].Snippet(new StringReader(c5)).Trim());
-            Assert.AreEqual("Expected '{' or ':'", c5Errors[0].Message);
+            Assert.AreEqual("Expected ':'", c5Errors[0].Message);
         }
 
         [TestMethod]

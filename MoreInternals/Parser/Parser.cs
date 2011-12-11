@@ -852,7 +852,7 @@ namespace MoreInternals.Parser
                     return new ResetProperty(Selector.Parse(paramsStr, paramStart, paramStop, Current.CurrentFilePath), start, stream.Position, Current.CurrentFilePath);
                 }
 
-                return new ResetSelfProperty(start, stream.Position, Current.CurrentFilePath);
+                return new ResetSelfProperty(InvalidSelector.Singleton, start, stream.Position, Current.CurrentFilePath);
             }
 
             return new MixinApplicationProperty(nameStr, ParseApplicationParameters(paramsStr, startParams), optional: optional, overrides: overrides, start: start, stop: stream.Position, filePath: Current.CurrentFilePath);
@@ -885,16 +885,7 @@ namespace MoreInternals.Parser
             }
 
             var ruleName = new StringBuilder();
-            var found = stream.ScanUntil(ruleName, ':', '{');
-
-            var minified = new String(ruleName.ToString().Where(s => !char.IsWhiteSpace(s)).ToArray());
-
-            // Need this trick for nested blocks with psuedo classes
-            if (minified.Length == 0 || minified == "&")
-            {
-                ruleName.Append(":");
-                found = stream.ScanUntil(ruleName, '{');
-            }
+            var found = stream.ScanUntil(ruleName, ';', '{');
 
             if (found == '{')
             {
@@ -905,11 +896,22 @@ namespace MoreInternals.Parser
 
             if (found == null)
             {
-                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected '{' or ':'");
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected ';' or '{'");
                 throw new StoppedParsingException();
             }
 
-            var name = ruleName.ToString().Trim();
+            var colon = ruleName.ToString().IndexOf(':');
+
+            if (colon == -1)
+            {
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected ':'");
+                throw new StoppedParsingException();
+            }
+
+            var name = ruleName.ToString().Substring(0, colon).Trim();
+            var valStr = ruleName.ToString().Substring(colon + 1) + ";";
+
+            stream.PushBack(valStr);
 
             Value value;
 
@@ -977,6 +979,17 @@ namespace MoreInternals.Parser
 
             var sel = Selector.Parse(selectorStr, selectorStart, selectorStop, Current.CurrentFilePath);
             var cssRules = ParseCssRules(stream);
+
+            // Bind @reset() properties to their location w.r.t. selectors
+            cssRules =
+                cssRules.Select(
+                    delegate(Property prop)
+                    {
+                        if (!(prop is ResetSelfProperty)) return prop;
+
+                        return ((ResetSelfProperty)prop).BindToSelector(sel);
+                    }
+                ).ToList();
 
             return new SelectorAndBlock(sel, cssRules, null, mark, stream.Position, Current.CurrentFilePath);
         }

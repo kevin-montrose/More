@@ -18,7 +18,7 @@ body {
     background: #F4F4F4 url('/Content/img/bg-site.png') repeat-x top left;    
     font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
     font-size: 13px;
-    color: #444444
+    color: #444444;
 }
 a { color: #474747; text-decoration: none; }
 a:visited { color: #AB4445;}
@@ -183,7 +183,7 @@ a:visited { color: #AB4445;}
 /* Wraps content that is in IFRAMEs (served to affiliates) instead of #content */
 #framed-content
 {
-    font-size: 110%
+    font-size: 110%;
 }
 
 .actual-edit-overlay
@@ -296,7 +296,7 @@ a:visited { color: #AB4445;}
 {
     margin-left: 10%;
     margin-right: 40%;
-    width: 43%
+    width: 43%;
 }
 
 /*============

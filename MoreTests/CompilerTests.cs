@@ -1591,7 +1591,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual(".holder{animation-name:anim;animation-duration:5.01s;}@keyframes anim{0%{a:8px;}to{b:9;c:red;}}@-moz-keyframes ff{0%{a:6px;b:12px;}50%{a:0px;b:10px;}to{c:15px;a:13px;b:6px;}}@-webkit-keyframes sa{55%,22%,10%{a:0px;}0%{b:4;c:red;}to{b:4;c:red;}}", written);
+            Assert.AreEqual("@keyframes anim{0%{a:8px;}to{b:9;c:red;}}@-moz-keyframes ff{0%{a:6px;b:12px;}50%{a:0px;b:10px;}to{c:15px;a:13px;b:6px;}}@-webkit-keyframes sa{55%,22%,10%{a:0px;}0%{b:4;c:red;}to{b:4;c:red;}}.holder{animation-name:anim;animation-duration:5.01s;}", written);
         }
 
         [TestMethod]
@@ -1648,7 +1648,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual(".outer{e:f;}@keyframes inner{to{a:b;}}@media print{.something{c:d;}}", written);
+            Assert.AreEqual("@keyframes inner{to{a:b;}}.outer{e:f;}@media print{.something{c:d;}}", written);
         }
 
         [TestMethod]
@@ -1861,7 +1861,7 @@ namespace MoreTests
             var written = TryCompile(c, minify: true);
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("id{font:italic small-caps bold 10px/12px 'Times New Roman';rule:value;}@keyframes some-anim{0%{font:italic 10px/12px 'Times New Roman';}to{nothing:nothing;}}@media tv{.class{font:italic bold 20px/25px Arial;other:rule;}}", written);
+            Assert.AreEqual("@keyframes some-anim{0%{font:italic 10px/12px 'Times New Roman';}to{nothing:nothing;}}id{font:italic small-caps bold 10px/12px 'Times New Roman';rule:value;}@media tv{.class{font:italic bold 20px/25px Arial;other:rule;}}", written);
         }
 
         [TestMethod]
@@ -1970,6 +1970,44 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
 
             Assert.AreEqual("sub{a:10;b:15;}sub :hover{c:150;d:d;}d{d:d;}", written);
+        }
+
+        [TestMethod]
+        public void Reset()
+        {
+            var c =
+                @"@reset{
+                    a { 
+                        color: blue;
+                        &:hover{
+                            color: red;
+                        }
+                    }
+                    
+                    h1 { margin: 0; }
+                  }
+
+                   h1 {
+                      @reset();
+                      a:b;
+                   }
+
+                   p {
+                      a:hover {
+                        @reset();
+                        c:d;
+                      }
+                   }
+            
+                   h2 {
+                      @reset(h1);
+                      e:f;
+                   }";
+
+            var written = TryCompile(c);
+
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{color:blue;}a:hover{color:red;}h1{margin:0;}h1{a:b;margin:0;}p a:hover{c:d;color:red;}h2{e:f;margin:0;}", written);
         }
     }
 }

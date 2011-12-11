@@ -477,8 +477,8 @@ namespace MoreInternals.Parser
 
             if (unit == null)
             {
-                stream.PushBack(buffer.ToString());
                 stream.PushBack(nextThree.ToString());
+                stream.PushBack(buffer.ToString());
             }
             else
             {

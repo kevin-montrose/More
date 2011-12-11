@@ -20,7 +20,7 @@ namespace MoreInternals.Parser
 
         private CommentlessStream _wrapped { get; set; }
 
-        private Queue<char> _buffer = new Queue<char>();
+        private LinkedList<char> _buffer = new LinkedList<char>();
 
         public int Position
         {
@@ -40,9 +40,9 @@ namespace MoreInternals.Parser
         /// </summary>
         public void PushBack(IEnumerable<char> pushBack)
         {
-            foreach (var c in pushBack)
+            foreach (var c in pushBack.Reverse())
             {
-                _buffer.Enqueue(c);
+                _buffer.AddFirst(c);
             }
         }
         
@@ -60,7 +60,7 @@ namespace MoreInternals.Parser
             int i;
             if (_buffer.Count > 0)
             {
-                i = _buffer.Peek();
+                i = _buffer.First.Value;
             }
             else
             {
@@ -89,7 +89,8 @@ namespace MoreInternals.Parser
             int i;
             if (_buffer.Count > 0)
             {
-                i = _buffer.Dequeue();
+                i = _buffer.First.Value;
+                _buffer.RemoveFirst();
             }
             else
             {

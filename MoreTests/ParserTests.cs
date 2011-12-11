@@ -1320,19 +1320,75 @@ namespace MoreTests
                     @"id {
                         a:b;
                         @reset(.class);
+                        @reset();
+
+                        #sub {
+                            @reset();
+                        }
+
+                        a:hover {
+                            @reset();
+                            a:b;
+                        }
                       }"
                 );
 
             Assert.AreEqual(1, statements.Count);
             var block = statements.ElementAt(0) as SelectorAndBlock;
             Assert.IsNotNull(block);
-            Assert.AreEqual(2, block.Properties.Count());
+            Assert.AreEqual(5, block.Properties.Count());
             var rule = block.Properties.ElementAt(0) as NameValueProperty;
             var reset = block.Properties.ElementAt(1) as ResetProperty;
+            var resetSelf = block.Properties.ElementAt(2) as ResetSelfProperty;
+            var sub = block.Properties.ElementAt(3) as NestedBlockProperty;
+            var hoverSub = block.Properties.ElementAt(4) as NestedBlockProperty;
+            
             Assert.IsNotNull(rule);
+
             Assert.IsNotNull(reset);
             var resetSel = reset.Selector;
             Assert.AreEqual(typeof(ClassSelector), resetSel.GetType());
+
+            Assert.IsNotNull(resetSelf);
+            var selfSel = resetSelf.EffectiveSelector as ElementSelector;
+            Assert.IsNotNull(selfSel);
+
+            Assert.IsNotNull(sub);
+            Assert.AreEqual(1, sub.Block.Properties.Count());
+            var subSelf = sub.Block.Properties.ElementAt(0) as ResetSelfProperty;
+            Assert.IsNotNull(subSelf);
+            var subSelfSel = subSelf.EffectiveSelector as IdSelector;
+            Assert.IsNotNull(subSelfSel);
+
+            Assert.IsNotNull(hoverSub);
+            Assert.AreEqual(2, hoverSub.Block.Properties.Count());
+            var hoverSelf = hoverSub.Block.Properties.ElementAt(0) as ResetSelfProperty;
+            Assert.IsNotNull(hoverSub);
+            Assert.AreEqual(typeof(ConcatSelector), hoverSelf.EffectiveSelector.GetType());
+            var hoverProp = hoverSub.Block.Properties.ElementAt(1) as NameValueProperty;
+            Assert.IsNotNull(hoverProp);
+        }
+
+        [TestMethod]
+        public void StreamPushBack()
+        {
+            using (var stream = new ParserStream(new StringReader("")))
+            {
+                var buffer = new StringBuilder();
+
+                stream.PushBack("hello world!");
+                stream.ScanUntil(buffer, '!');
+                Assert.AreEqual("hello world", buffer.ToString());
+                Assert.IsFalse(stream.HasMore());
+
+                buffer.Clear();
+
+                stream.PushBack("world!");
+                stream.PushBack("hello ");
+                stream.ScanUntil(buffer, '!');
+                Assert.AreEqual("hello world", buffer.ToString());
+                Assert.IsFalse(stream.HasMore());
+            }
         }
     }
 }

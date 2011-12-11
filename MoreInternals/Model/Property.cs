@@ -208,16 +208,19 @@ namespace MoreInternals.Model
 
     class ResetSelfProperty : Property
     {
-        internal ResetSelfProperty(int start, int stop, string file)
+        public Selector EffectiveSelector { get; private set; }
+
+        internal ResetSelfProperty(Selector effectiveSelector, int start, int stop, string file)
         {
+            EffectiveSelector = effectiveSelector;
             Start = start;
             Stop = stop;
             FilePath = file;
         }
 
-        public ResetProperty BindToSelector(Selector sel)
+        public ResetSelfProperty BindToSelector(Selector sel)
         {
-            return new ResetProperty(sel, Start, Stop, FilePath);
+            return new ResetSelfProperty(sel, Start, Stop, FilePath);
         }
     }
 }
