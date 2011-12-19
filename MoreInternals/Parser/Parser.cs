@@ -12,6 +12,8 @@ namespace MoreInternals.Parser
 
     class Parser
     {
+        private static IEnumerable<string> ReservedWords = new[] { "arguments", "reset", "keyframes", "using", "import", "charset" };
+
         private Parser()
         {
         }
@@ -358,9 +360,9 @@ namespace MoreInternals.Parser
                     }
                 }
 
-                if (name.Equals("arguments", StringComparison.InvariantCultureIgnoreCase))
+                if (name.ToLower().In(ReservedWords))
                 {
-                    Current.RecordError(ErrorType.Parser, Position.Create(start, stop, Current.CurrentFilePath), "arguments cannot be the name of a parameter to a mixin.");
+                    Current.RecordError(ErrorType.Parser, Position.Create(start, stop, Current.CurrentFilePath), "'" + name + "' cannot be the name of a parameter to a mixin.");
                 }
 
                 ret.Add(new MixinParameter(name, value));
@@ -383,6 +385,12 @@ namespace MoreInternals.Parser
                 throw new StoppedParsingException();
             }
 
+            
+            if (name.ToLower().In(ReservedWords))
+            {
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "'" + name + "' cannot be the name of a mixin.");
+            }
+
             stream.AdvancePast("{");
 
             return new MixinBlock(name, ParseMixinDeclarationParameter(@params.ToString(), start), ParseCssRules(stream), start, stream.Position, Current.CurrentFilePath);
@@ -397,6 +405,11 @@ namespace MoreInternals.Parser
             stream.ScanUntilWithNesting(valueStr, ';');
 
             var value = Value.Parse(valueStr.ToString().Trim(), valueStart, stream.Position, Current.CurrentFilePath, allowSelectorIncludes: true);
+
+            if (name.ToLower().In(ReservedWords))
+            {
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "'" + name + "' cannot be a variable name.");
+            }
 
             return new MoreVariable(name, value, start, stream.Position, Current.CurrentFilePath);
         }
@@ -787,6 +800,11 @@ namespace MoreInternals.Parser
 
                 var localValue = ParseMoreValue(stream);
                 var varName = name.ToString().Trim();
+
+                if (varName.ToLower().In(ReservedWords))
+                {
+                    Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "'" + varName + "' cannot be a variable name.");
+                }
 
                 return new VariableProperty(varName, localValue, start, stream.Position, Current.CurrentFilePath);
             }

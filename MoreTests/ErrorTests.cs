@@ -320,29 +320,6 @@ namespace MoreTests
         }
 
         [TestMethod]
-        public void ArgumentsIsReserved()
-        {
-            var c = @"@mx(@a, @b, @arguments)
-                      { key: @a; }";
-            TryCompile(c);
-
-            Assert.IsTrue(Current.HasErrors());
-            var cErrors = Current.GetErrors(ErrorType.Parser);
-            Assert.AreEqual(1, cErrors.Count);
-            Assert.AreEqual("arguments cannot be the name of a parameter to a mixin.", cErrors[0].Message);
-            Assert.AreEqual("@mx(@a, @b, @arguments)", cErrors[0].Snippet(new StringReader(c)).Trim());
-
-            var d = @"@arguments = 123;";
-            TryCompile(d);
-
-            Assert.IsTrue(Current.HasErrors());
-            var dErrors = Current.GetErrors(ErrorType.Parser);
-            Assert.AreEqual(1, dErrors.Count);
-            Assert.AreEqual("arguments cannot be the name of a variable.", dErrors[0].Message);
-            Assert.AreEqual(d, dErrors[0].Snippet(new StringReader(d)).Trim());
-        }
-
-        [TestMethod]
         public void UnresolvableGlobalVariables()
         {
             var a =
@@ -522,6 +499,179 @@ namespace MoreTests
             TryCompile(d);
             Assert.IsFalse(Current.HasErrors());
             Assert.IsFalse(Current.HasWarnings());
+        }
+
+        [TestMethod]
+        public void ArgumentsReserved()
+        {
+            var a = @"@arguments() { hello: world; }";
+            TryCompile(a);
+            Assert.IsTrue(Current.HasErrors());
+            var aErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, aErrors.Count);
+            Assert.AreEqual("'arguments' cannot be the name of a mixin.", aErrors[0].Message);
+            Assert.AreEqual(a, aErrors[0].Snippet(new StringReader(a)).Trim());
+
+            var b = @"@mx(@a, @b, @arguments)
+                      { key: @a; }";
+            TryCompile(b);
+
+            Assert.IsTrue(Current.HasErrors());
+            var bErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, bErrors.Count);
+            Assert.AreEqual("'arguments' cannot be the name of a parameter to a mixin.", bErrors[0].Message);
+            Assert.AreEqual("@mx(@a, @b, @arguments)", bErrors[0].Snippet(new StringReader(b)).Trim());
+
+            var c = @"@arguments = 123;";
+            TryCompile(c);
+
+            Assert.IsTrue(Current.HasErrors());
+            var cErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, cErrors.Count);
+            Assert.AreEqual("'arguments' cannot be a variable name.", cErrors[0].Message);
+            Assert.AreEqual(c, cErrors[0].Snippet(new StringReader(c)).Trim());
+
+            var d =
+                @"@keyframes anim {
+                    @arguments = 10;
+                    to { width: @arguments; }
+                  }";
+            TryCompile(d);
+            Assert.IsTrue(Current.HasErrors());
+            var dErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, dErrors.Count);
+            Assert.AreEqual("'arguments' cannot be a variable name.", dErrors[0].Message);
+            Assert.AreEqual("@arguments = 10;", dErrors[0].Snippet(new StringReader(d)).Trim());
+        }
+
+        [TestMethod]
+        public void UsingReserved()
+        {
+            var b = @"@mx(@a, @b, @using)
+                      { key: @a; }";
+            TryCompile(b);
+
+            Assert.IsTrue(Current.HasErrors());
+            var bErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, bErrors.Count);
+            Assert.AreEqual("'using' cannot be the name of a parameter to a mixin.", bErrors[0].Message);
+            Assert.AreEqual("@mx(@a, @b, @using)", bErrors[0].Snippet(new StringReader(b)).Trim());
+
+            var d =
+                @"@keyframes anim {
+                    @using = 10;
+                    to { width: @using; }
+                  }";
+            TryCompile(d);
+            Assert.IsTrue(Current.HasErrors());
+            var dErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, dErrors.Count);
+            Assert.AreEqual("'using' cannot be a variable name.", dErrors[0].Message);
+            Assert.AreEqual("@using = 10;", dErrors[0].Snippet(new StringReader(d)).Trim());
+        }
+
+        [TestMethod]
+        public void KeyframesReserved()
+        {
+            var b = @"@mx(@a, @b, @keyframes)
+                      { key: @a; }";
+            TryCompile(b);
+
+            Assert.IsTrue(Current.HasErrors());
+            var bErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, bErrors.Count);
+            Assert.AreEqual("'keyframes' cannot be the name of a parameter to a mixin.", bErrors[0].Message);
+            Assert.AreEqual("@mx(@a, @b, @keyframes)", bErrors[0].Snippet(new StringReader(b)).Trim());
+
+            var d =
+                @"@keyframes anim {
+                    @keyframes = 10;
+                    to { width: @keyframes; }
+                  }";
+            TryCompile(d);
+            Assert.IsTrue(Current.HasErrors());
+            var dErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, dErrors.Count);
+            Assert.AreEqual("'keyframes' cannot be a variable name.", dErrors[0].Message);
+            Assert.AreEqual("@keyframes = 10;", dErrors[0].Snippet(new StringReader(d)).Trim());
+        }
+
+        [TestMethod]
+        public void ImportReserved()
+        {
+            var b = @"@mx(@a, @b, @import)
+                      { key: @a; }";
+            TryCompile(b);
+
+            Assert.IsTrue(Current.HasErrors());
+            var bErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, bErrors.Count);
+            Assert.AreEqual("'import' cannot be the name of a parameter to a mixin.", bErrors[0].Message);
+            Assert.AreEqual("@mx(@a, @b, @import)", bErrors[0].Snippet(new StringReader(b)).Trim());
+
+            var d =
+                @"@keyframes anim {
+                    @import = 10;
+                    to { width: @import; }
+                  }";
+            TryCompile(d);
+            Assert.IsTrue(Current.HasErrors());
+            var dErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, dErrors.Count);
+            Assert.AreEqual("'import' cannot be a variable name.", dErrors[0].Message);
+            Assert.AreEqual("@import = 10;", dErrors[0].Snippet(new StringReader(d)).Trim());
+        }
+
+        [TestMethod]
+        public void ResetReserved()
+        {
+            var b = @"@mx(@a, @b, @reset)
+                      { key: @a; }";
+            TryCompile(b);
+
+            Assert.IsTrue(Current.HasErrors());
+            var bErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, bErrors.Count);
+            Assert.AreEqual("'reset' cannot be the name of a parameter to a mixin.", bErrors[0].Message);
+            Assert.AreEqual("@mx(@a, @b, @reset)", bErrors[0].Snippet(new StringReader(b)).Trim());
+
+            var d =
+                @"@keyframes anim {
+                    @reset = 10;
+                    to { width: @reset; }
+                  }";
+            TryCompile(d);
+            Assert.IsTrue(Current.HasErrors());
+            var dErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, dErrors.Count);
+            Assert.AreEqual("'reset' cannot be a variable name.", dErrors[0].Message);
+            Assert.AreEqual("@reset = 10;", dErrors[0].Snippet(new StringReader(d)).Trim());
+        }
+
+        [TestMethod]
+        public void CharsetReserved()
+        {
+            var b = @"@mx(@a, @b, @charset)
+                      { key: @a; }";
+            TryCompile(b);
+
+            Assert.IsTrue(Current.HasErrors());
+            var bErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, bErrors.Count);
+            Assert.AreEqual("'charset' cannot be the name of a parameter to a mixin.", bErrors[0].Message);
+            Assert.AreEqual("@mx(@a, @b, @charset)", bErrors[0].Snippet(new StringReader(b)).Trim());
+
+            var d =
+                @"@keyframes anim {
+                    @charset = 10;
+                    to { width: @charset; }
+                  }";
+            TryCompile(d);
+            Assert.IsTrue(Current.HasErrors());
+            var dErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, dErrors.Count);
+            Assert.AreEqual("'charset' cannot be a variable name.", dErrors[0].Message);
+            Assert.AreEqual("@charset = 10;", dErrors[0].Snippet(new StringReader(d)).Trim());
         }
     }
 }

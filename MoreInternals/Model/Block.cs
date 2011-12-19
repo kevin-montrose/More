@@ -213,11 +213,6 @@ namespace MoreInternals.Model
             Start = start;
             Stop = stop;
             FilePath = filePath;
-
-            if (Name.Equals("arguments", StringComparison.InvariantCultureIgnoreCase))
-            {
-                Current.RecordError(ErrorType.Parser, this, "arguments cannot be the name of a variable.");
-            }
         }
 
         public override string ToString()

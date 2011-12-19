@@ -10,12 +10,12 @@ namespace MoreInternals
     {
         public static bool In<T>(this T t, params T[] items)
         {
-            for (int i = 0; i < items.Length; i++)
-            {
-                if (items[i].Equals(t)) return true;
-            }
+            return In(t, (IEnumerable<T>)items);
+        }
 
-            return false;
+        public static bool In<T>(this T t, IEnumerable<T> items)
+        {
+            return items.Contains(t);
         }
 
         public static string RebaseFile(this string inputFile, string relativeToFile = null)
