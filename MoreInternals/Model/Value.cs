@@ -33,7 +33,11 @@ namespace MoreInternals.Model
         PT,
         PC,
         S,
-        MS
+        MS,
+
+        // Only valid in media queries
+        DPI,
+        DPCM
     }
 
     /// <summary>

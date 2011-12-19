@@ -420,5 +420,34 @@ namespace MoreInternals.Model
                 lhsAsUnit.Unit
             );
         }
+
+        public static bool operator >(Value left, Value right)
+        {
+            if (left.GetType() != right.GetType()) return false;
+
+            var leftWithUnit = left as NumberWithUnitValue;
+            var rightWithUnit = right as NumberWithUnitValue;
+            if (leftWithUnit != null)
+            {
+                decimal rAsLVal;
+                if (!TryConvertBetweenUnits(rightWithUnit.Value, rightWithUnit.Unit, leftWithUnit.Unit, out rAsLVal))
+                {
+                    throw new InvalidOperationException("Cannot compare values with units [" + leftWithUnit.Unit + "] and [" + rightWithUnit.Unit + "]");
+                }
+
+                return leftWithUnit.Value > rAsLVal;
+            }
+
+            var leftNum = left as NumberValue;
+            var rightNum = right as NumberValue;
+            if (leftNum == null) throw new InvalidOperationException("Cannot comapre non-numbers");
+
+            return leftNum.Value > rightNum.Value;
+        }
+
+        public static bool operator <(Value left, Value right)
+        {
+            return !(left > right);
+        }
     }
 }

@@ -1366,7 +1366,7 @@ namespace MoreTests
                   @using 'b' print;
                   @using 'c' tv,print;
                   @using 'd' tv;
-                  @using 'e' only tv and (width: @b + @c * @e);";
+                  @using 'e' only tv and (width: @b + @c * @e * 1px);";
 
             var written =
                 TryCompile(
@@ -1386,7 +1386,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual(".outer{outer:outer;a:10;}@media tv{img{tv:tv;}#d{d:d;}}@media print{p{print:print;}}@media tv,print{.both{both:both;}.both:hover{hover:hover;}}@media only tv and (width:47){#e{e:e;}}", written);
+            Assert.AreEqual(".outer{outer:outer;a:10;}@media tv{img{tv:tv;}#d{d:d;}}@media print{p{print:print;}}@media tv,print{.both{both:both;}.both:hover{hover:hover;}}@media only tv and (width:47px){#e{e:e;}}", written);
         }
 
         [TestMethod]
@@ -1887,9 +1887,9 @@ namespace MoreTests
         {
             var c =
                 @"@a = 5px;
-                  @b = prefixed;
+                  @b = landscape;
 
-                  @media only tv and (min-width: @a), not print and (grid: @b) and (max-height: 5 * @a), braille and (line-height: 10em)
+                  @media only tv and (min-width: @a), not print and (orientation: @b) and (max-height: 5 * @a), braille and (width: 10em)
                   {
                      .class {
                         rule: value;
@@ -1898,7 +1898,7 @@ namespace MoreTests
 
             var written = TryCompile(c);
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("@media only tv and (min-width:5px),not print and (grid:prefixed) and (max-height:25px),braille and (line-height:10em){.class{rule:value;}}", written);
+            Assert.AreEqual("@media only tv and (min-width:5px),not print and (orientation:landscape) and (max-height:25px),braille and (width:10em){.class{rule:value;}}", written);
         }
 
         [TestMethod]
