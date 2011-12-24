@@ -200,9 +200,64 @@ namespace MoreInternals.Compiler.Tasks
             throw new InvalidOperationException("Unexpected media query [" + query + "]");
         }
 
+        // These from http://www.w3.org/TR/2009/CR-CSS2-20090908/media.html section 7.3.1
+        private static IEnumerable<Model.Media> Continuous = new[]{ 
+            Model.Media.braille, Model.Media.screen, Model.Media.speech, Model.Media.tty, Model.Media.handheld
+        };
+        private static IEnumerable<Model.Media> Paged = new[]{
+            Model.Media.embossed, Model.Media.print, Model.Media.projection, Model.Media.tv
+        };
+        private static IEnumerable<Model.Media> Tacticle = new[]{
+            Model.Media.braille, Model.Media.embossed
+        };
+        private static IEnumerable<Model.Media> Visual = new[]{
+            Model.Media.handheld, Model.Media.print, Model.Media.projection, Model.Media.screen, Model.Media.tty, Model.Media.tv
+        };
+        private static IEnumerable<Model.Media> Audio = new[]{
+            Model.Media.handheld, Model.Media.screen, Model.Media.tv
+        };
+        private static IEnumerable<Model.Media> Speech = new[]{
+            Model.Media.handheld, Model.Media.speech
+        };
+        private static IEnumerable<Model.Media> Grid = new[]{
+            Model.Media.braille, Model.Media.embossed, Model.Media.handheld, Model.Media.tty
+        };
+        private static IEnumerable<Model.Media> Bitmap = new[]{
+            Model.Media.handheld, Model.Media.print, Model.Media.projection, Model.Media.screen, Model.Media.tv
+        };
+        private static IEnumerable<Model.Media> Interactive = new[]{
+            Model.Media.braille, Model.Media.handheld, Model.Media.projection, Model.Media.screen, Model.Media.speech, 
+            Model.Media.tty, Model.Media.tv
+        };
+        private static IEnumerable<Model.Media> Static = new[]{
+            Model.Media.braille, Model.Media.embossed, Model.Media.print, Model.Media.screen, Model.Media.speech, 
+            Model.Media.tty, Model.Media.tv
+        };
+
+        // Taken from http://www.w3.org/TR/css3-mediaqueries/ section 4
         private static bool IsSetFeature(Model.Media type, string featureName)
         {
-            return true;
+            switch (featureName.ToLowerInvariant())
+            {
+                case" grid":
+                case "device-height":
+                case "device-width":
+                case "height":
+                case "width": return type.In(Visual) || type.In(Tacticle);
+
+                case "resolution":
+                case "device-aspect-ratio":
+                case "aspect-ratio":
+                case "orientation": return type.In(Bitmap);
+
+                case "monochrome":
+                case "color-index":
+                case "color": return type.In(Visual);
+
+                case "scan": return type == Model.Media.tv;
+
+                default: throw new InvalidOperationException("Unexpected feature name [" + featureName + "]");
+            }
         }
 
         private static void VerifyPossible(MediaQuery query, IPosition on)
@@ -242,7 +297,7 @@ namespace MoreInternals.Compiler.Tasks
             var and = query as AndMedia;
             type = and.LeftHand as MediaType;
             var unrollStack = new Stack<MediaQuery>();
-            unrollStack.Push(and.RightHand);
+            unrollStack.Push(and);
 
             var eqs = new List<EqualFeatureMedia>();
             var mins = new List<MinFeatureMedia>();
@@ -296,7 +351,7 @@ namespace MoreInternals.Compiler.Tasks
             {
                 foreach (var a in multipleMins)
                 {
-                    Current.RecordError(ErrorType.Compiler, on, "'" + a.Key + "' has multiple minimum constraints.");
+                    Current.RecordError(ErrorType.Compiler, on, "'" + a.Key + "' has multiple minimum constraints");
                 }
 
                 continueCheck = false;
@@ -306,7 +361,7 @@ namespace MoreInternals.Compiler.Tasks
             {
                 foreach (var a in multipleMaxs)
                 {
-                    Current.RecordError(ErrorType.Compiler, on, "'" + a.Key + "' has multiple maximum constraints.");
+                    Current.RecordError(ErrorType.Compiler, on, "'" + a.Key + "' has multiple maximum constraints");
                 }
 
                 continueCheck = false;
@@ -316,7 +371,7 @@ namespace MoreInternals.Compiler.Tasks
             {
                 foreach (var a in multipleHas)
                 {
-                    Current.RecordError(ErrorType.Compiler, on, "'" + a.Key + "' has multiple present constraints.");
+                    Current.RecordError(ErrorType.Compiler, on, "'" + a.Key + "' has multiple present constraints");
                 }
 
                 continueCheck = false;
@@ -326,7 +381,7 @@ namespace MoreInternals.Compiler.Tasks
             {
                 foreach (var a in multipleEqs)
                 {
-                    Current.RecordError(ErrorType.Compiler, on, "'" + a.Key + "' has multiple equality constraints.");
+                    Current.RecordError(ErrorType.Compiler, on, "'" + a.Key + "' has multiple equality constraints");
                 }
 
                 continueCheck = false;
@@ -338,7 +393,7 @@ namespace MoreInternals.Compiler.Tasks
             {
                 if (!IsSetFeature(type.Type, h.Feature))
                 {
-                    Current.RecordError(ErrorType.Compiler, on, "'" + h.Feature + "' is never set for media type '" + type.Type + "', making this query unsatisfiable.");
+                    Current.RecordError(ErrorType.Compiler, on, "'" + h.Feature + "' is never set for media type '" + type.Type + "', making this query unsatisfiable");
                 }
             }
 

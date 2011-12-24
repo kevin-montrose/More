@@ -673,5 +673,61 @@ namespace MoreTests
             Assert.AreEqual("'charset' cannot be a variable name.", dErrors[0].Message);
             Assert.AreEqual("@charset = 10;", dErrors[0].Snippet(new StringReader(d)).Trim());
         }
+
+        [TestMethod]
+        public void ImpossibleMediaQuery()
+        {
+            var a = @"@media only tv and (min-height:50px) and (max-height:20px) {
+                        .class{
+                            rule: value;
+                        }
+                      }";
+            TryCompile(a);
+            Assert.IsTrue(Current.HasErrors());
+            var aErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, aErrors.Count);
+            Assert.AreEqual("'height' is impossibly constrained, [50 < 20] is impossible", aErrors[0].Message);
+            Assert.AreEqual("@media only tv and (min-height:50px) and (max-height:20px) {", aErrors[0].Snippet(new StringReader(a)).Trim());
+
+            var b = @"@media only tv and (min-height:10px) and (min-height:10px) {
+                        #id { a:b; }
+                      }";
+            TryCompile(b);
+            Assert.IsTrue(Current.HasErrors());
+            var bErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, bErrors.Count);
+            Assert.AreEqual("'height' has multiple minimum constraints", bErrors[0].Message);
+            Assert.AreEqual("@media only tv and (min-height:10px) and (min-height:10px) {", bErrors[0].Snippet(new StringReader(b)).Trim());
+
+            var c = @"@media only tv and (max-height:10px) and (max-height:10px) {
+                        elem { c:d; }
+                      }";
+            TryCompile(c);
+            Assert.IsTrue(Current.HasErrors());
+            var cErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, cErrors.Count);
+            Assert.AreEqual("'height' has multiple maximum constraints", cErrors[0].Message);
+            Assert.AreEqual("@media only tv and (max-height:10px) and (max-height:10px) {", cErrors[0].Snippet(new StringReader(c)).Trim());
+
+            var d = @"@media only tv and (height:10px) and (height:15px) {
+                        elem { c:d; }
+                      }";
+            TryCompile(d);
+            Assert.IsTrue(Current.HasErrors());
+            var dErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, dErrors.Count);
+            Assert.AreEqual("'height' has multiple equality constraints", dErrors[0].Message);
+            Assert.AreEqual("@media only tv and (height:10px) and (height:15px) {", dErrors[0].Snippet(new StringReader(d)).Trim());
+
+            var e = @"@media only print and (scan){
+                        elem { c:d; }
+                      }";
+            TryCompile(e);
+            Assert.IsTrue(Current.HasErrors());
+            var eErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, eErrors.Count);
+            Assert.AreEqual("'scan' is never set for media type 'print', making this query unsatisfiable", eErrors[0].Message);
+            Assert.AreEqual("@media only print and (scan){", eErrors[0].Snippet(new StringReader(e)).Trim());
+        }
     }
 }
