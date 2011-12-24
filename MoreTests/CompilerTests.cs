@@ -57,6 +57,33 @@ namespace MoreTests
         }
 
         [TestMethod]
+        public void MergeContexts()
+        {
+            var a = new Context(new FileCache());
+            var b = new Context(new FileCache());
+
+            a.Errors[ErrorType.Compiler] = new List<Error>() { Error.Create(ErrorType.Compiler, -1, -1, "test error", "dummy file 1") };
+            a.Errors[ErrorType.Parser] = new List<Error>() { Error.Create(ErrorType.Parser, -1, -1, "test error", "dummy file 1") };
+            a.Warnings[ErrorType.Parser] = new List<Error>() { Error.Create(ErrorType.Parser, -1, -1, "test error", "dummy file 1"), Error.Create(ErrorType.Compiler, -1, -1, "test error", "dummy file 3") };
+            a.Warnings[ErrorType.Compiler] = new List<Error>() { Error.Create(ErrorType.Compiler, -1, -1, "test error", "dummy file 1") };
+
+            b.Errors[ErrorType.Compiler] = new List<Error>() { Error.Create(ErrorType.Compiler, -1, -1, "test error", "dummy file 2") };
+            b.Errors[ErrorType.Parser] = new List<Error>() { Error.Create(ErrorType.Parser, -1, -1, "test error", "dummy file 2") };
+            b.Warnings[ErrorType.Parser] = new List<Error>() { Error.Create(ErrorType.Parser, -1, -1, "test error", "dummy file 2"), Error.Create(ErrorType.Compiler, -1, -1, "test error", "dummy file 3") };
+            b.Warnings[ErrorType.Compiler] = new List<Error>() { Error.Create(ErrorType.Compiler, -1, -1, "test error", "dummy file 2") };
+
+            var c = a.Merge(b);
+
+            Assert.AreEqual(2, c.Errors.Count);
+            Assert.AreEqual(2, c.Warnings.Count);
+
+            Assert.AreEqual(2, c.GetErrors()[ErrorType.Compiler].Count());
+            Assert.AreEqual(2, c.GetErrors()[ErrorType.Parser].Count());
+            Assert.AreEqual(2, c.GetWarnings()[ErrorType.Parser].Count());
+            Assert.AreEqual(4, c.GetWarnings()[ErrorType.Compiler].Count());
+        }
+
+        [TestMethod]
         public void SimpleMixin()
         {
             var statements = 

@@ -499,6 +499,45 @@ namespace MoreTests
             TryCompile(d);
             Assert.IsFalse(Current.HasErrors());
             Assert.IsFalse(Current.HasWarnings());
+
+            var e =
+                @"@font-face { font-family: SomeFont; }
+                  @media tv {
+                    .font { font: SomeFont; }
+                  }";
+
+            TryCompile(e);
+            Assert.IsTrue(Current.HasErrors());
+            var eErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, eErrors.Count);
+            Assert.AreEqual("No src rule found in @font-face declaration", eErrors[0].Message);
+            Assert.AreEqual("@font-face { font-family: SomeFont; }", eErrors[0].Snippet(new StringReader(e)).Trim());
+
+            var f =
+                @"@font-face { src: local('hello'); }
+                  @media tv {
+                    .font { font: SomeFont; }
+                  }";
+
+            TryCompile(f);
+            Assert.IsTrue(Current.HasErrors());
+            var fErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, fErrors.Count);
+            Assert.AreEqual("No font-family rule found in @font-face declaration", fErrors[0].Message);
+            Assert.AreEqual("@font-face { src: local('hello'); }", fErrors[0].Snippet(new StringReader(f)).Trim());
+
+            var g =
+                @"@font-face {
+                    font-family: MyOtherFont;
+                    src: local('blah blah blah');
+                  }
+                  @keyframes anim {
+                    to { font: 15px MyOtherFont; }
+                  }";
+
+            TryCompile(g);
+            Assert.IsFalse(Current.HasErrors());
+            Assert.IsFalse(Current.HasWarnings());
         }
 
         [TestMethod]

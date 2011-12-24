@@ -108,11 +108,11 @@ namespace MoreInternals
                 }
             }
 
-            var infos = this.InfoMessages.ToList();
-            infos.AddRange(other.InfoMessages);
+            var infos = this.GetInfoMessages().ToList();
+            infos.AddRange(other.GetInfoMessages());
 
             // Dupes should be removed here, thus Union()
-            var sprites = this.SpriteFiles.Union(other.SpriteFiles).ToList();
+            var sprites = this.GetSpriteFiles().Union(other.GetSpriteFiles()).ToList();
 
             var ret = new Context(this.FileCache);
             ret.Errors = errors;
