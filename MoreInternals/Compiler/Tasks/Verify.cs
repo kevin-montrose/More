@@ -21,8 +21,8 @@ namespace MoreInternals.Compiler.Tasks
         {
             { "color", new[] { typeof(NumberValue) } },                 // further, must be an integer
             { "color-index", new[] { typeof(NumberValue) } },           // ditto
-            { "aspect-ratio", new[] { typeof(StringValue) } },          // futher, must be of the form "\d+/\d+"
-            { "device-aspect-ratio", new[] { typeof(StringValue) } },   // ditto
+            { "aspect-ratio", new[] { typeof(StringValue), typeof(CompoundValue) } },          // futher, must be of the form "\d+/\d+"
+            { "device-aspect-ratio", new[] { typeof(StringValue), typeof(CompoundValue) } },   // ditto
             { "device-height", new[] { typeof(NumberWithUnitValue) } },
             { "device-width", new[] { typeof(NumberWithUnitValue) } },
             { "grid", new[] { typeof(NumberValue) } },
@@ -73,7 +73,7 @@ namespace MoreInternals.Compiler.Tasks
                 case "grid": return ((NumberValue)value).Value.In(0, 1);
 
                 case "aspect-ratio":
-                case "device-aspect-ratio": return Regex.IsMatch(((StringValue)value).Value, @"^\s*\d+\s*/\s*\d+\s*$");
+                case "device-aspect-ratio": return Regex.IsMatch(value.ToString(), @"^\s*\d+\s*/\s*\d+\s*$");
 
                 case "orientation": return ((StringValue)value).Value.ToLowerInvariant().In("landscape", "portrait");
                 case "resolution": return ((NumberWithUnitValue)value).Unit.In(Unit.DPI, Unit.DPCM);

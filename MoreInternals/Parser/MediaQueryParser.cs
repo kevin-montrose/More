@@ -45,6 +45,13 @@ namespace MoreInternals.Parser
                 );
         }
 
+        private static bool IsRatioFeature(string feature)
+        {
+            return
+                feature.Equals("aspect-ratio", StringComparison.InvariantCultureIgnoreCase) ||
+                feature.Equals("device-aspect-ratio", StringComparison.InvariantCultureIgnoreCase);
+        }
+
         private static MediaQuery ParseMediaClause(string media, IPosition forPosition)
         {
             if (!media.StartsWith("(") || !media.EndsWith(")"))
@@ -71,6 +78,23 @@ namespace MoreInternals.Parser
             var feature = media.Substring(0, i).Trim();
             var valueStr = media.Substring(i + 1).Trim();
             var value = MoreValueParser.Parse(valueStr, forPosition);
+
+            var math = value as MathValue;
+            if (math != null)
+            {
+                // Ratio check
+                if (math.Operator == Operator.Div && IsRatioFeature(feature))
+                {
+                    var dummyString = new StringValue("/");
+
+                    var compound = new CompoundValue(new List<Value>() { math.LeftHand, dummyString, math.RightHand });
+                    compound.Start = dummyString.Start = value.Start;
+                    compound.Stop = dummyString.Stop = value.Stop;
+                    compound.FilePath = dummyString.FilePath = value.FilePath;
+
+                    value = compound;
+                }
+            }
 
             if (feature.StartsWith("min-", StringComparison.InvariantCultureIgnoreCase))
             {

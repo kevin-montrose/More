@@ -414,6 +414,18 @@ namespace MoreInternals.Parser
                 return Unit.REM;
             }
 
+            if (inStr.StartsWith("dpi", StringComparison.InvariantCultureIgnoreCase))
+            {
+                pushBack = inStr.Skip(3).ToList();
+                return Unit.DPI;
+            }
+
+            if (inStr.StartsWith("dpcm", StringComparison.InvariantCultureIgnoreCase))
+            {
+                pushBack = inStr.Skip(4).ToList();
+                return Unit.DPCM;
+            }
+
             pushBack = inStr.ToList();
             return null;
         }
@@ -461,23 +473,23 @@ namespace MoreInternals.Parser
                 buffer.Append(stream.Read());
             }
 
-            var nextThree = new StringBuilder();
-            for (int i = 0; i < 3; i++)
+            var nextFour = new StringBuilder();
+            for (int i = 0; i < 4; i++)
             {
                 if (stream.HasMore())
                 {
-                    nextThree.Append(stream.Read());
+                    nextFour.Append(stream.Read());
                 }
             }
 
-            var possibleUnit = nextThree.ToString();
+            var possibleUnit = nextFour.ToString();
             List<char> pushBack;
 
             unit = ParsePossibleUnit(possibleUnit, out pushBack);
 
             if (unit == null)
             {
-                stream.PushBack(nextThree.ToString());
+                stream.PushBack(nextFour.ToString());
                 stream.PushBack(buffer.ToString());
             }
             else

@@ -1929,6 +1929,26 @@ namespace MoreTests
         }
 
         [TestMethod]
+        public void DPIAndRatioMediaQuery()
+        {
+            var a =
+                @"@media only tv and (resolution: 72dpi) and (aspect-ratio: 4/3) {
+                    .class { a:b; }
+                  }
+
+                  @a = 5;
+                  @b = 7;
+
+                  @media only screen and (resolution: 3dpcm) and (device-aspect-ratio: (@a+3)/(@b*2)) {
+                    #id { c:d; }
+                  }";
+
+            var written = TryCompile(a);
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("@media only tv and (resolution:72dpi) and (aspect-ratio:4 / 3){.class{a:b;}}@media only screen and (resolution:3dpcm) and (device-aspect-ratio:8 / 14){#id{c:d;}}", written);
+        }
+
+        [TestMethod]
         public void ParameterizedImport()
         {
             var c =
