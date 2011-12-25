@@ -8,16 +8,6 @@ namespace MoreInternals.Parser
 {
     class ParserStream : IDisposable
     {
-        public class Mark
-        {
-            public int Position { get; set; }
-
-            public override string ToString()
-            {
-                return "Char: " + Position;
-            }
-        }
-
         private CommentlessStream _wrapped { get; set; }
 
         private LinkedList<char> _buffer = new LinkedList<char>();

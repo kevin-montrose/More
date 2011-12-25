@@ -2036,5 +2036,20 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("a{color:blue;}a:hover{color:red;}h1{margin:0;}h1{a:b;margin:0;}p a:hover{c:d;color:red;}h2{e:f;margin:0;}", written);
         }
+
+        [TestMethod]
+        public void FileCache()
+        {
+            var cache = new FileCache();
+
+            Func<string, List<Block>> delayLoad = (path) => { Thread.Sleep(100); return new List<Block>(); };
+            Func<string, List<Block>> error = (path) => { throw new InvalidOperationException(); };
+
+            cache.Demand("test1", delayLoad);
+            Assert.IsTrue(cache.Available(new[] { "test1" }, error).Item1 == "test1");
+            Assert.IsTrue(cache.Loaded().Contains("test1"));
+
+            Assert.IsTrue(cache.Available(new[] { "test2", "test1" }, error).Item1 == "test1");
+        }
     }
 }
