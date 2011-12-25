@@ -87,23 +87,24 @@ namespace MoreInternals.Model
         public Value ToImport { get; private set; }
         public MediaQuery MediaQuery { get; private set; }
 
-        public Import(Value import, MediaQuery forMedia, int start, int stop)
+        public Import(Value import, MediaQuery forMedia, int start, int stop, string file)
         {
             ToImport = import;
             MediaQuery = forMedia;
 
             Start = start;
             Stop = stop;
+            FilePath = file;
         }
 
         internal Import Bind(Scope scope)
         {
-            return new Import(ToImport.Bind(scope), MediaQuery.Bind(scope), Start, Stop);
+            return new Import(ToImport.Bind(scope), MediaQuery.Bind(scope), Start, Stop, FilePath);
         }
 
         internal Import Evaluate()
         {
-            return new Import(ToImport.Evaluate(), MediaQuery.Evaluate(), Start, Stop);
+            return new Import(ToImport.Evaluate(), MediaQuery.Evaluate(), Start, Stop, FilePath);
         }
 
         public void Write(ICssWriter output)

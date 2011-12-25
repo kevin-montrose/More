@@ -2071,5 +2071,18 @@ namespace MoreTests
 
             Assert.IsTrue(cache.Available(new[] { "test2", "test1" }, error).Item1 == "test1");
         }
+
+        [TestMethod]
+        public void MediaQueryMinification()
+        {
+            var a =
+                @"@media only tv and (min-width: 2.54cm) and (max-height: 100mm) and (device-width: 150mm) {
+                    #id { a:b; }
+                  }";
+
+            var written = TryCompile(a, minify:true);
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("@media only tv and (min-width:1in) and (max-height:10cm) and (device-width:15cm){#id{a:b;}}", written);
+        }
     }
 }

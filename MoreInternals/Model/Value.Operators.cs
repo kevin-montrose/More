@@ -18,7 +18,7 @@ namespace MoreInternals.Model
     
     partial class Value
     {
-        // Anything not in the this list is not a convertable unit, the ratios are to millimeters
+        // Anything not in the this list is not a convertable size unit, the ratios are to millimeters
         internal static ReadOnlyDictionary<Unit, decimal> ConvertableSizeUnits = new ReadOnlyDictionary<Unit, decimal>(
             new Dictionary<Unit, decimal>()
             {
@@ -30,11 +30,21 @@ namespace MoreInternals.Model
             }
         );
 
+        // Anything not in the this list is not a convertable time unit, the ratios are to milliseconds
         internal static ReadOnlyDictionary<Unit, decimal> ConvertableTimeUnits = new ReadOnlyDictionary<Unit, decimal>(
             new Dictionary<Unit, decimal>()
             {
                 { Unit.MS, 1m },
                 { Unit.S, 1000m }
+            }
+        );
+
+        // Anything not in the this list is not a convertable resolution unit, the ratios are to dpcm
+        internal static ReadOnlyDictionary<Unit, decimal> ConvertableResolutionUnits = new ReadOnlyDictionary<Unit, decimal>(
+            new Dictionary<Unit, decimal>()
+            {
+                { Unit.DPCM, 1m },
+                { Unit.DPI, 2.54m }
             }
         );
 
@@ -52,8 +62,11 @@ namespace MoreInternals.Model
             {
                 if (!ConvertableTimeUnits.TryGetValue(fromUnit, out fromRatio) || !ConvertableTimeUnits.TryGetValue(toUnit, out toRatio))
                 {
-                    converted = 0;
-                    return false;
+                    if (!ConvertableResolutionUnits.TryGetValue(fromUnit, out fromRatio) || !ConvertableResolutionUnits.TryGetValue(toUnit, out toRatio))
+                    {
+                        converted = 0;
+                        return false;
+                    }
                 }
             }
 

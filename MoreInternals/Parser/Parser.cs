@@ -200,7 +200,7 @@ namespace MoreInternals.Parser
                 media = new MediaType(Media.all, Position.Create(start, stream.Position, Current.CurrentFilePath));
             }
 
-            return new Import(val, media, start, stream.Position);
+            return new Import(val, media, start, stream.Position, Current.CurrentFilePath);
         }
 
         internal static SpriteRule ParseSpriteRule(ParserStream stream)

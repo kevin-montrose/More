@@ -119,6 +119,30 @@ namespace MoreInternals.Compiler.Tasks
                 }
             }
 
+            if (Value.ConvertableResolutionUnits.ContainsKey(value.Unit))
+            {
+                var inDpcm = min.Value * Value.ConvertableResolutionUnits[value.Unit];
+
+                foreach (var unit in Value.ConvertableResolutionUnits.Keys)
+                {
+                    var inUnit = inDpcm / Value.ConvertableResolutionUnits[unit];
+                    var newMin = new NumberWithUnitValue(MinifyNumberValue(new NumberValue(inUnit)).Value, unit);
+                    string newMinStr;
+
+                    using (var buffer = new StringWriter())
+                    {
+                        newMin.Write(buffer);
+                        newMinStr = buffer.ToString();
+                    }
+
+                    if (newMinStr.Length < retStr.Length)
+                    {
+                        ret = newMin;
+                        retStr = newMinStr;
+                    }
+                }
+            }
+
             return ret;
         }
 
@@ -260,12 +284,62 @@ namespace MoreInternals.Compiler.Tasks
             }
         }
 
+        private static MediaQuery ForQuery(MediaQuery query)
+        {
+            var not = query as NotMedia;
+            if (not != null)
+            {
+                return new NotMedia(ForQuery(not.Clause), not);
+            }
+
+            var only = query as OnlyMedia;
+            if (only != null)
+            {
+                return new OnlyMedia(ForQuery(only.Clause), only);
+            }
+
+            var type = query as MediaType;
+            if (type != null)
+            {
+                return type;
+            }
+
+            var and = query as AndMedia;
+            if (and != null)
+            {
+                return new AndMedia(ForQuery(and.LeftHand), ForQuery(and.RightHand), and);
+            }
+
+            var has = query as FeatureMedia;
+            if (has != null) return has;
+
+            var eq = query as EqualFeatureMedia;
+            if (eq != null)
+            {
+                return new EqualFeatureMedia(eq.Feature, MinifyValue(eq.EqualsValue), eq);
+            }
+
+            var min = query as MinFeatureMedia;
+            if (min != null)
+            {
+                return new MinFeatureMedia(min.Feature, MinifyValue(min.Min), min);
+            }
+
+            var max = query as MaxFeatureMedia;
+            if (max != null)
+            {
+                return new MaxFeatureMedia(max.Feature, MinifyValue(max.Max), max);
+            }
+
+            throw new InvalidOperationException("Unexpected media clause [" + query + "]");
+        }
+
         public static List<Block> Task(List<Block> blocks)
         {
             var ret = new List<Block>();
 
             ret.AddRange(blocks.OfType<CssCharset>());
-            ret.AddRange(blocks.OfType<Model.Import>());
+            ret.AddRange(blocks.OfType<Model.Import>().Select(s => new Model.Import(MinifyValue(s.ToImport), ForQuery(s.MediaQuery), s.Start, s.Stop, s.FilePath)));
             ret.AddRange(blocks.Where(w => w is SelectorAndBlock && ((SelectorAndBlock)w).IsReset));
 
             var remainder = blocks.Where(w => !ret.Contains(w));
@@ -291,7 +365,7 @@ namespace MoreInternals.Compiler.Tasks
                 if (media != null)
                 {
                     var subStatements = Task(media.Blocks.ToList());
-                    ret.Add(new MediaBlock(media.MediaQuery, subStatements, media.Start, media.Stop, media.FilePath));
+                    ret.Add(new MediaBlock(ForQuery(media.MediaQuery), subStatements, media.Start, media.Stop, media.FilePath));
                     continue;
                 }
 
