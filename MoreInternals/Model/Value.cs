@@ -406,6 +406,23 @@ namespace MoreInternals.Model
         {
             throw new NotImplementedException(this.GetType() + ".ReferredToVariables");
         }
+
+        public override string ToString()
+        {
+            try
+            {
+                using (var mem = new StringWriter())
+                {
+                    Write(mem);
+
+                    return mem.ToString();
+                }
+            }
+            catch 
+            {
+                return base.ToString();
+            }
+        }
     }
 
     class GroupedValue : Value
@@ -487,12 +504,10 @@ namespace MoreInternals.Model
             return new List<string>() { this.Name };
         }
 
-#if DEBUG
         public override string ToString()
         {
             return "@" + Name;
         }
-#endif
     }
 
     // @a(1,2px,@c), etc.
@@ -570,13 +585,6 @@ namespace MoreInternals.Model
         {
             return new List<string>();
         }
-
-#if DEBUG
-        public override string ToString()
-        {
-            return Value.ToString();
-        }
-#endif
     }
 
     // 1px, 2em, 100%, etc.
@@ -1478,12 +1486,10 @@ namespace MoreInternals.Model
             return new List<string>();
         }
 
-#if DEBUG
         public override string ToString()
         {
             return "(" + IfExists + ")?";
         }
-#endif
     }
 
     // (@a + @b) * 3
@@ -1541,12 +1547,10 @@ namespace MoreInternals.Model
             return ret;
         }
 
-#if DEBUG
         public override string ToString()
         {
             return "(" + LeftHand + " " + Operator + " " + RightHand + ")";
         }
-#endif
     }
 
     class NotFoundValue : Value

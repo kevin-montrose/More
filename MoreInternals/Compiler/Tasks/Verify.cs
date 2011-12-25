@@ -63,11 +63,17 @@ namespace MoreInternals.Compiler.Tasks
 
             switch (featureName.ToLowerInvariant())
             {
+                case "monochrome":
                 case "color":
-                case "color-index": return Math.Truncate(((NumberValue)value).Value) == ((NumberValue)value).Value;
+                case "color-index": 
+                    // Must be a non-negative integer
+                    var numValue = ((NumberValue)value).Value;
+                    return Math.Sign(numValue) != -1 && Math.Truncate(numValue) == numValue;
+
+                case "grid": return ((NumberValue)value).Value.In(0, 1);
 
                 case "aspect-ratio":
-                case "device-aspect-ratio": return Regex.IsMatch(((StringValue)value).Value, @"^\s*\d+/\d+\s*$");
+                case "device-aspect-ratio": return Regex.IsMatch(((StringValue)value).Value, @"^\s*\d+\s*/\s*\d+\s*$");
 
                 case "orientation": return ((StringValue)value).Value.ToLowerInvariant().In("landscape", "portrait");
                 case "resolution": return ((NumberWithUnitValue)value).Unit.In(Unit.DPI, Unit.DPCM);

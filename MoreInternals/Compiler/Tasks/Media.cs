@@ -70,28 +70,6 @@ namespace MoreInternals.Compiler.Tasks
             ret.AddRange(mediaBlocks);
 
             return ret;
-
-            /*var ret = new List<Block>();
-
-            ret.AddRange(blocks.Where(w => !(w is MediaBlock)));
-
-            var mediaRules =
-                blocks
-                    .OfType<MediaBlock>()
-                    .GroupBy(g => string.Join(",", g.MediaQuery.OrderBy(m => m)));
-
-            foreach (var m in mediaRules)
-            {
-                var media = new List<MoreInternals.Model.Media>();
-                foreach (var x in m.Key.Split(',')) media.Add((MoreInternals.Model.Media)Enum.Parse(typeof(MoreInternals.Model.Media), x));
-
-                var rules = new List<Block>();
-                m.Each(a => rules.AddRange(a.Blocks));
-
-                ret.Add(new MediaBlock(media, rules, -1, -1, null));
-            }
-
-            return ret;*/
         }
     }
 }

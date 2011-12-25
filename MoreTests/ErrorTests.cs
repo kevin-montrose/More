@@ -725,7 +725,7 @@ namespace MoreTests
             Assert.IsTrue(Current.HasErrors());
             var aErrors = Current.GetErrors(ErrorType.Compiler);
             Assert.AreEqual(1, aErrors.Count);
-            Assert.AreEqual("'height' is impossibly constrained, [50 < 20] is impossible", aErrors[0].Message);
+            Assert.AreEqual("'height' is impossibly constrained, [50px < 20px] is impossible", aErrors[0].Message);
             Assert.AreEqual("@media only tv and (min-height:50px) and (max-height:20px) {", aErrors[0].Snippet(new StringReader(a)).Trim());
 
             var b = @"@media only tv and (min-height:10px) and (min-height:10px) {
@@ -767,6 +767,50 @@ namespace MoreTests
             Assert.AreEqual(1, eErrors.Count);
             Assert.AreEqual("'scan' is never set for media type 'print', making this query unsatisfiable", eErrors[0].Message);
             Assert.AreEqual("@media only print and (scan){", eErrors[0].Snippet(new StringReader(e)).Trim());
+
+            var f = @"@media only tv and (height) and (height) {
+                        elem { c:d; }
+                      }";
+            TryCompile(f);
+            Assert.IsTrue(Current.HasErrors());
+            var fErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, fErrors.Count);
+            Assert.AreEqual("'height' has multiple present constraints", fErrors[0].Message);
+            Assert.AreEqual("@media only tv and (height) and (height) {", fErrors[0].Snippet(new StringReader(f)).Trim());
+        }
+
+        [TestMethod]
+        public void MediaQueryTypeErrors()
+        {
+            var a = @"@media only tv and (color: -1) {
+                        .class { hello: world; }
+                      }";
+            TryCompile(a);
+            Assert.IsTrue(Current.HasErrors());
+            var aErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, aErrors.Count);
+            Assert.AreEqual("'-1' is not a valid parameter for media query feature 'color'.", aErrors[0].Message);
+            Assert.AreEqual("@media only tv and (color: -1) {", aErrors[0].Snippet(new StringReader(a)).Trim());
+
+            var b = @"@media only tv and (width: foo) {
+                        .class { hello: world; }
+                      }";
+            TryCompile(b);
+            Assert.IsTrue(Current.HasErrors());
+            var bErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, bErrors.Count);
+            Assert.AreEqual("'foo' is not a valid parameter for media query feature 'width'.", bErrors[0].Message);
+            Assert.AreEqual("@media only tv and (width: foo) {", bErrors[0].Snippet(new StringReader(b)).Trim());
+
+            var c = @"@media only tv and (grid: 2) {
+                        .class { hello: world; }
+                      }";
+            TryCompile(c);
+            Assert.IsTrue(Current.HasErrors());
+            var cErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, cErrors.Count);
+            Assert.AreEqual("'2' is not a valid parameter for media query feature 'grid'.", cErrors[0].Message);
+            Assert.AreEqual("@media only tv and (grid: 2) {", cErrors[0].Snippet(new StringReader(c)).Trim());
         }
     }
 }
