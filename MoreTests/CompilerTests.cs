@@ -2054,7 +2054,7 @@ namespace MoreTests
             var written = TryCompile(c);
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("a{color:blue;}a:hover{color:red;}h1{margin:0;}h1{a:b;margin:0;}p a:hover{c:d;color:red;}h2{e:f;margin:0;}", written);
+            Assert.AreEqual("a{color:blue;}a:hover{color:red;}h1{margin:0;a:b;margin:0;}p a:hover{c:d;color:red;}h2{e:f;margin:0;}", written);
         }
 
         [TestMethod]
@@ -2083,6 +2083,25 @@ namespace MoreTests
             var written = TryCompile(a, minify:true);
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("@media only tv and (min-width:1in) and (max-height:10cm) and (device-width:15cm){#id{a:b;}}", written);
+        }
+
+        [TestMethod]
+        public void Collapse()
+        {
+            var a =
+                @"@media tv {
+                    .class { a:b; }
+                    elem { c:d; }
+                    .class { e:f; }
+                  }
+
+                  #id { g:h; i:j; }
+                  a:hover { color:red; }
+                  #id { k:l; }";
+
+            var written = TryCompile(a);
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("#id{g:h;i:j;k:l;}a:hover{color:red;}@media tv{.class{a:b;e:f;}elem{c:d;}}", written);
         }
     }
 }

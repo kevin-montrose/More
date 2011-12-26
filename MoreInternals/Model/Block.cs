@@ -613,7 +613,13 @@ namespace MoreInternals.Model
 
         public override string ToString()
         {
-            return Selector.ToString() + " { [" + Properties.Count() + "] }";
+            using (var mem = new StringWriter())
+            using (var css = new PrettyCssWriter(mem))
+            {
+                this.Write(css);
+
+                return mem.ToString();
+            }
         }
     }
 

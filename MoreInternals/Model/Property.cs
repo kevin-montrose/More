@@ -135,7 +135,7 @@ namespace MoreInternals.Model
                 {
                     if (callChain.Contains(x.Id))
                     {
-                        Current.RecordError(ErrorType.Compiler, x, "Found circular reference in selector include, " + s + " to " + x);
+                        Current.RecordError(ErrorType.Compiler, x, "Found circular reference in selector include, '" + s + "'");
                         throw new StoppedCompilingException();
                     }
 

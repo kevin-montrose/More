@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="Compiler\StoppedCompilingException.cs" />
     <Compile Include="Compiler\Tasks\Charsets.cs" />
+    <Compile Include="Compiler\Tasks\Collapse.cs" />
     <Compile Include="Compiler\Tasks\Compress.cs" />
     <Compile Include="Compiler\Compiler.cs" />
     <Compile Include="Compiler\Tasks\Evaluate.cs" />
