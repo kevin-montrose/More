@@ -10,9 +10,12 @@ namespace MoreInternals.Helpers
     interface ICssWriter
     {
         void WriteSelector(Selector selector);
+        
         void StartClass();
         void EndClass();
-        void WriteRule(NameValueProperty rule);
+
+        void WriteSelectorBlock(SelectorAndBlock block);
+
         void WriteImport(Value toImport, MediaQuery forMedia);
         void WriteCharset(QuotedStringValue charset);
         void WriteMedia(MediaQuery forMedia);
@@ -44,12 +47,37 @@ namespace MoreInternals.Helpers
             _wrapped.Write('}');
         }
 
-        public void WriteRule(NameValueProperty rule)
+        internal void WriteRule(NameValueProperty rule, bool lastRule)
         {
             _wrapped.Write(rule.Name);
             _wrapped.Write(':');
             rule.Value.Write(_wrapped);
-            _wrapped.Write(';');
+            
+            if (!lastRule)
+            {
+                _wrapped.Write(';');
+            }
+        }
+
+        public void WriteSelectorBlock(SelectorAndBlock block)
+        {
+            WriteSelector(block.Selector);
+            StartClass();
+
+            var properties = block.Properties.Cast<NameValueProperty>();
+            var firstN = properties.Take(properties.Count() - 1);
+            var last = properties.LastOrDefault();
+
+            foreach (var rule in firstN)
+            {
+                WriteRule(rule, lastRule: false);
+            }
+
+            if (last != null)
+            {
+                WriteRule(last, lastRule: true);
+            }
+            EndClass();
         }
 
         public void WriteImport(Value toImport, MediaQuery forMedia)
@@ -86,10 +114,20 @@ namespace MoreInternals.Helpers
         {
             _wrapped.Write("@font-face");
             StartClass();
-            foreach (var rule in fontface.Properties.Cast<NameValueProperty>())
+            
+            var properties = fontface.Properties.Cast<NameValueProperty>();
+            var firstN = properties.Take(properties.Count() - 1);
+            var last = properties.LastOrDefault();
+            foreach (var rule in firstN)
             {
-                WriteRule(rule);
+                WriteRule(rule, lastRule: false);
             }
+
+            if (last != null)
+            {
+                WriteRule(last, lastRule: true);
+            }
+
             EndClass();
         }
 
@@ -119,9 +157,18 @@ namespace MoreInternals.Helpers
                 _wrapped.Write(percents);
                 StartClass();
 
-                foreach (var rule in frame.Properties.Cast<NameValueProperty>())
+                var properties = frame.Properties.Cast<NameValueProperty>();
+                var firstN = properties.Take(properties.Count() - 1);
+                var last = properties.LastOrDefault();
+
+                foreach (var rule in firstN)
                 {
-                    WriteRule(rule);
+                    WriteRule(rule, lastRule: false);
+                }
+
+                if (last != null)
+                {
+                    WriteRule(last, lastRule: true);
                 }
                 EndClass();
             }
@@ -167,13 +214,24 @@ namespace MoreInternals.Helpers
             _wrapped.WriteLine('}');
         }
 
-        public void WriteRule(NameValueProperty rule)
+        internal void WriteRule(NameValueProperty rule)
         {
             _wrapped.Write("  ");
             _wrapped.Write(rule.Name);
             _wrapped.Write(": ");
             rule.Value.Write(_wrapped);
             _wrapped.WriteLine(';');
+        }
+
+        public void WriteSelectorBlock(SelectorAndBlock block)
+        {
+            WriteSelector(block.Selector);
+            StartClass();
+            foreach (var rule in block.Properties.Cast<NameValueProperty>())
+            {
+                WriteRule(rule);
+            }
+            EndClass();
         }
 
         public void WriteImport(Value toImport, MediaQuery forMedia)

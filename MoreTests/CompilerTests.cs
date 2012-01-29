@@ -115,7 +115,7 @@ namespace MoreTests
                       img { more: less; }"
                 );
 
-            Assert.AreEqual(@"@charset ""ISO-8859-1"";img{more:less;}", written);
+            Assert.AreEqual(@"@charset ""ISO-8859-1"";img{more:less}", written);
         }
 
         [TestMethod]
@@ -339,7 +339,7 @@ namespace MoreTests
             );
 
             // Hella brittle, but ok for now.
-            Assert.AreEqual(@".gravatar-wrapper-128{padding:0;width:128px;height:128px;text-align:center;overflow:hidden;background-color:black;}.gravatar-wrapper-128 img{height:128px;margin:0 auto;}.gravatar-wrapper-50{padding:0;width:50px;height:50px;text-align:center;overflow:hidden;background-color:black;}.gravatar-wrapper-50 img{height:50px;margin:0 auto;}.gravatar-wrapper-48{padding:0;width:48px;height:48px;text-align:center;overflow:hidden;background-color:black;}.gravatar-wrapper-48 img{height:48px;margin:0 auto;}.gravatar-wrapper-32{padding:0;width:32px;height:32px;text-align:center;overflow:hidden;background-color:black;}.gravatar-wrapper-32 img{height:32px;margin:0 auto;}.gravatar-wrapper-25{padding:0;width:25px;height:25px;text-align:center;overflow:hidden;background-color:black;}.gravatar-wrapper-25 img{height:25px;margin:0 auto;}", written);
+            Assert.AreEqual(@".gravatar-wrapper-128{padding:0;width:128px;height:128px;text-align:center;overflow:hidden;background-color:black}.gravatar-wrapper-128 img{height:128px;margin:0 auto}.gravatar-wrapper-50{padding:0;width:50px;height:50px;text-align:center;overflow:hidden;background-color:black}.gravatar-wrapper-50 img{height:50px;margin:0 auto}.gravatar-wrapper-48{padding:0;width:48px;height:48px;text-align:center;overflow:hidden;background-color:black}.gravatar-wrapper-48 img{height:48px;margin:0 auto}.gravatar-wrapper-32{padding:0;width:32px;height:32px;text-align:center;overflow:hidden;background-color:black}.gravatar-wrapper-32 img{height:32px;margin:0 auto}.gravatar-wrapper-25{padding:0;width:25px;height:25px;text-align:center;overflow:hidden;background-color:black}.gravatar-wrapper-25 img{height:25px;margin:0 auto}", written);
         }
 
         [TestMethod]
@@ -357,7 +357,7 @@ namespace MoreTests
             );
 
             // Hella brittle, but ok for now.
-            Assert.AreEqual(@".rgb{color:rgb(255,10,50);}.rgba{color:rgba(255,10,50,0.5);}.hsl{color:hsl(305,10%,20%);}", written);
+            Assert.AreEqual(@".rgb{color:rgb(255,10,50)}.rgba{color:rgba(255,10,50,0.5)}.hsl{color:hsl(305,10%,20%)}", written);
         }
 
         [TestMethod]
@@ -368,7 +368,7 @@ namespace MoreTests
                   img { height: @b ?? @a; }"
             );
 
-            Assert.AreEqual("img{height:5;}", written);
+            Assert.AreEqual("img{height:5}", written);
         }
 
         [TestMethod]
@@ -379,7 +379,7 @@ namespace MoreTests
                   img { height: @a + 5; width: (7 * @b)?; }"
             );
 
-            Assert.AreEqual("img{height:10;}", written);
+            Assert.AreEqual("img{height:10}", written);
         }
 
         [TestMethod]
@@ -402,7 +402,7 @@ namespace MoreTests
                       img { @mixin(15); }"
                 );
 
-            Assert.AreEqual("img{hello:5;world:15;}", written);
+            Assert.AreEqual("img{hello:5;world:15}", written);
         }
 
         [TestMethod]
@@ -416,7 +416,7 @@ namespace MoreTests
                       img { @outer(10, @inner, 5); }"
                 );
 
-            Assert.AreEqual("img{width:10;height:5;}", written);
+            Assert.AreEqual("img{width:10;height:5}", written);
         }
 
         [TestMethod]
@@ -444,9 +444,9 @@ namespace MoreTests
                       img3 { @opt(3, #def, #fff); }"
                 );
 
-            Assert.AreEqual("img1{height:1;width:2;}img2{height:3;}", optional);
-            Assert.AreEqual("img1{height:1;color:#abc;}img2{height:3;color:#fff;}", @default);
-            Assert.AreEqual("img1{height:1;color:#fff;}img2{height:2;color:#abc;}img3{height:3;color:#def;background-color:#fff;}", both);
+            Assert.AreEqual("img1{height:1;width:2}img2{height:3}", optional);
+            Assert.AreEqual("img1{height:1;color:#abc}img2{height:3;color:#fff}", @default);
+            Assert.AreEqual("img1{height:1;color:#fff}img2{height:2;color:#abc}img3{height:3;color:#def;background-color:#fff}", both);
         }
 
         [TestMethod]
@@ -463,8 +463,8 @@ namespace MoreTests
                       img { @mixin(hello, world); }"
                 );
 
-            Assert.AreEqual("img{start:hello world;}", combo);
-            Assert.AreEqual("img{start:hello,world;}", comma);
+            Assert.AreEqual("img{start:hello world}", combo);
+            Assert.AreEqual("img{start:hello,world}", comma);
         }
 
         [TestMethod]
@@ -485,9 +485,9 @@ namespace MoreTests
                     @"a, b { .hello, .world { name: value;}}"
                 );
 
-            Assert.AreEqual("a .world{name:value;}b .world{name:value;}", commaParent);
-            Assert.AreEqual("a .hello{name:value;}a .world{name:value;}", commaChild);
-            Assert.AreEqual("a .hello{name:value;}a .world{name:value;}b .hello{name:value;}b .world{name:value;}", combo);
+            Assert.AreEqual("a .world{name:value}b .world{name:value}", commaParent);
+            Assert.AreEqual("a .hello{name:value}a .world{name:value}", commaChild);
+            Assert.AreEqual("a .hello{name:value}a .world{name:value}b .hello{name:value}b .world{name:value}", combo);
         }
 
         [TestMethod]
@@ -525,11 +525,11 @@ namespace MoreTests
                       f{ @(a,c); }"
                 );
 
-            Assert.AreEqual("a{name:value;}b{other:thing;name:value;}", simple);
-            Assert.AreEqual("a{a:value;}b{b:value;a:value;}c{c:value;b:value;a:value;}", multi);
-            Assert.AreEqual("#id{a:b;}.class{a:b;}", id);
-            Assert.AreEqual(".class:hover{a:b;}elem{a:b;}", compound);
-            Assert.AreEqual("a{a:b;}c{c:d;}f{a:b;c:d;}", multiSels);
+            Assert.AreEqual("a{name:value}b{other:thing;name:value}", simple);
+            Assert.AreEqual("a{a:value}b{b:value;a:value}c{c:value;b:value;a:value}", multi);
+            Assert.AreEqual("#id{a:b}.class{a:b}", id);
+            Assert.AreEqual(".class:hover{a:b}elem{a:b}", compound);
+            Assert.AreEqual("a{a:b}c{c:d}f{a:b;c:d}", multiSels);
         }
 
         [TestMethod]
@@ -611,11 +611,11 @@ namespace MoreTests
                       }"
                 );
 
-            Assert.AreEqual("id{hello:world;}id:hover{a:b;}", simple);
-            Assert.AreEqual("elem{a:b;}elem#id{c:d;}elem#id:hover{e:f;}", @double);
-            Assert.AreEqual("elem{a:b;}elem #id{c:d;}elem #id:hover{e:f;}", part1);
-            Assert.AreEqual("elem{a:b;}elem#id{c:d;}elem#id .class{e:f;}", part2);
-            Assert.AreEqual("#id1,#id2{a:b;}#id1:hover{c:d;}#id2:hover{c:d;}", multi);
+            Assert.AreEqual("id{hello:world}id:hover{a:b}", simple);
+            Assert.AreEqual("elem{a:b}elem#id{c:d}elem#id:hover{e:f}", @double);
+            Assert.AreEqual("elem{a:b}elem #id{c:d}elem #id:hover{e:f}", part1);
+            Assert.AreEqual("elem{a:b}elem#id{c:d}elem#id .class{e:f}", part2);
+            Assert.AreEqual("#id1,#id2{a:b}#id1:hover{c:d}#id2:hover{c:d}", multi);
         }
 
         [TestMethod]
@@ -650,7 +650,7 @@ namespace MoreTests
                         fakeFile: testRoot
                     );
 
-                Assert.AreEqual(@".pic1{background-image:url(Images/sprite.png);background-position:0px 0px;background-repeat:no-repeat;width:100px;height:100px;}.pic2{background-image:url(Images/sprite.png);background-position:0px -100px;background-repeat:no-repeat;width:50px;height:50px;}", simple);
+                Assert.AreEqual(@".pic1{background-image:url(Images/sprite.png);background-position:0px 0px;background-repeat:no-repeat;width:100px;height:100px}.pic2{background-image:url(Images/sprite.png);background-position:0px -100px;background-repeat:no-repeat;width:50px;height:50px}", simple);
                 Assert.IsTrue(File.Exists(tempPic));
             }
             finally
@@ -684,7 +684,7 @@ namespace MoreTests
                         fakeFile: testRoot
                     );
 
-                Assert.AreEqual(".simpleClass{hello:world;}.pic1{background-image:url(Images/sprite.png);background-position:0px 0px;background-repeat:no-repeat;width:100px;height:100px;rule:value;}.pic2{background-image:url(Images/sprite.png);background-position:0px -100px;background-repeat:no-repeat;width:50px;height:50px;hello:world;}", mixin);
+                Assert.AreEqual(".simpleClass{hello:world}.pic1{background-image:url(Images/sprite.png);background-position:0px 0px;background-repeat:no-repeat;width:100px;height:100px;rule:value}.pic2{background-image:url(Images/sprite.png);background-position:0px -100px;background-repeat:no-repeat;width:50px;height:50px;hello:world}", mixin);
                 Assert.IsTrue(File.Exists(tempPic));
             }
             finally
@@ -709,7 +709,7 @@ namespace MoreTests
                       .c7 { @mixin(@c=13, @a=14, @b=15); }"
                 );
 
-            Assert.AreEqual(@".c1{width:1;height:2;}.c2{width:2;height:3;color:4;}.c3{width:5;height:2;color:6;}.c4{width:7;height:8;}.c5{width:9;height:10;color:11;}.c6{width:12;height:2;}.c7{width:14;height:15;color:13;}", simple);
+            Assert.AreEqual(@".c1{width:1;height:2}.c2{width:2;height:3;color:4}.c3{width:5;height:2;color:6}.c4{width:7;height:8}.c5{width:9;height:10;color:11}.c6{width:12;height:2}.c7{width:14;height:15;color:13}", simple);
         }
 
         [TestMethod]
@@ -767,7 +767,7 @@ namespace MoreTests
                       img{ rule0: 9; rule1: what; @mixin(a, b)!; }"
                 );
 
-            Assert.AreEqual(@"img{rule0:9;rule1:a;rule2:b;}", written); 
+            Assert.AreEqual(@"img{rule0:9;rule1:a;rule2:b}", written); 
         }
 
         [TestMethod]
@@ -779,7 +779,7 @@ namespace MoreTests
                       img { rule0: 0; @mixin(a); @other(b)?; }"
                 );
 
-            Assert.AreEqual("img{rule0:0;a:a;}", written);
+            Assert.AreEqual("img{rule0:0;a:a}", written);
         }
 
         [TestMethod]
@@ -791,7 +791,7 @@ namespace MoreTests
                       img { @m(1); @n(blah)?!; @m(2)!?; }"
                 );
 
-            Assert.AreEqual("img{a:2;}", written);
+            Assert.AreEqual("img{a:2}", written);
         }
 
         [TestMethod]
@@ -802,7 +802,7 @@ namespace MoreTests
                     @"img { a: 1; a: 2 !important; }"
                 );
 
-            Assert.AreEqual("img{a:2 !important;}", c1);
+            Assert.AreEqual("img{a:2 !important}", c1);
 
             var c2 =
                 TryCompile(
@@ -810,7 +810,7 @@ namespace MoreTests
                       img { a:1; @m(3); }"
                 );
 
-            Assert.AreEqual("img{a:3 !important;}", c2);
+            Assert.AreEqual("img{a:3 !important}", c2);
         }
 
         [TestMethod]
@@ -832,7 +832,7 @@ namespace MoreTests
                 );
 
             Assert.AreEqual(
-                @"img{a:hello 1 world;b:hello 3 world;c:progid:DXImageTransform.Microsoft.MotionBlur(strength=3, direction=north);d:'fun string 4!';}", 
+                @"img{a:hello 1 world;b:hello 3 world;c:progid:DXImageTransform.Microsoft.MotionBlur(strength=3, direction=north);d:'fun string 4!'}", 
                 written
             );
         }
@@ -846,7 +846,7 @@ namespace MoreTests
                       foo { color:green; @(img)!; }"
                 );
 
-            Assert.AreEqual("img{color:red;}foo{color:red;}", written);
+            Assert.AreEqual("img{color:red}foo{color:red}", written);
         }
 
         [TestMethod]
@@ -863,7 +863,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:1;b:1.3cm;c:5;}", round);
+            Assert.AreEqual("img{a:1;b:1.3cm;c:5}", round);
         }
 
         [TestMethod]
@@ -886,7 +886,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:0;b:45.70;c:120.00;d:20.00;e:212;}", hue);
+            Assert.AreEqual("img{a:0;b:45.70;c:120.00;d:20.00;e:212}", hue);
 
             var saturation =
                 TryCompile(
@@ -905,7 +905,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:0;b:0.42;c:1;d:0.6;e:0.4;}", saturation);
+            Assert.AreEqual("img{a:0;b:0.42;c:1;d:0.6;e:0.4}", saturation);
 
             var lightness =
                 TryCompile(
@@ -924,7 +924,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:1;b:0.51;c:0.25;d:0.63;e:0.7;}", lightness);
+            Assert.AreEqual("img{a:1;b:0.51;c:0.25;d:0.63;e:0.7}", lightness);
         }
 
         [TestMethod]
@@ -947,7 +947,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:255;b:206;c:0;d:255.0;e:63.75;}", red);
+            Assert.AreEqual("img{a:255;b:206;c:0;d:255.0;e:63.75}", red);
 
             var green =
                 TryCompile(
@@ -966,7 +966,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:255;b:170;c:128;d:127.5;e:124.10;}", green);
+            Assert.AreEqual("img{a:255;b:170;c:128;d:127.5;e:124.10}", green);
 
             var blue =
                 TryCompile(
@@ -985,7 +985,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:255;b:55;c:0;d:63.75;e:209.10;}", blue);
+            Assert.AreEqual("img{a:255;b:55;c:0;d:63.75;e:209.10}", blue);
         }
 
         [TestMethod]
@@ -1010,7 +1010,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:rgb(255,255,255);b:rgb(144,144,144);c:rgb(43,43,43);d:rgb(149,149,149);e:rgb(126,126,126);f:rgba(196,196,196,0.75);}", written);
+            Assert.AreEqual("img{a:rgb(255,255,255);b:rgb(144,144,144);c:rgb(43,43,43);d:rgb(149,149,149);e:rgb(126,126,126);f:rgba(196,196,196,0.75)}", written);
         }
 
         [TestMethod]
@@ -1035,7 +1035,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:hsl(0,5.00%,100%);b:hsl(45,52.00%,51.00%);c:hsl(120,100%,25.00%);d:hsl(20,80.0%,63.00%);e:hsl(212,80.0%,50.0%);f:hsl(50,93.00%,70.0%);}", saturate);
+            Assert.AreEqual("img{a:hsl(0,5.00%,100%);b:hsl(45,52.00%,51.00%);c:hsl(120,100%,25.00%);d:hsl(20,80.0%,63.00%);e:hsl(212,80.0%,50.0%);f:hsl(50,93.00%,70.0%)}", saturate);
 
             var desaturate =
                 TryCompile(
@@ -1056,7 +1056,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:hsl(0,0%,100%);b:hsl(45,32.00%,51.00%);c:hsl(120,85.00%,25.00%);d:hsl(20,40.0%,63.00%);e:hsl(212,20.0%,50.0%);f:hsl(50,0%,70.0%);}", desaturate);
+            Assert.AreEqual("img{a:hsl(0,0%,100%);b:hsl(45,32.00%,51.00%);c:hsl(120,85.00%,25.00%);d:hsl(20,40.0%,63.00%);e:hsl(212,20.0%,50.0%);f:hsl(50,0%,70.0%)}", desaturate);
         }
 
         [TestMethod]
@@ -1083,7 +1083,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:rgba(255,255,255,0.05);b:rgba(206,170,55,0.9);c:rgba(0,128,0,0.15);d:rgba(255,128,64,1);e:rgba(64,123,191,0.7);f:rgba(255,230,102,0.85);g:rgba(200,100,50,0.55);}", fade);
+            Assert.AreEqual("img{a:rgba(255,255,255,0.05);b:rgba(206,170,55,0.9);c:rgba(0,128,0,0.15);d:rgba(255,128,64,1);e:rgba(64,123,191,0.7);f:rgba(255,230,102,0.85);g:rgba(200,100,50,0.55)}", fade);
         }
 
         [TestMethod]
@@ -1108,7 +1108,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:hsl(0,0%,100%);b:hsl(45,42.00%,61.00%);c:hsl(120,100%,40.00%);d:hsl(20,60.0%,83.00%);e:hsl(212,50.0%,80.0%);f:hsl(50,43.00%,100%);}", lighten);
+            Assert.AreEqual("img{a:hsl(0,0%,100%);b:hsl(45,42.00%,61.00%);c:hsl(120,100%,40.00%);d:hsl(20,60.0%,83.00%);e:hsl(212,50.0%,80.0%);f:hsl(50,43.00%,100%)}", lighten);
 
             var darken =
                 TryCompile(
@@ -1129,7 +1129,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:hsl(0,0%,95.00%);b:hsl(45,42.00%,41.00%);c:hsl(120,100%,10.00%);d:hsl(20,60.0%,43.00%);e:hsl(212,50.0%,20.0%);f:hsl(50,43.00%,20.0%);}", darken);
+            Assert.AreEqual("img{a:hsl(0,0%,95.00%);b:hsl(45,42.00%,41.00%);c:hsl(120,100%,10.00%);d:hsl(20,60.0%,43.00%);e:hsl(212,50.0%,20.0%);f:hsl(50,43.00%,20.0%)}", darken);
         }
 
         [TestMethod]
@@ -1154,7 +1154,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:hsl(10,0%,100%);b:hsl(95,42.00%,51.00%);c:hsl(220,100%,25.00%);d:hsl(220,60.0%,63.00%);e:hsl(152,50.0%,50.0%);f:rgba(255,0,255,0.75);}", written);
+            Assert.AreEqual("img{a:hsl(10,0%,100%);b:hsl(95,42.00%,51.00%);c:hsl(220,100%,25.00%);d:hsl(220,60.0%,63.00%);e:hsl(152,50.0%,50.0%);f:rgba(255,0,255,0.75)}", written);
         }
 
         [TestMethod]
@@ -1179,7 +1179,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:rgba(211,178,75,1);b:rgba(103,149,28,1);c:rgba(204,128,51,1);d:rgba(255,255,0,1);e:rgba(255,255,0,0.850);f:rgba(255,232,117,0.875);}", written);
+            Assert.AreEqual("img{a:rgba(211,178,75,1);b:rgba(103,149,28,1);c:rgba(204,128,51,1);d:rgba(255,255,0,1);e:rgba(255,255,0,0.850);f:rgba(255,232,117,0.875)}", written);
         }
 
         [TestMethod]
@@ -1210,7 +1210,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:5;b:6;c:7;d:#fff;e:#ceaa37;f:green;g:rgb(1,50,25);h:hsl(212,50%,50%);i:rgba(1,1,0,0.75);}", written);
+            Assert.AreEqual("img{a:5;b:6;c:7;d:#fff;e:#ceaa37;f:green;g:rgb(1,50,25);h:hsl(212,50%,50%);i:rgba(1,1,0,0.75)}", written);
         }
 
         [TestMethod]
@@ -1226,7 +1226,7 @@ namespace MoreTests
                       }"
                 );
 
-            Assert.AreEqual("h1{background-color:green;}img{color:red;background-color:green;}", written);
+            Assert.AreEqual("h1{background-color:green}img{color:red;background-color:green}", written);
         }
 
         [TestMethod]
@@ -1242,7 +1242,7 @@ namespace MoreTests
                       img { @mx(@x); }"
                 );
 
-            Assert.AreEqual("h1{font-size:14px;}h2{color:green;}h3{background-color:red;}img{font-size:14px;color:green;background-color:red;}", written);
+            Assert.AreEqual("h1{font-size:14px}h2{color:green}h3{background-color:red}img{font-size:14px;color:green;background-color:red}", written);
         }
 
         [TestMethod]
@@ -1255,7 +1255,7 @@ namespace MoreTests
 
             var written = TryCompile(txt);
 
-            Assert.AreEqual("@import 'hello-world.txt';@import url('other.txt') tv;img{rule:value;}", written);
+            Assert.AreEqual("@import 'hello-world.txt';@import url('other.txt') tv;img{rule:value}", written);
 
             var warnings = Current.GetWarnings(ErrorType.Parser);
             Assert.AreEqual(1, warnings.Count);
@@ -1273,7 +1273,7 @@ namespace MoreTests
                       img { @mx(1,2, @x); }"
                 );
 
-            Assert.AreEqual("img{key:1,2,3;}", written);
+            Assert.AreEqual("img{key:1,2,3}", written);
         }
 
         [TestMethod]
@@ -1298,7 +1298,7 @@ namespace MoreTests
                       }"
                 );
 
-            Assert.AreEqual("img{red:3;blue:4;color:9;}img sub{green:9;color:12;}", written);
+            Assert.AreEqual("img{red:3;blue:4;color:9}img sub{green:9;color:12}", written);
         }
 
         [TestMethod]
@@ -1333,7 +1333,7 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors());
             Assert.IsFalse(Current.HasWarnings());
 
-            Assert.AreEqual("img{rule:10;}img:hover{height:16px;width:15;}@media tv{.class{x:5;z:10;a:something;}.class #hello{width:7;}}", written);
+            Assert.AreEqual("img{rule:10}img:hover{height:16px;width:15}@media tv{.class{x:5;z:10;a:something}.class #hello{width:7}}", written);
         }
 
         [TestMethod]
@@ -1359,7 +1359,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{a:30;}img:hover{v:38;x:5;y:6;w:8;z:30;}", written);
+            Assert.AreEqual("img{a:30}img:hover{v:38;x:5;y:6;w:8;z:30}", written);
         }
 
         [TestMethod]
@@ -1408,7 +1408,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual(".outer{outer:outer;a:10;}@media tv{img{tv:tv;}#d{d:d;}}@media print{p{print:print;}}@media tv,print{.both{both:both;}.both:hover{hover:hover;}}@media only tv and (width:47px){#e{e:e;}}", written);
+            Assert.AreEqual(".outer{outer:outer;a:10}@media tv{img{tv:tv}#d{d:d}}@media print{p{print:print}}@media tv,print{.both{both:both}.both:hover{hover:hover}}@media only tv and (width:47px){#e{e:e}}", written);
         }
 
         [TestMethod]
@@ -1428,7 +1428,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("p{a:b;}img{a:b;}@media tv{img{x:x;}a{x:x;}b{a:b;}}", written);
+            Assert.AreEqual("p{a:b}img{a:b}@media tv{img{x:x}a{x:x}b{a:b}}", written);
         }
 
         [TestMethod]
@@ -1458,7 +1458,7 @@ namespace MoreTests
             Assert.IsNotNull(max);
             Assert.AreNotEqual(min, max);
 
-            Assert.AreEqual("img{a:#abc;b:#64321e;c:rgba(80,40,20,1);d:green;e:green;f:rgba(128,0,128,1);g:1cm;h:1;i:1in;j:1s;k:234ms;}", min);
+            Assert.AreEqual("img{a:#abc;b:#64321e;c:rgba(80,40,20,1);d:green;e:green;f:rgba(128,0,128,1);g:1cm;h:1;i:1in;j:1s;k:234ms}", min);
         }
 
         private int GZipSize(string str)
@@ -1526,7 +1526,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("@keyframes anim{0%{a:8px;}to{b:9;c:red;}}@-moz-keyframes ff{0%{a:6px;b:12px;}50%{a:0px;b:10px;}to{c:15px;a:13px;b:6px;}}@-webkit-keyframes sa{55%,22%,10%{a:0px;}0%{b:4;c:red;}to{b:4;c:red;}}.holder{animation-name:anim;animation-duration:5.01s;}", written);
+            Assert.AreEqual("@keyframes anim{0%{a:8px}to{b:9;c:red}}@-moz-keyframes ff{0%{a:6px;b:12px}50%{a:0px;b:10px}to{c:15px;a:13px;b:6px}}@-webkit-keyframes sa{55%,22%,10%{a:0px}0%{b:4;c:red}to{b:4;c:red}}.holder{animation-name:anim;animation-duration:5.01s}", written);
         }
 
         [TestMethod]
@@ -1551,7 +1551,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("@keyframes with-vars{0%{top:25px;left:23px;padding-right:15px;padding-bottom:5px;}to{top:10;left:10;padding-right:20px;padding-bottom:5px;}}", written);
+            Assert.AreEqual("@keyframes with-vars{0%{top:25px;left:23px;padding-right:15px;padding-bottom:5px}to{top:10;left:10;padding-right:20px;padding-bottom:5px}}", written);
         }
 
         [TestMethod]
@@ -1583,7 +1583,7 @@ namespace MoreTests
                 );
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("@keyframes inner{to{a:b;}}.outer{e:f;}@media print{.something{c:d;}}", written);
+            Assert.AreEqual("@keyframes inner{to{a:b}}.outer{e:f}@media print{.something{c:d}}", written);
         }
 
         [TestMethod]
@@ -1599,7 +1599,7 @@ namespace MoreTests
             var written = TryCompile(c);
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("@font-face{font-family:'blah blah';src:local('nothing!');font-weight:bold;}", written);
+            Assert.AreEqual("@font-face{font-family:'blah blah';src:local('nothing!');font-weight:bold}", written);
         }
 
         [TestMethod]
@@ -1731,7 +1731,7 @@ namespace MoreTests
                   }";
 
             var written = TryCompile(c);
-            Assert.AreEqual(@".a{font: 10px/15px ""Times New Roman"";}.b{font: italic 10px/15px Arial;}.c{font: italic small-caps 10px/15px serif;}.d{font: italic small-caps bold 10px/15px Times;}.e{font:10px 'Times New Roman';}.f{font:italic 10px Arial;}.g{font:italic small-caps 10px serif;}.h{font:italic small-caps bold 10px Times;}.i{font: 15px/15px ""Times New Roman"";}.j{font: italic 15px/15px Arial;}.k{font: italic small-caps 15px/15px serif;}.l{font: italic small-caps bold 15px/15px Times;}.m{font: 15px/16px ""Times New Roman"";}.n{font: italic 15px/16px Arial;}.o{font: italic small-caps 15px/16px serif;}.p{font: italic small-caps bold 15px/16px Times;}.q{font: 46px/20px ""Times New Roman"";}.r{font: italic 46px/20px Arial;}.s{font: italic small-caps 46px/20px serif;}.t{font: italic small-caps bold 46px/20px Times;}.a1{font: 10px/15px ""Times New Roman"", Helvetica;}.b2{font: italic 10px/15px Arial, Helvetica;}.c3{font: italic small-caps 10px/15px serif, Helvetica;}.d4{font: italic small-caps bold 10px/15px Times, Helvetica;}.e5{font:10px 'Times New Roman',Helvetica;}.f6{font:italic 10px Arial,Helvetica;}.g7{font:italic small-caps 10px serif,Helvetica;}.h8{font:italic small-caps bold 10px Times,Helvetica;}.i9{font: 15px/15px ""Times New Roman"", Helvetica;}.j1{font: italic 15px/15px Arial, Helvetica;}.k2{font: italic small-caps 15px/15px serif, Helvetica;}.l3{font: italic small-caps bold 15px/15px Times, Helvetica;}.m4{font: 15px/16px ""Times New Roman"", Helvetica;}.n5{font: italic 15px/16px Arial, Helvetica;}.o6{font: italic small-caps 15px/16px serif, Helvetica;}.p7{font: italic small-caps bold 15px/16px Times, Helvetica;}.q8{font: 46px/20px ""Times New Roman"", Helvetica;}.r9{font: italic 46px/20px Arial, Helvetica;}.s1{font: italic small-caps 46px/20px serif, Helvetica;}.t2{font: italic small-caps bold 46px/20px Times, Helvetica;}", written);
+            Assert.AreEqual(@".a{font: 10px/15px ""Times New Roman""}.b{font: italic 10px/15px Arial}.c{font: italic small-caps 10px/15px serif}.d{font: italic small-caps bold 10px/15px Times}.e{font:10px 'Times New Roman'}.f{font:italic 10px Arial}.g{font:italic small-caps 10px serif}.h{font:italic small-caps bold 10px Times}.i{font: 15px/15px ""Times New Roman""}.j{font: italic 15px/15px Arial}.k{font: italic small-caps 15px/15px serif}.l{font: italic small-caps bold 15px/15px Times}.m{font: 15px/16px ""Times New Roman""}.n{font: italic 15px/16px Arial}.o{font: italic small-caps 15px/16px serif}.p{font: italic small-caps bold 15px/16px Times}.q{font: 46px/20px ""Times New Roman""}.r{font: italic 46px/20px Arial}.s{font: italic small-caps 46px/20px serif}.t{font: italic small-caps bold 46px/20px Times}.a1{font: 10px/15px ""Times New Roman"", Helvetica}.b2{font: italic 10px/15px Arial, Helvetica}.c3{font: italic small-caps 10px/15px serif, Helvetica}.d4{font: italic small-caps bold 10px/15px Times, Helvetica}.e5{font:10px 'Times New Roman',Helvetica}.f6{font:italic 10px Arial,Helvetica}.g7{font:italic small-caps 10px serif,Helvetica}.h8{font:italic small-caps bold 10px Times,Helvetica}.i9{font: 15px/15px ""Times New Roman"", Helvetica}.j1{font: italic 15px/15px Arial, Helvetica}.k2{font: italic small-caps 15px/15px serif, Helvetica}.l3{font: italic small-caps bold 15px/15px Times, Helvetica}.m4{font: 15px/16px ""Times New Roman"", Helvetica}.n5{font: italic 15px/16px Arial, Helvetica}.o6{font: italic small-caps 15px/16px serif, Helvetica}.p7{font: italic small-caps bold 15px/16px Times, Helvetica}.q8{font: 46px/20px ""Times New Roman"", Helvetica}.r9{font: italic 46px/20px Arial, Helvetica}.s1{font: italic small-caps 46px/20px serif, Helvetica}.t2{font: italic small-caps bold 46px/20px Times, Helvetica}", written);
         }
 
         [TestMethod]
@@ -1752,7 +1752,7 @@ namespace MoreTests
             var written = TryCompile(c);
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual(".bar{foo:#eee;}.bar:hover{buzz:123;}.fizz{foo:#eee;}", written);
+            Assert.AreEqual(".bar{foo:#eee}.bar:hover{buzz:123}.fizz{foo:#eee}", written);
         }
 
         [TestMethod]
@@ -1796,7 +1796,7 @@ namespace MoreTests
             var written = TryCompile(c, minify: true);
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("@keyframes some-anim{0%{font:italic 10px/12px 'Times New Roman';}to{nothing:nothing;}}id{font:italic small-caps bold 10px/12px 'Times New Roman';rule:value;}@media tv{.class{font:italic bold 20px/25px Arial;other:rule;}}", written);
+            Assert.AreEqual("@keyframes some-anim{0%{font:italic 10px/12px 'Times New Roman'}to{nothing:nothing}}id{font:italic small-caps bold 10px/12px 'Times New Roman';rule:value}@media tv{.class{font:italic bold 20px/25px Arial;other:rule}}", written);
         }
 
         [TestMethod]
@@ -1814,7 +1814,7 @@ namespace MoreTests
             var written = TryCompile(c, minify: true);
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual(".class{a:5.006s;b:157mm;c:0.5765cm;d:131.231mm;}", written);
+            Assert.AreEqual(".class{a:5.006s;b:157mm;c:0.5765cm;d:131.231mm}", written);
         }
 
         [TestMethod]
@@ -1833,7 +1833,7 @@ namespace MoreTests
 
             var written = TryCompile(c);
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("@media only tv and (min-width:5px),not print and (orientation:landscape) and (max-height:25px),braille and (width:10em){.class{rule:value;}}", written);
+            Assert.AreEqual("@media only tv and (min-width:5px),not print and (orientation:landscape) and (max-height:25px),braille and (width:10em){.class{rule:value}}", written);
         }
 
         [TestMethod]
@@ -1853,7 +1853,7 @@ namespace MoreTests
 
             var written = TryCompile(a);
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("@media only tv and (resolution:72dpi) and (aspect-ratio:4/3){.class{a:b;}}@media only screen and (resolution:3dpcm) and (device-aspect-ratio:8/14){#id{c:d;}}", written);
+            Assert.AreEqual("@media only tv and (resolution:72dpi) and (aspect-ratio:4/3){.class{a:b}}@media only screen and (resolution:3dpcm) and (device-aspect-ratio:8/14){#id{c:d}}", written);
         }
 
         [TestMethod]
@@ -1893,7 +1893,7 @@ namespace MoreTests
             var written = TryCompile(c);
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{width:50px;height:50px;}img .class{display:inline-block;}p{line-height:2em;}div{line-height:2em;}", written);
+            Assert.AreEqual("img{width:50px;height:50px}img .class{display:inline-block}p{line-height:2em}div{line-height:2em}", written);
         }
 
         [TestMethod]
@@ -1924,7 +1924,7 @@ namespace MoreTests
             var written = TryCompile(c);
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
 
-            Assert.AreEqual("sub{a:10;b:15;}sub :hover{c:150;d:d;}d{d:d;}", written);
+            Assert.AreEqual("sub{a:10;b:15}sub :hover{c:150;d:d}d{d:d}", written);
         }
 
         [TestMethod]
@@ -1962,7 +1962,7 @@ namespace MoreTests
             var written = TryCompile(c);
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("a{color:blue;}a:hover{color:red;}h1{margin:0;a:b;margin:0;}p a:hover{c:d;color:red;}h2{e:f;margin:0;}", written);
+            Assert.AreEqual("a{color:blue}a:hover{color:red}h1{margin:0;a:b;margin:0}p a:hover{c:d;color:red}h2{e:f;margin:0}", written);
         }
 
         [TestMethod]
@@ -1990,7 +1990,7 @@ namespace MoreTests
 
             var written = TryCompile(a, minify:true);
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("@media only tv and (min-width:1in) and (max-height:10cm) and (device-width:15cm){#id{a:b;}}", written);
+            Assert.AreEqual("@media only tv and (min-width:1in) and (max-height:10cm) and (device-width:15cm){#id{a:b}}", written);
         }
 
         [TestMethod]
@@ -2009,7 +2009,7 @@ namespace MoreTests
 
             var written = TryCompile(a);
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("#id{g:h;i:j;k:l;}a:hover{color:red;}@media tv{.class{a:b;e:f;}elem{c:d;}}", written);
+            Assert.AreEqual("#id{g:h;i:j;k:l}a:hover{color:red}@media tv{.class{a:b;e:f}elem{c:d}}", written);
         }
 
         [TestMethod]
@@ -2029,7 +2029,7 @@ namespace MoreTests
 
             var written = TryCompile(a);
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual(".a{hello:world;foo:bar;}.b{fizz:buzz;hello:world;foo:bar;}", written);
+            Assert.AreEqual(".a{hello:world;foo:bar}.b{fizz:buzz;hello:world;foo:bar}", written);
         }
     }
 }

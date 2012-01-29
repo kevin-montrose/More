@@ -392,7 +392,7 @@ namespace MoreInternals.Compiler.Tasks
                                 {
                                     foreach (var rule in d.Properties.Cast<NameValueProperty>())
                                     {
-                                        css.WriteRule(rule);
+                                        css.WriteRule(rule, lastRule: false);
                                     }
 
                                     return str.ToString();

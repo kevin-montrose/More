@@ -602,13 +602,7 @@ namespace MoreInternals.Model
 
         public void Write(ICssWriter output)
         {
-            output.WriteSelector(Selector);
-            output.StartClass();
-            foreach (var rule in Properties.Cast<NameValueProperty>())
-            {
-                output.WriteRule(rule);
-            }
-            output.EndClass();
+            output.WriteSelectorBlock(this);
         }
 
         public override string ToString()

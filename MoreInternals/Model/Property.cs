@@ -17,7 +17,7 @@ namespace MoreInternals.Model
     }
 
     /* CssRule = NAME COLON CssValue SEMI_COLON */
-    class NameValueProperty : Property, IWritable
+    class NameValueProperty : Property
     {
         public string Name { get; private set; }
         
@@ -30,11 +30,6 @@ namespace MoreInternals.Model
             Start = start;
             Stop = stop;
             FilePath = filePath;
-        }
-
-        public void Write(ICssWriter output)
-        {
-            output.WriteRule(this);
         }
     }
 
