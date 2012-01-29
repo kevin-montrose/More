@@ -903,7 +903,15 @@ namespace MoreInternals.Parser
             }
 
             var ruleName = new StringBuilder();
-            var found = stream.ScanUntil(ruleName, ';', '{');
+            var found = stream.ScanUntil(ruleName, ';', '{', '}');
+
+            // Final semi-colon in a block is optional, so inject a ';' if we encounter a '}' in this case
+            if (found == '}')
+            {
+                found = ';';
+                ruleName = ruleName.Remove(ruleName.Length - 1, 1);
+                stream.PushBack(new[] { '}' });
+            }
 
             if (found == '{')
             {
@@ -914,7 +922,7 @@ namespace MoreInternals.Parser
 
             if (found == null)
             {
-                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected ';' or '{'");
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected ';', '{', or '}'");
                 throw new StoppedParsingException();
             }
 
@@ -928,6 +936,12 @@ namespace MoreInternals.Parser
 
             var name = ruleName.ToString().Substring(0, colon).Trim();
             var valStr = ruleName.ToString().Substring(colon + 1) + ";";
+
+            if (valStr == ";")
+            {
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "Expected value");
+                throw new StoppedParsingException();
+            }
 
             stream.PushBack(valStr);
 

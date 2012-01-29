@@ -2011,5 +2011,25 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("#id{g:h;i:j;k:l;}a:hover{color:red;}@media tv{.class{a:b;e:f;}elem{c:d;}}", written);
         }
+
+        [TestMethod]
+        public void SelectorIncludeMultiple()
+        {
+            var a =
+                @".a{
+                    hello: world;
+                  }
+                  .a {
+                    foo: bar;
+                  }
+                  .b {
+                    fizz: buzz;
+                    @(.a);
+                  }";
+
+            var written = TryCompile(a);
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual(".a{hello:world;foo:bar;}.b{fizz:buzz;hello:world;foo:bar;}", written);
+        }
     }
 }

@@ -1390,5 +1390,29 @@ namespace MoreTests
                 Assert.IsFalse(stream.HasMore());
             }
         }
+
+        [TestMethod]
+        public void LastSemiColonOptional()
+        {
+            var a =
+                @"#a {
+                    a:a
+                  }
+                  #b {
+                    b:b;
+                    c:c
+                  }";
+
+            var statements = TryParseStatements(a);
+            Assert.AreEqual(2, statements.Count);
+
+            var aBlock = (SelectorAndBlock)statements[0];
+            Assert.AreEqual("a", ((IdSelector)aBlock.Selector).Name);
+            Assert.AreEqual(1, aBlock.Properties.Count());
+
+            var bBlock = (SelectorAndBlock)statements[1];
+            Assert.AreEqual("b", ((IdSelector)bBlock.Selector).Name);
+            Assert.AreEqual(2, bBlock.Properties.Count());
+        }
     }
 }
