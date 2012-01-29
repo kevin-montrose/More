@@ -247,20 +247,6 @@ namespace MoreInternals
             ofType.Add(Error.Create(type, position.Start, position.Stop, message, position.FilePath));
         }
 
-        public static void RecordError(Error err)
-        {
-            Dictionary<ErrorType, List<Error>> errors = InnerContext.Value.Errors;
-
-            List<Error> ofType;
-            if (!errors.TryGetValue(err.Type, out ofType))
-            {
-                ofType = new List<Error>();
-                errors[err.Type] = ofType;
-            }
-
-            ofType.Add(err);
-        }
-
         public static void RecordWarning(ErrorType type, IPosition position, string message)
         {
             if ((Current.Options & MoreInternals.Options.WarningsAsErrors) != 0)

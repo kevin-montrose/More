@@ -812,5 +812,23 @@ namespace MoreTests
             Assert.AreEqual("'2' is not a valid parameter for media query feature 'grid'.", cErrors[0].Message);
             Assert.AreEqual("@media only tv and (grid: 2) {", cErrors[0].Snippet(new StringReader(c)).Trim());
         }
+
+        [TestMethod]
+        public void MediaQueryEnclosure()
+        {
+            var a =
+                @"@media only tv and grid: 2 {
+                    .class {
+                        a:b;
+                    }
+                  }";
+
+            TryCompile(a);
+            Assert.IsTrue(Current.HasErrors());
+            var aErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, aErrors.Count);
+            Assert.AreEqual("Media features must be enclosed in paranthesis, found 'grid: 2'", aErrors[0].Message);
+            Assert.AreEqual("@media only tv and grid: 2 {", aErrors[0].Snippet(new StringReader(a)).Trim());
+        }
     }
 }
