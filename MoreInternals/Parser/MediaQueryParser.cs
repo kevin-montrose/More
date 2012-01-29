@@ -85,14 +85,12 @@ namespace MoreInternals.Parser
                 // Ratio check
                 if (math.Operator == Operator.Div && IsRatioFeature(feature))
                 {
-                    var dummyString = new StringValue("/");
+                    var ratio = new RatioValue(math.LeftHand, math.RightHand);
+                    ratio.Start = value.Start;
+                    ratio.Stop = value.Stop;
+                    ratio.FilePath = value.FilePath;
 
-                    var compound = new CompoundValue(new List<Value>() { math.LeftHand, dummyString, math.RightHand });
-                    compound.Start = dummyString.Start = value.Start;
-                    compound.Stop = dummyString.Stop = value.Stop;
-                    compound.FilePath = dummyString.FilePath = value.FilePath;
-
-                    value = compound;
+                    value = ratio;
                 }
             }
 

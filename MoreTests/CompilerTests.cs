@@ -1853,7 +1853,7 @@ namespace MoreTests
 
             var written = TryCompile(a);
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("@media only tv and (resolution:72dpi) and (aspect-ratio:4 / 3){.class{a:b;}}@media only screen and (resolution:3dpcm) and (device-aspect-ratio:8 / 14){#id{c:d;}}", written);
+            Assert.AreEqual("@media only tv and (resolution:72dpi) and (aspect-ratio:4/3){.class{a:b;}}@media only screen and (resolution:3dpcm) and (device-aspect-ratio:8/14){#id{c:d;}}", written);
         }
 
         [TestMethod]

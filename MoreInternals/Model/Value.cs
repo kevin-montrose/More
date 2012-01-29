@@ -1453,6 +1453,46 @@ namespace MoreInternals.Model
         }
     }
 
+    // Only valid in media queries, represents "30 / 13" or similar
+    class RatioValue : Value
+    {
+        public Value LeftHand { get; private set; }
+        public Value RightHand { get; private set; }
+
+        internal RatioValue(Value lhs, Value rhs)
+        {
+            LeftHand = lhs;
+            RightHand = rhs;
+        }
+
+        public override Value Bind(Scope scope)
+        {
+            return new RatioValue(LeftHand.Bind(scope), RightHand.Bind(scope));
+        }
+
+        internal override Value Evaluate()
+        {
+            return new RatioValue(LeftHand.Evaluate(), RightHand.Evaluate());
+        }
+
+        internal override List<string> ReferredToVariables()
+        {
+            var ret = new List<string>();
+
+            ret.AddRange(LeftHand.ReferredToVariables());
+            ret.AddRange(RightHand.ReferredToVariables());
+
+            return ret;
+        }
+
+        internal override void Write(TextWriter output)
+        {
+            LeftHand.Write(output);
+            output.Write('/');
+            RightHand.Write(output);
+        }
+    }
+
     // @a?, (@a + 5)?, etc.
     class LeftExistsValue : Value
     {
