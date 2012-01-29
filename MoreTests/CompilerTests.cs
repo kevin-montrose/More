@@ -20,7 +20,7 @@ namespace MoreTests
         public TestContext TestContext { get; set; }
 
         private static int TryCompileNumber = 0;
-        private string TryCompile(string text, string fakeFile = null, IFileLookup lookup = null, bool minify = false, bool optimize = false)
+        private string TryCompile(string text, string fakeFile = null, IFileLookup lookup = null, bool minify = false)
         {
             fakeFile = fakeFile ?? "compiler-fake-file " + Interlocked.Increment(ref TryCompileNumber) + ".more";
 
@@ -28,11 +28,6 @@ namespace MoreTests
             if (minify)
             {
                 opts |= Options.Minify;
-            }
-
-            if (optimize)
-            {
-                opts |= Options.OptimizeCompression;
             }
 
             var fileLookup = new TestLookup(new Dictionary<string, string>() { { fakeFile, text } }, lookup);
@@ -1492,93 +1487,6 @@ namespace MoreTests
 
                 return mem.ToArray().Count();
             }
-        }
-
-        [TestMethod]
-        public void CompressionOptimization()
-        {
-            var lookupMap = new Dictionary<string, string>();
-
-            var path = Directory.GetCurrentDirectory();
-            path = Directory.GetParent(path).ToString();
-            path = Directory.GetParent(path).ToString();
-            path = Directory.GetParent(path).ToString();
-            path = path + Path.DirectorySeparatorChar + "MoreTests" + Path.DirectorySeparatorChar + "StyleSheets" + Path.DirectorySeparatorChar + "compress.more";
-
-            lookupMap[@"\compress.more"] = File.ReadAllText(path);
-
-            var lookup = new TestLookup(lookupMap, null);
-
-            var min = TryCompile("@using 'compress.more';", minify: true, optimize: true, lookup: lookup);
-            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            var max = TryCompile("@using 'compress.more';", minify: true, optimize: false, lookup: lookup);
-            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-
-            Assert.AreNotEqual(min, max);
-
-            var gMin = GZipSize(min);
-            var gMax = GZipSize(max);
-
-            var dMin = DeflateSize(min);
-            var dMax = DeflateSize(max);
-
-            Assert.IsTrue(gMin < gMax);
-            Assert.IsTrue(dMin < dMax);
-        }
-
-        [TestMethod]
-        public void CompressionSubSteps()
-        {
-            Assert.AreEqual(0, LZ77Optimizer.CountTotalCovered(new FastString("123"), new FastString("456")));
-            Assert.AreEqual(
-                6,
-                LZ77Optimizer.CountTotalCovered(
-                    new FastString(
-                    @"I must not fear.
-                      Fear is the mind-killer.
-                      Fear is the little-death that brings total obliteration.
-                      I will face my fear.
-                      I will permit it to pass over me and through me.
-                      And when it has gone past I will turn the inner eye to see its path.
-                      Where the fear has gone there will be nothing.
-                      Only I will remain"),
-                     new FastString("the only thing we have to fear is fear itself")
-                )
-            );
-
-            var oneRoot = new FastString("hello world");
-            var onePotential = new List<Tuple<string, FastString>>()
-            {
-                Tuple.Create("a", new FastString("world")),
-                Tuple.Create("b", new FastString("hello ")),
-                Tuple.Create("c", new FastString("ello rld"))
-            };
-            Assert.AreEqual("b", LZ77Optimizer.MostCovered(oneRoot, onePotential));
-
-            var twoRoot = new FastString("hello world");
-            var twoPotential = new List<Tuple<string, FastString>>()
-            {
-                Tuple.Create("a", new FastString("hello world")),
-                Tuple.Create("b", new FastString("hello")),
-                Tuple.Create("c", new FastString("ell rld"))
-            };
-            Assert.AreEqual("a", LZ77Optimizer.MostCovered(twoRoot, twoPotential));
-
-            var substringMap =
-                new FastString(
-                    @"I must not fear.
-                      Fear is the mind-killer.
-                      Fear is the little-death that brings total obliteration.
-                      I will face my fear.
-                      I will permit it to pass over me and through me.
-                      And when it has gone past I will turn the inner eye to see its path.
-                      Where the fear has gone there will be nothing.
-                      Only I will remain"
-                );
-
-            var subStrs = substringMap.SubStrings("the only thing we have to fear is fear itself", minLength: 3);
-            var total = subStrs.Sum(a => a.Item1.Length);
-            Assert.AreEqual(80, total);
         }
 
         [TestMethod]

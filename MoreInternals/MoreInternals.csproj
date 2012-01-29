@@ -50,7 +50,6 @@
     <Compile Include="Compiler\StoppedCompilingException.cs" />
     <Compile Include="Compiler\Tasks\Charsets.cs" />
     <Compile Include="Compiler\Tasks\Collapse.cs" />
-    <Compile Include="Compiler\Tasks\Compress.cs" />
     <Compile Include="Compiler\Compiler.cs" />
     <Compile Include="Compiler\Tasks\Evaluate.cs" />
     <Compile Include="Compiler\Tasks\FontFace.cs" />
@@ -78,10 +77,6 @@
     <Compile Include="Helpers\CssWriter.cs" />
     <Compile Include="Helpers\FileCache.cs" />
     <Compile Include="Helpers\FileLookup.cs" />
-    <Compile Include="Helpers\LZ77Optimizer.cs" />
-    <Compile Include="Helpers\LZ77Optimizer.FastString.cs">
-      <DependentUpon>LZ77Optimizer.cs</DependentUpon>
-    </Compile>
     <Compile Include="Model\MediaQuery.cs" />
     <Compile Include="Model\Property.cs" />
     <Compile Include="Model\Error.cs" />

@@ -49,7 +49,6 @@ namespace MoreInternals.Compiler
                 ResetReOrder.Task,
                 Verify.Task,
                 Current.Options.HasFlag(Options.Minify) ? Minify.Task : noop,
-                Current.Options.HasFlag(Options.OptimizeCompression) ? Compress.Task : noop,
                 Collapse.Task,
                 Write.Task,
                 WriteSprites.Task

@@ -21,9 +21,8 @@ namespace MoreInternals
     public enum Options
     {
         None = 0,
-        WarningsAsErrors,
-        Minify,
-        OptimizeCompression
+        WarningsAsErrors = 1,
+        Minify = 2
     }
 
     public class Context

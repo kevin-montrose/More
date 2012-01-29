@@ -30,7 +30,7 @@ namespace More
 
         private static FileCache FileCache = new FileCache();
 
-        internal static bool Compile(string currentDir, string inputFile, Context context, bool minify, bool optimize, bool warnAsErrors)
+        internal static bool Compile(string currentDir, string inputFile, Context context, bool minify, bool warnAsErrors)
         {
             var opts = Options.None;
             var writerMode = WriterMode.Pretty;
@@ -39,11 +39,6 @@ namespace More
             {
                 opts |= Options.Minify;
                 writerMode = WriterMode.Minimize;
-            }
-
-            if (optimize)
-            {
-                opts |= Options.OptimizeCompression;
             }
 
             if (warnAsErrors)
@@ -251,7 +246,7 @@ namespace More
             return errors;
         }
 
-        static bool MultiThreadedCompile(int maxParallelism, string workingDirectory, List<string> toCompile, bool overwrite, bool warnAsErrors, bool minify, bool optimize, bool verbose, string spriteProg, string spriteArguments)
+        static bool MultiThreadedCompile(int maxParallelism, string workingDirectory, List<string> toCompile, bool overwrite, bool warnAsErrors, bool minify, bool verbose, string spriteProg, string spriteArguments)
         {
             var @lock = new Semaphore(0, toCompile.Count);
             var contexts = new ConcurrentBag<Context>();
@@ -277,7 +272,7 @@ namespace More
                             var timer = new Stopwatch();
                             timer.Start();
 
-                            var result = Compile(workingDirectory, compile, threadContext, minify, optimize, warnAsErrors);
+                            var result = Compile(workingDirectory, compile, threadContext, minify, warnAsErrors);
 
                             timer.Stop();
 
@@ -397,7 +392,6 @@ namespace More
                 var warnAsErrors = false;
                 var maxDegreeParallelism = Math.Max(1, Environment.ProcessorCount - 1);
                 var minify = false;
-                var optimize = false;
                 var verbose = false;
                 string spriteProg = null;
                 string spriteArguments = null;
@@ -412,7 +406,6 @@ namespace More
                     { "?|help", "show this message and exit", h => showHelp = h != null },
                     { "mt:|maxthreads:", "maximum number of threads to use during compilation", t => maxDegreeParallelism = Int32.Parse(t) },
                     { "m|minify", "minify output", m => minify = m != null },
-                    { "o|optimize", "optimize for compression", o => optimize = o != null },
                     { "v|verbose", "print info output", v => verbose = v != null },
                     { "sp:|spriteprocessor:", "program to run on generated sprites, the sprite will be passed after spritearguments argument", sc => spriteProg = sc },
                     { "sa:|spritearguments:", "arguments to pass to spriteprocessor before the sprite file", sa => spriteArguments = sa }
@@ -444,7 +437,7 @@ namespace More
                     Console.WriteLine("Compiling (" + toCompile.Count + ") files...");
                 }
 
-                var success = MultiThreadedCompile(maxDegreeParallelism, workingDirectory, toCompile, overwrite, warnAsErrors, minify, optimize, verbose, spriteProg, spriteArguments);
+                var success = MultiThreadedCompile(maxDegreeParallelism, workingDirectory, toCompile, overwrite, warnAsErrors, minify, verbose, spriteProg, spriteArguments);
 
                 if (verbose)
                 {
