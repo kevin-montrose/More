@@ -407,7 +407,7 @@ namespace MoreTests
         [TestMethod]
         public void LocalScopeHidesVaribles()
         {
-            var written =
+            var aWritten =
                 TryCompile(
                     @"@a = 5;
                       @b = 10;
@@ -415,8 +415,17 @@ namespace MoreTests
 
                       img { @mixin(15); }"
                 );
+            Assert.AreEqual("img{hello:5;world:15}", aWritten);
 
-            Assert.AreEqual("img{hello:5;world:15}", written);
+            var bWritten =
+                TryCompile(
+                    @"@a = 5;
+                      img {
+                        @a = 10;
+                        width: @a;
+                      }"
+                );
+            Assert.AreEqual("img{width:10}", bWritten);
         }
 
         [TestMethod]
