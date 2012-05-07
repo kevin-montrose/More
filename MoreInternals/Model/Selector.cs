@@ -712,15 +712,6 @@ namespace MoreInternals.Model
             FilePath = filePath;
         }
 
-        internal static new NotPseudoClassSelector Parse(string name, int start, int stop, string filePath)
-        {
-            var i = name.IndexOf('(');
-            var j = name.LastIndexOf(')');
-            var selector = name.Substring(i + 1, j - (i + 1));
-
-            return new NotPseudoClassSelector(Selector.Parse(selector, start, stop, filePath), start, stop, filePath);
-        }
-
         public override void Write(TextWriter output)
         {
             base.Write(output);
@@ -822,16 +813,6 @@ namespace MoreInternals.Model
             FilePath = filePath;
         }
 
-        internal static new NthLastChildPseudoClassSelector Parse(string name, int start, int stop, string filePath)
-        {
-            var i = name.IndexOf('(');
-            var j = name.LastIndexOf(')');
-
-            var child = name.Substring(i + 1, j - (i + 1));
-
-            return new NthLastChildPseudoClassSelector(NthParameter.Parse(child.Trim()), start, stop, filePath);
-        }
-
         public override void Write(TextWriter output)
         {
             base.Write(output);
@@ -858,16 +839,6 @@ namespace MoreInternals.Model
             Start = start;
             Stop = stop;
             FilePath = filePath;
-        }
-
-        internal static new NthOfTypePseudoClassSelector Parse(string name, int start, int stop, string filePath)
-        {
-            var i = name.IndexOf('(');
-            var j = name.LastIndexOf(')');
-
-            var child = name.Substring(i + 1, j - (i + 1));
-
-            return new NthOfTypePseudoClassSelector(NthParameter.Parse(child.Trim()), start, stop, filePath);
         }
 
         public override void Write(TextWriter output)
@@ -898,16 +869,6 @@ namespace MoreInternals.Model
             FilePath = filePath;
         }
 
-        internal static new NthLastOfTypePseudoClassSelector Parse(string name, int start, int stop, string filePath)
-        {
-            var i = name.IndexOf('(');
-            var j = name.LastIndexOf(')');
-
-            var child = name.Substring(i + 1, j - (i + 1));
-
-            return new NthLastOfTypePseudoClassSelector(NthParameter.Parse(child.Trim()), start, stop, filePath);
-        }
-
         public override void Write(TextWriter output)
         {
             base.Write(output);
@@ -936,16 +897,6 @@ namespace MoreInternals.Model
             FilePath = filePath;
         }
 
-        internal static new NthChildPsuedoClassSelector Parse(string name, int start, int stop, string filePath)
-        {
-            var i = name.IndexOf('(');
-            var j = name.LastIndexOf(')');
-
-            var child = name.Substring(i + 1, j - (i + 1));
-
-            return new NthChildPsuedoClassSelector(NthParameter.Parse(child.Trim()), start, stop, filePath);
-        }
-
         public override void Write(TextWriter output)
         {
             base.Write(output);
@@ -971,16 +922,6 @@ namespace MoreInternals.Model
             Start = start;
             Stop = stop;
             FilePath = filePath;
-        }
-
-        internal static new LangPseudoClassSelector Parse(string name, int start, int stop, string filePath)
-        {
-            var i = name.IndexOf('(');
-            var j = name.LastIndexOf(')');
-
-            var language = name.Substring(i + 1, j - (i + 1));
-
-            return new LangPseudoClassSelector(language.Trim().ToLower(), start, stop, filePath);
         }
 
         public override void Write(TextWriter output)

@@ -1593,15 +1593,16 @@ namespace MoreTests
         {
             var c =
                 @"@someVar = bold;
+                  @allFonts = 'OTF';
                   @font-face {
                     font-family: 'blah blah';
-                    src: local('nothing!');
+                    src: local('nothing!') format(@allFonts);
                     font-weight: @someVar;
                   }";
             var written = TryCompile(c);
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("@font-face{font-family:'blah blah';src:local('nothing!');font-weight:bold}", written);
+            Assert.AreEqual("@font-face{font-family:'blah blah';src:local('nothing!') format('OTF');font-weight:bold}", written);
         }
 
         [TestMethod]
@@ -2083,6 +2084,64 @@ namespace MoreTests
                 );
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("@media only tv and (color){a{hello:world}}", written);
+        }
+
+        [TestMethod]
+        public void ParameterizedPseudoClass()
+        {
+            var aWritten =
+                TryCompile(
+                    @"p:lang(it){
+                        font-weight: bold;
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("p:lang(it){font-weight:bold}", aWritten);
+
+            var bWritten =
+                TryCompile(
+                    @"p:nth-of-type(4){
+                        font-weight: bold;
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("p:nth-of-type(4){font-weight:bold}", bWritten);
+
+            var cWritten =
+                TryCompile(
+                    @"p:nth-last-of-type(5){
+                        font-weight: bold;
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("p:nth-last-of-type(5){font-weight:bold}", cWritten);
+
+            var dWritten =
+                TryCompile(
+                    @"p:nth-child(2){
+                        font-weight: bold;
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("p:nth-child(2){font-weight:bold}", dWritten);
+
+            var eWritten =
+                TryCompile(
+                    @"p:nth-last-child(1){
+                        font-weight: bold;
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("p:nth-last-child(1){font-weight:bold}", eWritten);
+
+            var fWritten =
+                TryCompile(
+                    @"p:not(.subclass){
+                        font-weight: bold;
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("p:not(.subclass){font-weight:bold}", fWritten);
         }
     }
 }

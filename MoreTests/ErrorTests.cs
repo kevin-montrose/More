@@ -1083,5 +1083,21 @@ namespace MoreTests
             Assert.AreEqual("Spin expects a color parameter, and a unit-less number", tErrors[0].Message);
             Assert.AreEqual("b: @spin();", tErrors[0].Snippet(new StringReader(t)).Trim());
         }
+
+        [TestMethod]
+        public void MissingFunction()
+        {
+            var a =
+                @"@nofunc = 'blah';
+                  a {
+                    value: @nofunc('hello');
+                  }";
+            TryCompile(a);
+            Assert.IsTrue(Current.HasErrors());
+            var aErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, aErrors.Count);
+            Assert.AreEqual("No function named [nofunc] found.", aErrors[0].Message);
+            Assert.AreEqual("value: @nofunc('hello');", aErrors[0].Snippet(new StringReader(a)).Trim());
+        }
     }
 }
