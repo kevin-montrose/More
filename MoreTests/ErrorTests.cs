@@ -854,7 +854,7 @@ namespace MoreTests
         [TestMethod]
         public void MalformedInput()
         {
-            // This is mostly testing that more doesn't just crash with malformed input
+            // This is mostly testing that More doesn't just crash with malformed input
 
             var a =
                 @"hello world!";
@@ -869,6 +869,120 @@ namespace MoreTests
                   @!@##4{ blah }";
             TryCompile(b);
             Assert.IsTrue(Current.HasErrors());
+        }
+
+        [TestMethod]
+        public void BuiltinCallParameters()
+        {
+            var a = 
+                @"a { 
+                    b: @blue(#123, #456); 
+                  }";
+            TryCompile(a);
+            Assert.IsTrue(Current.HasErrors());
+            var aErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, aErrors.Count);
+            Assert.AreEqual("Blue expects a single color parameter", aErrors[0].Message);
+            Assert.AreEqual("b: @blue(#123, #456);", aErrors[0].Snippet(new StringReader(a)).Trim());
+
+            var b =
+                @"a {
+                    b: @green(#123, #456);
+                  }";
+            TryCompile(b);
+            Assert.IsTrue(Current.HasErrors());
+            var bErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, bErrors.Count);
+            Assert.AreEqual("Green expects a single color parameter", bErrors[0].Message);
+            Assert.AreEqual("b: @green(#123, #456);", bErrors[0].Snippet(new StringReader(b)).Trim());
+
+            var c =
+                @"a {
+                    b: @red(#123, #456);
+                  }";
+            TryCompile(c);
+            Assert.IsTrue(Current.HasErrors());
+            var cErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, cErrors.Count);
+            Assert.AreEqual("Red expects a single color parameter", cErrors[0].Message);
+            Assert.AreEqual("b: @red(#123, #456);", cErrors[0].Snippet(new StringReader(c)).Trim());
+
+            var d =
+                @"a {
+                    b: @darken();
+                  }";
+            TryCompile(d);
+            Assert.IsTrue(Current.HasErrors());
+            var dErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, dErrors.Count);
+            Assert.AreEqual("Darken expects a color parameter, and a percentage", dErrors[0].Message);
+            Assert.AreEqual("b: @darken();", dErrors[0].Snippet(new StringReader(d)).Trim());
+
+            var e =
+                @"a {
+                    b: @desaturate();
+                  }";
+            TryCompile(e);
+            Assert.IsTrue(Current.HasErrors());
+            var eErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, eErrors.Count);
+            Assert.AreEqual("Desaturate expects a color parameter, and a percentage", eErrors[0].Message);
+            Assert.AreEqual("b: @desaturate();", eErrors[0].Snippet(new StringReader(e)).Trim());
+
+            var f =
+                @"a {
+                    b: @fade();
+                  }";
+            TryCompile(f);
+            Assert.IsTrue(Current.HasErrors());
+            var fErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, fErrors.Count);
+            Assert.AreEqual("Fade expects a color parameter, and a percentage", fErrors[0].Message);
+            Assert.AreEqual("b: @fade();", fErrors[0].Snippet(new StringReader(f)).Trim());
+
+            var g =
+                @"a {
+                    b: @fadein();
+                  }";
+            TryCompile(g);
+            Assert.IsTrue(Current.HasErrors());
+            var gErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, gErrors.Count);
+            Assert.AreEqual("FadeIn expects a color parameter, and a percentage", gErrors[0].Message);
+            Assert.AreEqual("b: @fadein();", gErrors[0].Snippet(new StringReader(g)).Trim());
+
+            var h =
+                @"a {
+                    b: @fadeout();
+                  }";
+            TryCompile(h);
+            Assert.IsTrue(Current.HasErrors());
+            var hErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, hErrors.Count);
+            Assert.AreEqual("FadeOut expects a color parameter, and a percentage", hErrors[0].Message);
+            Assert.AreEqual("b: @fadeout();", hErrors[0].Snippet(new StringReader(h)).Trim());
+
+            var i =
+                @"a {
+                    b: @gray();
+                  }";
+            TryCompile(i);
+            Assert.IsTrue(Current.HasErrors());
+            var iErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, iErrors.Count);
+            Assert.AreEqual("Gray expects 1 color parameter", iErrors[0].Message);
+            Assert.AreEqual("b: @gray();", iErrors[0].Snippet(new StringReader(i)).Trim());
+
+            var j =
+                @"a {
+                    b: @hue();
+                  }";
+            TryCompile(j);
+            Assert.IsTrue(Current.HasErrors());
+            var jErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, jErrors.Count);
+            Assert.AreEqual("Hue expects a single color parameter", jErrors[0].Message);
+            Assert.AreEqual("b: @hue();", jErrors[0].Snippet(new StringReader(j)).Trim());
         }
     }
 }

@@ -20,7 +20,7 @@ namespace MoreTests
         public TestContext TestContext { get; set; }
 
         private static int TryCompileNumber = 0;
-        private string TryCompile(string text, string fakeFile = null, IFileLookup lookup = null, bool minify = false)
+        private string TryCompile(string text, string fakeFile = null, IFileLookup lookup = null, bool minify = false, WriterMode mode = WriterMode.Minimize)
         {
             fakeFile = fakeFile ?? "compiler-fake-file " + Interlocked.Increment(ref TryCompileNumber) + ".more";
 
@@ -33,8 +33,22 @@ namespace MoreTests
             var fileLookup = new TestLookup(new Dictionary<string, string>() { { fakeFile, text } }, lookup);
 
             var compiler = Compiler.Get();
-            compiler.Compile(Environment.CurrentDirectory, fakeFile, fileLookup, new Context(new FileCache()), opts, WriterMode.Minimize);
-            return fileLookup.WriteMap.ElementAt(0).Value;
+            compiler.Compile(Environment.CurrentDirectory, fakeFile, fileLookup, new Context(new FileCache()), opts, mode);
+            var ret =  fileLookup.WriteMap.ElementAt(0).Value;
+
+            if(mode == WriterMode.Minimize)
+            {
+                try
+                {
+                    TryCompile(text, null, lookup, minify, WriterMode.Pretty);
+                }
+                catch (Exception)
+                {
+                    Assert.Fail("Pretty writing failed");
+                }
+            }
+
+            return ret;
         }
 
         private static int TryParseNumber = 0;

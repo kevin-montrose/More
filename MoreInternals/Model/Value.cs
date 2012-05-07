@@ -528,6 +528,9 @@ namespace MoreInternals.Model
 
             var ret = new FuncAppliationValue(Name, @params.ToList());
             ret.Scope = scope;
+            ret.Start = this.Start;
+            ret.Stop = this.Stop;
+            ret.FilePath = this.FilePath;
 
             return ret;
         }

@@ -486,7 +486,7 @@ namespace MoreInternals.Model
         {
             if (parameters.Count() != 1)
             {
-                Current.RecordError(ErrorType.Compiler, position, "Gray expects a 1 color parameter");
+                Current.RecordError(ErrorType.Compiler, position, "Gray expects 1 color parameter");
                 return ExcludeFromOutputValue.Singleton;
             }
 
