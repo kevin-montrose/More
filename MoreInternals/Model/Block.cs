@@ -7,6 +7,7 @@ using System.Threading;
 using MoreInternals.Helpers;
 using MoreInternals.Parser;
 using MoreInternals.Compiler;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MoreInternals.Model
 {
@@ -216,6 +217,7 @@ namespace MoreInternals.Model
             FilePath = filePath;
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "Variable(" + Name + ") Declared As [" + Value + "]";
@@ -605,6 +607,7 @@ namespace MoreInternals.Model
             output.WriteSelectorBlock(this);
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             using (var mem = new StringWriter())

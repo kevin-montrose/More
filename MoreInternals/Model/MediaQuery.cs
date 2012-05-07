@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MoreInternals.Model
 {
@@ -60,6 +61,7 @@ namespace MoreInternals.Model
             return this;
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return Type.ToString();
@@ -105,6 +107,7 @@ namespace MoreInternals.Model
             return new NotMedia(Clause.Evaluate(), this);
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "not " + Clause.ToString();
@@ -150,6 +153,7 @@ namespace MoreInternals.Model
             return new OnlyMedia(Clause.Evaluate(), this);
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "only " + Clause.ToString();
@@ -198,6 +202,7 @@ namespace MoreInternals.Model
             return new AndMedia(LeftHand.Evaluate(), RightHand.Evaluate(), this);
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return LeftHand.ToString() + " and " + RightHand.ToString();
@@ -285,6 +290,7 @@ namespace MoreInternals.Model
             return new CommaDelimitedMedia(Clauses.Select(c => c.Evaluate()).ToList(), this);
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return string.Join(", ", Clauses.Select(s => s.ToString()));
@@ -357,6 +363,7 @@ namespace MoreInternals.Model
             return new MinFeatureMedia(Feature, Min.Evaluate(), this);
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "(min-" + Feature + ": " + Min.ToString() + ")";
@@ -412,6 +419,7 @@ namespace MoreInternals.Model
             return new MaxFeatureMedia(Feature, Max.Evaluate(), this);
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "(max-" + Feature + ": " + Max.ToString() + ")";
@@ -467,6 +475,7 @@ namespace MoreInternals.Model
             return new EqualFeatureMedia(Feature, EqualsValue.Evaluate(), this);
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "(" + Feature + ": " + EqualsValue.ToString() + ")";
@@ -518,6 +527,7 @@ namespace MoreInternals.Model
             return this;
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "(" + Feature + ")";

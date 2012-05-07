@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using MoreInternals.Parser;
 using MoreInternals.Compiler;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MoreInternals.Model
 {
@@ -407,6 +408,7 @@ namespace MoreInternals.Model
             throw new NotImplementedException(this.GetType() + ".ReferredToVariables");
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             try
@@ -461,6 +463,7 @@ namespace MoreInternals.Model
             Value.Write(output);
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "(" + Value + ")";
@@ -504,6 +507,7 @@ namespace MoreInternals.Model
             return new List<string>() { this.Name };
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "@" + Name;
@@ -1529,6 +1533,7 @@ namespace MoreInternals.Model
             return new List<string>();
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "(" + IfExists + ")?";
@@ -1590,6 +1595,7 @@ namespace MoreInternals.Model
             return ret;
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "(" + LeftHand + " " + Operator + " " + RightHand + ")";

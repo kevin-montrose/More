@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 using MoreInternals.Parser;
 using MoreInternals.Helpers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MoreInternals.Model
 {
@@ -225,7 +226,7 @@ namespace MoreInternals.Model
             FilePath = filePath;
         }
 
-
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "&" + Selector.ToString();
@@ -253,7 +254,7 @@ namespace MoreInternals.Model
             }
         }
 
-
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             var ret = "";
@@ -311,6 +312,7 @@ namespace MoreInternals.Model
             output.Write(']');
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "[" + Attribute + "]";
@@ -349,6 +351,7 @@ namespace MoreInternals.Model
             output.Write(']');
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             var ret = "[" + Attribute;
@@ -421,6 +424,7 @@ namespace MoreInternals.Model
             Inner.Write(output);
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return Outer.ToString() + " " + Inner.ToString();
@@ -436,18 +440,6 @@ namespace MoreInternals.Model
     class MultiSelector : Selector
     {
         public IEnumerable<Selector> Selectors { get; private set; }
-
-        public MultiSelector(Selector parent, Selector child, int start, int stop, string filePath)
-        {
-            var s = new List<Selector>(Selectors);
-            s.Add(child);
-         
-            Selectors = s.AsReadOnly();
-
-            Start = start;
-            Stop = stop;
-            FilePath = filePath;
-        }
 
         public MultiSelector(IEnumerable<Selector> selectors, int start, int stop, string filePath)
         {
@@ -469,6 +461,7 @@ namespace MoreInternals.Model
             }
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return string.Join(", ", Selectors);
@@ -499,6 +492,7 @@ namespace MoreInternals.Model
             Younger.Write(output);
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return Older + "+" + Younger;
@@ -525,6 +519,7 @@ namespace MoreInternals.Model
             output.Write(Name);
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "." + Name;
@@ -554,6 +549,7 @@ namespace MoreInternals.Model
             output.Write(Name);
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "#" + Name;
@@ -577,6 +573,7 @@ namespace MoreInternals.Model
             output.Write(Name);
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return Name;
@@ -637,6 +634,7 @@ namespace MoreInternals.Model
             output.Write(Name);
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return ":" + Name;
@@ -720,6 +718,7 @@ namespace MoreInternals.Model
             output.Write(')');
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "not(" + Selector.ToString() + ")";
@@ -789,6 +788,7 @@ namespace MoreInternals.Model
             }
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             using (var @out = new StringWriter())
@@ -821,6 +821,7 @@ namespace MoreInternals.Model
             output.Write(')');
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "nth-last-child(" + LastChild + ")";
@@ -849,6 +850,7 @@ namespace MoreInternals.Model
             output.Write(')');
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "nth-of-type(" + N + ")";
@@ -877,6 +879,7 @@ namespace MoreInternals.Model
             output.Write(')');
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "nth-last-of-type(" + N + ")";
@@ -905,6 +908,7 @@ namespace MoreInternals.Model
             output.Write(')');
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "nth-child(" + Child + ")";
@@ -932,6 +936,7 @@ namespace MoreInternals.Model
             output.Write(')');
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "lang(" + Language + ")";
@@ -960,6 +965,7 @@ namespace MoreInternals.Model
             Child.Write(output);
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return Parent.ToString() + " > " + Child.ToString();
@@ -977,6 +983,7 @@ namespace MoreInternals.Model
             output.Write('*');
         }
 
+        [ExcludeFromCodeCoverage]
         public override string ToString()
         {
             return "*";
