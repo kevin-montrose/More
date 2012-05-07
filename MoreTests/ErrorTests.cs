@@ -983,6 +983,105 @@ namespace MoreTests
             Assert.AreEqual(1, jErrors.Count);
             Assert.AreEqual("Hue expects a single color parameter", jErrors[0].Message);
             Assert.AreEqual("b: @hue();", jErrors[0].Snippet(new StringReader(j)).Trim());
+
+            var k =
+                @"a {
+                    b: @darken();
+                  }";
+            TryCompile(k);
+            Assert.IsTrue(Current.HasErrors());
+            var kErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, kErrors.Count);
+            Assert.AreEqual("Darken expects a color parameter, and a percentage", kErrors[0].Message);
+            Assert.AreEqual("b: @darken();", kErrors[0].Snippet(new StringReader(k)).Trim());
+
+            var m =
+                @"a {
+                    b: @lighten();
+                  }";
+            TryCompile(m);
+            Assert.IsTrue(Current.HasErrors());
+            var mErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, mErrors.Count);
+            Assert.AreEqual("Lighten expects a color parameter, and a percentage", mErrors[0].Message);
+            Assert.AreEqual("b: @lighten();", mErrors[0].Snippet(new StringReader(m)).Trim());
+
+            var n =
+                @"a {
+                    b: @lightness();
+                  }";
+            TryCompile(n);
+            Assert.IsTrue(Current.HasErrors());
+            var nErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, nErrors.Count);
+            Assert.AreEqual("Lightness expects a single color parameter", nErrors[0].Message);
+            Assert.AreEqual("b: @lightness();", nErrors[0].Snippet(new StringReader(n)).Trim());
+
+            var o =
+                @"a {
+                    b: @mix();
+                  }";
+            TryCompile(o);
+            Assert.IsTrue(Current.HasErrors());
+            var oErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, oErrors.Count);
+            Assert.AreEqual("Mix expects 3 parameters, 2 colors and 1 percentage or number", oErrors[0].Message);
+            Assert.AreEqual("b: @mix();", oErrors[0].Snippet(new StringReader(o)).Trim());
+
+            var p =
+                @"a {
+                    b: @nounit();
+                  }";
+            TryCompile(p);
+            Assert.IsTrue(Current.HasErrors());
+            var pErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, pErrors.Count);
+            Assert.AreEqual("NoUnit expects 1 parameter of any type", pErrors[0].Message);
+            Assert.AreEqual("b: @nounit();", pErrors[0].Snippet(new StringReader(p)).Trim());
+
+            var q =
+                @"a {
+                    b: @round();
+                  }";
+            TryCompile(q);
+            Assert.IsTrue(Current.HasErrors());
+            var qErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, qErrors.Count);
+            Assert.AreEqual("Round expects 1 or 2 numeric parameters", qErrors[0].Message);
+            Assert.AreEqual("b: @round();", qErrors[0].Snippet(new StringReader(q)).Trim());
+
+            var r =
+                @"a {
+                    b: @saturate();
+                  }";
+            TryCompile(r);
+            Assert.IsTrue(Current.HasErrors());
+            var rErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, rErrors.Count);
+            Assert.AreEqual("Saturate expects a color parameter, and a percentage", rErrors[0].Message);
+            Assert.AreEqual("b: @saturate();", rErrors[0].Snippet(new StringReader(r)).Trim());
+
+            var s =
+                @"a {
+                    b: @saturation();
+                  }";
+            TryCompile(s);
+            Assert.IsTrue(Current.HasErrors());
+            var sErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, sErrors.Count);
+            Assert.AreEqual("Saturation expects a single color parameter", sErrors[0].Message);
+            Assert.AreEqual("b: @saturation();", sErrors[0].Snippet(new StringReader(s)).Trim());
+
+            var t =
+                @"a {
+                    b: @spin();
+                  }";
+            TryCompile(t);
+            Assert.IsTrue(Current.HasErrors());
+            var tErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, tErrors.Count);
+            Assert.AreEqual("Spin expects a color parameter, and a unit-less number", tErrors[0].Message);
+            Assert.AreEqual("b: @spin();", tErrors[0].Snippet(new StringReader(t)).Trim());
         }
     }
 }

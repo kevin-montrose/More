@@ -420,7 +420,7 @@ namespace MoreInternals.Model
         {
             if (parameters.Count() < 1 || parameters.Count() > 2)
             {
-                Current.RecordError(ErrorType.Compiler, position, "Round expects a 1 or 2 numeric parameters");
+                Current.RecordError(ErrorType.Compiler, position, "Round expects 1 or 2 numeric parameters");
                 return ExcludeFromOutputValue.Singleton;
             }
 
