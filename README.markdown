@@ -170,23 +170,23 @@ becomes
 
 When importing using selectors or mixins you can explicitly request that rules in the include override rules in the containing block.
 
-   @alarm-mixin() {
-     color: red;
-	 font-weight: bold;
-   }
-   .my-class {
+    @alarm-mixin() {
+      color: red;
+      font-weight: bold;
+    }
+    .my-class {
       color: #eee;
-	  line-height: 110%;
-	  @alarm-mixin()!;
-   }
+      line-height: 110%;
+      @alarm-mixin()!;
+    }
    
 becomes
 
-   .my-class {
-     color: red;
-	 font-weight: bold;
-	 line-height: 110%;
-   }
+    .my-class {
+      color: red;
+      font-weight: bold;
+      line-height: 110%;
+    }
    
 ###Reset Blocks
 
@@ -194,24 +194,24 @@ CSS contained in `@reset { ... }` will appear at the top of a CSS file, and make
 
     @reset {
       a { color: blue; }
-	}
-	p {
-	  font-size: 14px;
-	  a { reset(); }
-	}
+    }
+    p {
+      font-size: 14px;
+      a { reset(); }
+    }
 	
 becomes
 
     a { color: blue; }
-	p { font-size: 14x; }
-	p a { color; blue; }
+    p { font-size: 14x; }
+    p a { color; blue; }
 	
 Note that `@reset()` operates on the inner-most selector of nested blocks.  To explicitly reset to a different selector, pass it.
 
     @reset {
-	  a { color: blue; }
-	}
-	p { @reset(a); }
+      a { color: blue; }
+    }
+    p { @reset(a); }
 	
 becomes
 
@@ -246,4 +246,4 @@ All CSS 2.1 and most CSS 3 features are available in More, including @import, @c
 
 Note that within @media, @keyframes, and @font-face it is illegal to declare new mixins.
 
-Within @media queries, @(<selector>) will search for matches within the @media statement before searching the rest of the file; and will only search outside the @media query if it does not find a match.  @(<selector>) outside of a @media statement will never search within one.
+Within @media queries, `@(<selector>)` will search for matches within the @media statement before searching the rest of the file; and will only search outside the @media query if it does not find a match.  `@(<selector>)` outside of a @media statement will never search within one.
