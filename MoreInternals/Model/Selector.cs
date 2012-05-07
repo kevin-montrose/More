@@ -59,6 +59,7 @@ namespace MoreInternals.Model
 
             var ret = new List<Selector>();
 
+            bool skippedColon = false;
             for (int i = 0; i < raw.Length; i++)
             {
                 var c = raw[i];
@@ -71,6 +72,12 @@ namespace MoreInternals.Model
 
                 var j = _NextIndexOf(raw, i + 1, '#', ':', '.', '[', ']');
                 if (j == -1) j = raw.Length;
+
+                if (j == raw.Length || raw[j] != ':')
+                {
+                    // we've encountered something other than a colon, so we're not skipping one obviously
+                    skippedColon = false;
+                }
 
                 var name = raw.Substring(i, j - i);
 
@@ -98,6 +105,16 @@ namespace MoreInternals.Model
 
                 if (c == ':')
                 {
+                    // :: syntax, which is *technically different... but in practice every browser just
+                    //   treats the same because they have to
+                    if (i + 1 < raw.Length && raw[i + 1] == ':' && !skippedColon)
+                    {
+                        // act like that colon isn't there, but just once,
+                        //   if we want to make a distinction in the AST later, we can do it here
+                        skippedColon = true;
+                        continue;
+                    }
+
                     ret.Add(PseudoClassSelector.Parse(name, start, stop, filePath));
 
                     continue;

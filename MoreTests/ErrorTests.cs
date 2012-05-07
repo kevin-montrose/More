@@ -1099,5 +1099,21 @@ namespace MoreTests
             Assert.AreEqual("No function named [nofunc] found.", aErrors[0].Message);
             Assert.AreEqual("value: @nofunc('hello');", aErrors[0].Snippet(new StringReader(a)).Trim());
         }
+
+        [TestMethod]
+        public void TripleColonPseudoClass()
+        {
+            var a =
+                @"@fizz = buzz;
+                  a:::first-line {
+                    rule: @fizz;
+                  }";
+            TryCompile(a);
+            Assert.IsTrue(Current.HasErrors());
+            var aErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, aErrors.Count);
+            Assert.AreEqual("Unknown pseudo class []", aErrors[0].Message);
+            Assert.AreEqual("a:::first-line {", aErrors[0].Snippet(new StringReader(a)).Trim());
+        }
     }
 }

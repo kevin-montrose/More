@@ -2143,5 +2143,18 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("p:not(.subclass){font-weight:bold}", fWritten);
         }
+
+        [TestMethod]
+        public void DoubleColonPseudoClass()
+        {
+            var written = 
+                TryCompile(
+                    @"a::before {
+                        content: 'hello';
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a:before{content:'hello'}", written);
+        }
     }
 }
