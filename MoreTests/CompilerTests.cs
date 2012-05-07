@@ -798,7 +798,6 @@ namespace MoreTests
                 TryCompile(
                     @"img { a: 1; a: 2 !important; }"
                 );
-
             Assert.AreEqual("img{a:2 !important}", c1);
 
             var c2 =
@@ -806,8 +805,14 @@ namespace MoreTests
                     @"@m(@a) { a: @a !important; }
                       img { a:1; @m(3); }"
                 );
-
             Assert.AreEqual("img{a:3 !important}", c2);
+
+            var c3 =
+                TryCompile(@"
+                    @m() { a: 1, 2, 3 !important; }
+                    p { a: 4,5,6; @m(); }"
+                );
+            Assert.AreEqual("p{a:1,2,3 !important}", c3);
         }
 
         [TestMethod]
@@ -1728,7 +1733,7 @@ namespace MoreTests
                   }";
 
             var written = TryCompile(c);
-            Assert.AreEqual(@".a{font: 10px/15px ""Times New Roman""}.b{font: italic 10px/15px Arial}.c{font: italic small-caps 10px/15px serif}.d{font: italic small-caps bold 10px/15px Times}.e{font:10px 'Times New Roman'}.f{font:italic 10px Arial}.g{font:italic small-caps 10px serif}.h{font:italic small-caps bold 10px Times}.i{font: 15px/15px ""Times New Roman""}.j{font: italic 15px/15px Arial}.k{font: italic small-caps 15px/15px serif}.l{font: italic small-caps bold 15px/15px Times}.m{font: 15px/16px ""Times New Roman""}.n{font: italic 15px/16px Arial}.o{font: italic small-caps 15px/16px serif}.p{font: italic small-caps bold 15px/16px Times}.q{font: 46px/20px ""Times New Roman""}.r{font: italic 46px/20px Arial}.s{font: italic small-caps 46px/20px serif}.t{font: italic small-caps bold 46px/20px Times}.a1{font: 10px/15px ""Times New Roman"", Helvetica}.b2{font: italic 10px/15px Arial, Helvetica}.c3{font: italic small-caps 10px/15px serif, Helvetica}.d4{font: italic small-caps bold 10px/15px Times, Helvetica}.e5{font:10px 'Times New Roman',Helvetica}.f6{font:italic 10px Arial,Helvetica}.g7{font:italic small-caps 10px serif,Helvetica}.h8{font:italic small-caps bold 10px Times,Helvetica}.i9{font: 15px/15px ""Times New Roman"", Helvetica}.j1{font: italic 15px/15px Arial, Helvetica}.k2{font: italic small-caps 15px/15px serif, Helvetica}.l3{font: italic small-caps bold 15px/15px Times, Helvetica}.m4{font: 15px/16px ""Times New Roman"", Helvetica}.n5{font: italic 15px/16px Arial, Helvetica}.o6{font: italic small-caps 15px/16px serif, Helvetica}.p7{font: italic small-caps bold 15px/16px Times, Helvetica}.q8{font: 46px/20px ""Times New Roman"", Helvetica}.r9{font: italic 46px/20px Arial, Helvetica}.s1{font: italic small-caps 46px/20px serif, Helvetica}.t2{font: italic small-caps bold 46px/20px Times, Helvetica}", written);
+            Assert.AreEqual(@".a{font:10px/15px ""Times New Roman""}.b{font:italic 10px/15px Arial}.c{font:italic small-caps 10px/15px serif}.d{font:italic small-caps bold 10px/15px Times}.e{font:10px 'Times New Roman'}.f{font:italic 10px Arial}.g{font:italic small-caps 10px serif}.h{font:italic small-caps bold 10px Times}.i{font:15px/15px ""Times New Roman""}.j{font:italic 15px/15px Arial}.k{font:italic small-caps 15px/15px serif}.l{font:italic small-caps bold 15px/15px Times}.m{font:15px/16px ""Times New Roman""}.n{font:italic 15px/16px Arial}.o{font:italic small-caps 15px/16px serif}.p{font:italic small-caps bold 15px/16px Times}.q{font:46px/20px ""Times New Roman""}.r{font:italic 46px/20px Arial}.s{font:italic small-caps 46px/20px serif}.t{font:italic small-caps bold 46px/20px Times}.a1{font:10px/15px ""Times New Roman"", Helvetica}.b2{font:italic 10px/15px Arial, Helvetica}.c3{font:italic small-caps 10px/15px serif, Helvetica}.d4{font:italic small-caps bold 10px/15px Times, Helvetica}.e5{font:10px 'Times New Roman',Helvetica}.f6{font:italic 10px Arial,Helvetica}.g7{font:italic small-caps 10px serif,Helvetica}.h8{font:italic small-caps bold 10px Times,Helvetica}.i9{font:15px/15px ""Times New Roman"", Helvetica}.j1{font:italic 15px/15px Arial, Helvetica}.k2{font:italic small-caps 15px/15px serif, Helvetica}.l3{font:italic small-caps bold 15px/15px Times, Helvetica}.m4{font:15px/16px ""Times New Roman"", Helvetica}.n5{font:italic 15px/16px Arial, Helvetica}.o6{font:italic small-caps 15px/16px serif, Helvetica}.p7{font:italic small-caps bold 15px/16px Times, Helvetica}.q8{font:46px/20px ""Times New Roman"", Helvetica}.r9{font:italic 46px/20px Arial, Helvetica}.s1{font:italic small-caps 46px/20px serif, Helvetica}.t2{font:italic small-caps bold 46px/20px Times, Helvetica}", written);
         }
 
         [TestMethod]
@@ -2035,6 +2040,49 @@ namespace MoreTests
             var result = TryCompile("");
             Assert.IsFalse(Current.HasErrors());
             Assert.AreEqual("", result);
+        }
+
+        [TestMethod]
+        public void UncommonSelectors()
+        {
+            // Just hitting the selectors that aren't "gotos" when slamming out examples to make sure they work
+            var a =
+                @"a + b {
+                    rule: value;
+                  }";
+            var aWritten = TryCompile(a);
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a+b{rule:value}", aWritten);
+
+            var b =
+                @"a[attr] { rule: set }
+                  b[attr=value] { rule: equal }
+                  c[attr~=sub] { rule: contains }
+                  d[attr|=pre] { rule: starts }";
+            var bWritten = TryCompile(b);
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a[attr]{rule:set}b[attr=value]{rule:equal}c[attr~=sub]{rule:contains}d[attr|=pre]{rule:starts}", bWritten);
+
+            var c =
+                @"a > b {
+                    rule: value;
+                  }";
+            var cWritten = TryCompile(c);
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a>b{rule:value}", cWritten);
+        }
+
+        [TestMethod]
+        public void MediaQueryHasFeature()
+        {
+            var written =
+                TryCompile(
+                    @"@media only tv and (color) {
+                        a {hello: world}
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("@media only tv and (color){a{hello:world}}", written);
         }
     }
 }

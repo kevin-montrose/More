@@ -909,7 +909,11 @@ namespace MoreInternals.Parser
             if (found == '}')
             {
                 found = ';';
-                ruleName = ruleName.Remove(ruleName.Length - 1, 1);
+                // trailing semi-colon may be optional
+                if (ruleName[ruleName.Length - 1] == ';')
+                {
+                    ruleName = ruleName.Remove(ruleName.Length - 1, 1);
+                }
                 stream.PushBack(new[] { '}' });
             }
 
@@ -935,7 +939,7 @@ namespace MoreInternals.Parser
             }
 
             var name = ruleName.ToString().Substring(0, colon).Trim();
-            var valStr = ruleName.ToString().Substring(colon + 1) + ";";
+            var valStr = ruleName.ToString().Substring(colon + 1).Trim() + ";";
 
             if (valStr == ";")
             {
