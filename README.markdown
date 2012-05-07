@@ -146,7 +146,7 @@ To produce
 	
 ###Copy CSS by Selector
 
-You can use @(<selector>) to copy whole blocks without having to declare a mixin.
+You can use `@(<selector>)` to copy whole blocks without having to declare a mixin.
 
     .class {
       width:10px;	
