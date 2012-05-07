@@ -533,23 +533,6 @@ namespace MoreTests
         }
 
         [TestMethod]
-        public void IncludeCycleDetection()
-        {
-            TryCompile("a{@(b);}b{@(a);}");
-            var e1 = Current.GetErrors(ErrorType.Compiler);
-            Assert.AreEqual(1, e1.Count);
-            Assert.IsTrue(e1[0].Message.StartsWith("Found circular reference in selector include"));
-
-            TryCompile(
-                @"a{ @(b); }
-                  b{ @(c); }
-                  c{ @(a); }"
-            );
-            var e2 = Current.GetErrors(ErrorType.Compiler);
-            Assert.IsTrue(e2[0].Message.StartsWith("Found circular reference in selector include"));
-        }
-
-        [TestMethod]
         public void ConcatParent()
         {
             var simple =
@@ -2030,6 +2013,14 @@ namespace MoreTests
             var written = TryCompile(a);
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual(".a{hello:world;foo:bar}.b{fizz:buzz;hello:world;foo:bar}", written);
+        }
+
+        [TestMethod]
+        public void EmptyInput()
+        {
+            var result = TryCompile("");
+            Assert.IsFalse(Current.HasErrors());
+            Assert.AreEqual("", result);
         }
     }
 }

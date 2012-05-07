@@ -573,6 +573,17 @@ namespace MoreTests
             Assert.AreEqual(1, dErrors.Count);
             Assert.AreEqual("'arguments' cannot be a variable name.", dErrors[0].Message);
             Assert.AreEqual("@arguments = 10;", dErrors[0].Snippet(new StringReader(d)).Trim());
+
+            var e =
+                @"@mx() {
+                    @arguments = 0;
+                  }";
+            TryCompile(e);
+            Assert.IsTrue(Current.HasErrors());
+            var eErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, eErrors.Count);
+            Assert.AreEqual("'arguments' cannot be a variable name.", eErrors[0].Message);
+            Assert.AreEqual("@arguments = 0;", eErrors[0].Snippet(new StringReader(e)).Trim());
         }
 
         [TestMethod]
@@ -821,6 +832,43 @@ namespace MoreTests
             Assert.AreEqual(1, aErrors.Count);
             Assert.AreEqual("Media features must be enclosed in paranthesis, found 'grid: 2'", aErrors[0].Message);
             Assert.AreEqual("@media only tv and grid: 2 {", aErrors[0].Snippet(new StringReader(a)).Trim());
+        }
+
+        [TestMethod]
+        public void IncludeCycleDetection()
+        {
+            TryCompile("a{@(b);}b{@(a);}");
+            var e1 = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, e1.Count);
+            Assert.IsTrue(e1[0].Message.StartsWith("Found circular reference in selector include"));
+
+            TryCompile(
+                @"a{ @(b); }
+                  b{ @(c); }
+                  c{ @(a); }"
+            );
+            var e2 = Current.GetErrors(ErrorType.Compiler);
+            Assert.IsTrue(e2[0].Message.StartsWith("Found circular reference in selector include"));
+        }
+
+        [TestMethod]
+        public void MalformedInput()
+        {
+            // This is mostly testing that more doesn't just crash with malformed input
+
+            var a =
+                @"hello world!";
+            TryCompile(a);
+            Assert.IsTrue(Current.HasErrors());
+
+            var b =
+                @"hello {
+                    world: b;
+                  }
+                  
+                  @!@##4{ blah }";
+            TryCompile(b);
+            Assert.IsTrue(Current.HasErrors());
         }
     }
 }
