@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="CompilerTests.cs" />
     <Compile Include="ErrorTests.cs" />
+    <Compile Include="ExampleTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ParserTests.cs" />
     <Compile Include="ValueTests.cs" />
