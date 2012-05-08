@@ -8,11 +8,13 @@ On OS X Or Linux: `mono More <input file>`
 
 Mono is a requirement for OS X and Linux, [get it here](http://www.go-mono.com/mono-downloads/download.html)
 
+On Windows, .NET 4.0+ is required.  You probably already have it, if not it's available via Windows Update.
+
 For more options, `More /?` or `mono More /?`.
 
 ##Be Aware
 
-More does away with CSS's forward declarations overriding previous ones.  To force some CSS to appear at the start of a file, use `@reset { ... }` blocks as detailed below.
+More does away with subsequent CSS declarations overriding previous ones.  To force some CSS to appear at the start of a file, use `@reset { ... }` blocks as detailed below.
 
 This means it is legal to refer to anything (selectors, mixins, variables) before they are declared unless explicitly noted otherwise.
 
@@ -48,6 +50,8 @@ becomes
     .my-class {
 	  width: 10px;
 	}
+	
+Variables are immutable once declared.
 	
 ###In String Replacements And Math
 
@@ -88,10 +92,13 @@ becomes
 	
 ###Optional Variables and Mixins
 
-    // notice @c and @missing-mixin aren't declared
+It's possible to coalesce over missing values using the `??` operator, and omit missing mixins with a trailing `?`.  This is useful for working with overrides.  Whole properties can be omitted if enclosed in parenthesis with a trailing `?` if they depend on variables that haven't been defined.
+
+    // notice @c, @h, and @missing-mixin aren't declared
     .my-class {
 	   color: @c ?? blue;
 	   @missing-mixin()?;
+	   height: (123px + @h)?;
 	}
 	
 becomes
@@ -102,7 +109,7 @@ becomes
 	
 ###Includes
 
-More adds a @using directive to copy CSS and More from other files.  @include is still available to merely refer to other CSS files, but it's use is not suggested.  @using accepts media queries, just like @include.
+More adds a @using directive to copy CSS and More from other files.  @include is still available to merely refer to other CSS files, but using it is not suggested.  @using accepts media queries, just like @include.
 
 For example:
 
@@ -168,7 +175,7 @@ becomes
 	
 ###Explicit Overrides
 
-When importing using selectors or mixins you can explicitly request that rules in the include override rules in the containing block.
+When importing properties using selectors or mixins you can explicitly request that rules in the include override rules in the containing block with a trailing `!`.
 
     @alarm-mixin() {
       color: red;
@@ -187,7 +194,9 @@ becomes
       font-weight: bold;
       line-height: 110%;
     }
-   
+
+More expects overriding to be intentional, and will warn if the same property appears in a block twice.
+	
 ###Reset Blocks
 
 CSS contained in `@reset { ... }` will appear at the top of a CSS file, and make it available for "resetting" other blocks.
@@ -206,7 +215,9 @@ becomes
     p { font-size: 14x; }
     p a { color; blue; }
 	
-Note that `@reset()` operates on the inner-most selector of nested blocks.  To explicitly reset to a different selector, pass it.
+Note that `@reset()` operates on the inner-most selector of nested blocks.
+
+To explicitly reset to a different selector, pass it.
 
     @reset {
       a { color: blue; }
