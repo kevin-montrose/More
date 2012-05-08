@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MoreInternals;
 using MoreInternals.Compiler;
+using System.Reflection;
 
 namespace More
 {
@@ -380,8 +381,87 @@ namespace More
             return ret;
         }
 
+        private static void DumpError(Exception e, bool abort)
+        {
+            var errorFile = "error-" + Guid.NewGuid() + ".log";
+
+            Console.WriteLine();
+            Console.WriteLine("!!!An Error Occurred!!!");
+            Console.Write("Dumping to [" + errorFile + "]...");
+
+            using (var file = File.OpenWrite(errorFile))
+            using (var text = new StreamWriter(file))
+            {
+                text.WriteLine("Version: " + (Assembly.GetExecutingAssembly().GetName().Version));
+                text.WriteLine("Operating System: " + Environment.OSVersion);
+                text.WriteLine("64 Bit? " + Environment.Is64BitProcess);
+                text.WriteLine("Path Separator: " + Path.DirectorySeparatorChar);
+                text.WriteLine("Command Line: " + Environment.CommandLine);
+                text.WriteLine("On Date: " + DateTime.UtcNow);
+                text.WriteLine();
+
+                if (e != null)
+                {
+                    text.WriteLine("Exception");
+                    text.WriteLine("---------");
+                    text.WriteLine(e.Message);
+                    text.WriteLine(e.StackTrace);
+                    text.WriteLine();
+                }
+
+                try
+                {
+                    var compiler = Compiler.Get();
+
+                    var header = "(" + FileCache.Count + ") files in compiler cache";
+
+                    text.WriteLine(header);
+                    for (int i = 0; i < header.Length; i++) text.Write('=');
+                    text.WriteLine();
+
+                    foreach (var path in FileCache.Loaded())
+                    {
+                        string more = null;
+
+                        try
+                        {
+                            more = File.ReadAllText(path);
+                        }
+                        catch (Exception) { /* Indicative of IO trouble */ }
+
+                        if (more.HasValue())
+                        {
+                            var pathHeader = "[" + path + "] of " + more.Length + " characters";
+                            text.WriteLine(pathHeader);
+                            for (int i = 0; i < pathHeader.Length; i++) text.Write('-');
+                            text.WriteLine();
+                            text.WriteLine(more);
+                        }
+                        else
+                        {
+                            text.WriteLine("**[" + path + "] could not read**");
+                        }
+
+                        text.WriteLine();
+                    }
+                }
+                catch (Exception) { /* Abandon all hope, ye who enter here */ }
+            }
+
+            Console.WriteLine(" done!");
+            Console.WriteLine();
+            Console.WriteLine("Please submit this bug report");
+
+            if (abort)
+            {
+                Environment.Exit((int)ExitCode.Crash);
+            }
+        }
+
         static int Main(string[] args)
         {
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => DumpError(e.ExceptionObject as Exception, abort: true);
+
             try
             {
                 var filePattern = "";
@@ -395,6 +475,7 @@ namespace More
                 var verbose = false;
                 string spriteProg = null;
                 string spriteArguments = null;
+                var version = false;
 
                 var options = new OptionSet()
                 {
@@ -408,7 +489,8 @@ namespace More
                     { "m|minify", "minify output", m => minify = m != null },
                     { "v|verbose", "print info output", v => verbose = v != null },
                     { "sp:|spriteprocessor:", "program to run on generated sprites, the sprite will be passed after spritearguments argument", sc => spriteProg = sc },
-                    { "sa:|spritearguments:", "arguments to pass to spriteprocessor before the sprite file", sa => spriteArguments = sa }
+                    { "sa:|spritearguments:", "arguments to pass to spriteprocessor before the sprite file", sa => spriteArguments = sa },
+                    { "version", "print version string and exit", v => version = v != null }
                 };
 
                 options.Parse(args);
@@ -416,6 +498,13 @@ namespace More
                 if (showHelp)
                 {
                     options.WriteOptionDescriptions(Console.Out);
+                    return (int)ExitCode.Success;
+                }
+
+                if (version)
+                {
+                    var v = Assembly.GetExecutingAssembly().GetName().Version;
+                    Console.WriteLine(v.ToString());
                     return (int)ExitCode.Success;
                 }
 
@@ -448,69 +537,7 @@ namespace More
             }
             catch (Exception e)
             {
-                var errorFile = "error-" + Guid.NewGuid() + ".log";
-
-                Console.WriteLine();
-                Console.WriteLine("!!!An Error Occurred!!!");
-                Console.Write("Dumping to ["+errorFile+"]...");
-
-                using (var file = File.OpenWrite(errorFile))
-                using (var text = new StreamWriter(file))
-                {
-                    text.WriteLine("Operating System: " + Environment.OSVersion);
-                    text.WriteLine("64 Bit? " + Environment.Is64BitProcess);
-                    text.WriteLine("Path Separator: " + Path.DirectorySeparatorChar);
-                    text.WriteLine("Command Line: " + Environment.CommandLine);
-                    text.WriteLine("On Date: " + DateTime.UtcNow);
-                    text.WriteLine();
-                    text.WriteLine("Exception");
-                    text.WriteLine("---------");
-                    text.WriteLine(e.Message);
-                    text.WriteLine(e.StackTrace);
-                    text.WriteLine();
-
-                    try
-                    {
-                        var compiler = Compiler.Get();
-
-                        var header = "(" + FileCache.Count + ") files in compiler cache";
-
-                        text.WriteLine(header);
-                        for (int i = 0; i < header.Length; i++) text.Write('=');
-                        text.WriteLine();
-
-                        foreach (var path in FileCache.Loaded())
-                        {
-                            string more = null;
-
-                            try
-                            {
-                                more = File.ReadAllText(path);
-                            }
-                            catch (Exception) { /* Indicative of IO trouble */ }
-
-                            if (more.HasValue())
-                            {
-                                var pathHeader = "[" + path + "] of " + more.Length + " characters";
-                                text.WriteLine(pathHeader);
-                                for (int i = 0; i < pathHeader.Length; i++) text.Write('-');
-                                text.WriteLine();
-                                text.WriteLine(more);
-                            }
-                            else
-                            {
-                                text.WriteLine("**[" + path + "] could not read**");
-                            }
-
-                            text.WriteLine();
-                        }
-                    }
-                    catch (Exception) { /* Abandon all hope, ye who enter here */ }
-                }
-
-                Console.WriteLine(" done!");
-                Console.WriteLine();
-                Console.WriteLine("Please submit this bug report");
+                DumpError(e, abort: false);
 
                 return (int)ExitCode.Crash;
             }
