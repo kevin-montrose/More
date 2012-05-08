@@ -42,7 +42,7 @@ namespace MoreInternals.Helpers
 
         public TextWriter OpenWrite(string file)
         {
-            return new StreamWriter(File.OpenWrite(file));
+            return new StreamWriter(File.Create(file));
         }
     }
 
