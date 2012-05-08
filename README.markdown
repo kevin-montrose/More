@@ -90,6 +90,31 @@ becomes
 	  width: 10px;
 	}
 	
+Mixin parameters can be required, have default values, or be completely optional (and must be declared in that order).
+
+    @my-mixin(@required, @hasDefault=value, @optional?) { ... }
+	
+To you can pass parameters by name like so:
+
+    img {
+      @my-mixin('required's value', @optional=value);
+    }
+	
+Note that properties using optional parameters are themselves considered optional, by way of example.
+
+    @mixin(@optional?) { color: red; height: @optional; }
+	a {
+	  @mixin();
+	}
+	
+becomes
+
+    a {
+      color: red;
+    }
+	
+Despite the `height: @optional;` property not having a wrapping `(...)?`, as would normally be expected.  More details on optional properties below.
+	
 ###Optional Variables and Mixins
 
 It's possible to coalesce over missing values using the `??` operator, and omit missing mixins with a trailing `?`.  This is useful for working with overrides.  Whole properties can be omitted if enclosed in parenthesis with a trailing `?` if they depend on variables that haven't been defined.
