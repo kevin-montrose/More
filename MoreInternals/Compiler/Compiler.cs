@@ -21,7 +21,7 @@ namespace MoreInternals.Compiler
 
         private Compiler() { }
 
-        public bool Compile(string currentDir, string inputFile, IFileLookup lookup, Context context, Options options, WriterMode writerMode)
+        public bool Compile(string currentDir, string inputFile, string outputFile, IFileLookup lookup, Context context, Options options, WriterMode writerMode)
         {
             Current.SetContext(context);
             Current.SetWriterMode(writerMode);
@@ -68,10 +68,7 @@ namespace MoreInternals.Compiler
                     blocks = Parse.Task(stream);
                 }
 
-                var outFileName = Path.GetFileNameWithoutExtension(inputFile)+".css";
-                var outPath = Path.GetDirectoryName(inputFile) + Path.DirectorySeparatorChar+outFileName;
-
-                using (var output = lookup.OpenWrite(outPath))
+                using (var output = lookup.OpenWrite(outputFile))
                 {
                     Current.SetOutputStream(output);
 

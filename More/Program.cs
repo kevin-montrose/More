@@ -31,7 +31,7 @@ namespace More
 
         private static FileCache FileCache = new FileCache();
 
-        internal static bool Compile(string currentDir, string inputFile, Context context, bool minify, bool warnAsErrors)
+        internal static bool Compile(string currentDir, string inputFile, string outputFile, Context context, bool minify, bool warnAsErrors)
         {
             var opts = Options.None;
             var writerMode = WriterMode.Pretty;
@@ -47,7 +47,7 @@ namespace More
                 opts |= Options.WarningsAsErrors;
             }
 
-            return Compiler.Get().Compile(currentDir, inputFile, FileLookup.Singleton, context, opts, writerMode);
+            return Compiler.Get().Compile(currentDir, inputFile, outputFile, FileLookup.Singleton, context, opts, writerMode);
         }
 
         private static List<string> FindFiles(string inDirectory, string matchingPattern, bool recurse)
@@ -273,7 +273,7 @@ namespace More
                             var timer = new Stopwatch();
                             timer.Start();
 
-                            var result = Compile(workingDirectory, compile, threadContext, minify, warnAsErrors);
+                            var result = Compile(workingDirectory, compile, outputFile, threadContext, minify, warnAsErrors);
 
                             timer.Stop();
 

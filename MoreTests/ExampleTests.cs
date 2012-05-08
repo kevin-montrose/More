@@ -506,7 +506,7 @@ a:visited { color: #AB4445;}
 
             try
             {
-                if (!Compiler.Get().Compile(tempDir.FullName, cssFile, FileLookup.Singleton, new MoreInternals.Context(new FileCache()), MoreInternals.Options.None, MoreInternals.WriterMode.Pretty))
+                if (!Compiler.Get().Compile(tempDir.FullName, cssFile, cssFile + ".out", FileLookup.Singleton, new MoreInternals.Context(new FileCache()), MoreInternals.Options.None, MoreInternals.WriterMode.Pretty))
                 {
                     Assert.Fail(string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
                 }
@@ -1022,7 +1022,7 @@ a {
 
             try
             {
-                if (!Compiler.Get().Compile(tempDir.FullName, cssFile, FileLookup.Singleton, new MoreInternals.Context(new FileCache()), MoreInternals.Options.None, MoreInternals.WriterMode.Pretty))
+                if (!Compiler.Get().Compile(tempDir.FullName, cssFile, cssFile + ".out", FileLookup.Singleton, new MoreInternals.Context(new FileCache()), MoreInternals.Options.None, MoreInternals.WriterMode.Pretty))
                 {
                     Assert.Fail(string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
                 }

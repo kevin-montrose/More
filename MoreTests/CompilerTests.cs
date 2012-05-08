@@ -33,7 +33,7 @@ namespace MoreTests
             var fileLookup = new TestLookup(new Dictionary<string, string>() { { fakeFile, text } }, lookup);
 
             var compiler = Compiler.Get();
-            compiler.Compile(Environment.CurrentDirectory, fakeFile, fileLookup, new Context(new FileCache()), opts, mode);
+            compiler.Compile(Environment.CurrentDirectory, fakeFile, fakeFile + ".out", fileLookup, new Context(new FileCache()), opts, mode);
             var ret =  fileLookup.WriteMap.ElementAt(0).Value;
 
             if(mode == WriterMode.Minimize)
