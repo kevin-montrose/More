@@ -2165,5 +2165,19 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("a:before{content:'hello'}", written);
         }
+
+        [TestMethod]
+        public void Order()
+        {
+            var written =
+                TryCompile(
+                    @"a { color: blue; }
+                      @media tv { a { color: red; } }
+                      @reset { p { line-height: 110%; } }
+                      span:before { content: 'hello' }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("p{line-height:110%}a{color:blue}span:before{content:'hello'}@media tv{a{color:red}}", written);
+        }
     }
 }
