@@ -208,15 +208,14 @@ namespace MoreInternals.Compiler.Tasks
             return new NameValueProperty(named.Name, MinifyValue(value));
         }
 
-        private static IEnumerable<NameValueProperty> MinifyFontList(IEnumerable<NameValueProperty> props)
+        // If possible, rewrite font-* properties (+ a few others) into a single font property
+        // [font-style font-variant font-weight] font-size[/line-height] font-family
+        private static IEnumerable<NameValueProperty> MinifyFontProperties(IEnumerable<NameValueProperty> props)
         {
             // Don't introduce a new font property if one already exists.
             if (props.Any(a => a.Name == "font")) return props;
 
             var ret = new List<NameValueProperty>();
-
-            // If possible, rewrite font-* properties (+ a few others) into a single font property
-            // [font-style font-variant font-weight] font-size[/line-height] font-family
 
             var fontSize = props.Where(w => w.Name == "font-size");
             var fontFamily = props.Where(w => w.Name == "font-family");
@@ -272,11 +271,55 @@ namespace MoreInternals.Compiler.Tasks
             return ret;
         }
 
+        private static IEnumerable<NameValueProperty> MinifyBackgroundProperties(IEnumerable<NameValueProperty> props)
+        {
+            // can't do anything if there's already a background property
+            if (props.Any(a => a.Name == "background")) return props;
+
+            var color = props.Where(a => a.Name == "background-color");
+            var img = props.Where(a => a.Name == "background-image");
+            var repeat = props.Where(a => a.Name == "background-repeat");
+            var attachment = props.Where(a => a.Name == "background-attachment");
+            var position = props.Where(a => a.Name == "background-position");
+
+            // Nothing to minify
+            if (color.Count() == 0 && img.Count() == 0 && repeat.Count() == 0 && attachment.Count() == 0 && position.Count() == 0)
+            {
+                return props;
+            }
+
+            // Can't minify if we've got conflicting properties
+            if (color.Count() > 1 || img.Count() > 1 || repeat.Count() > 1 || attachment.Count() > 1 || position.Count() > 1)
+            {
+                return props;
+            }
+
+            var ret = props.Where(a => !a.Name.In("background-color", "background-image", "background-repeat", "background-attachment", "background-position")).ToList();
+
+            ret.Add(
+                new NameValueProperty(
+                    "background", 
+                    new CompoundValue(
+                        color.Select(c => c.Value), 
+                        img.Select(i => i.Value), 
+                        repeat.Select(r => r.Value), 
+                        attachment.Select(a => a.Value), 
+                        position.Select(p => p.Value)
+                    )
+                )
+            );
+
+            return ret;
+        }
+
         private static IEnumerable<Property> MinifyPropertyList(IEnumerable<Property> p)
         {
-            var props = p.Cast<NameValueProperty>();
+            var ret = p.Cast<NameValueProperty>();
 
-            return MinifyFontList(props);
+            ret = MinifyFontProperties(ret);
+            ret = MinifyBackgroundProperties(ret);
+
+            return ret;
         }
 
         private static string ValueToString(Value value)

@@ -2179,5 +2179,40 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("p{line-height:110%}a{color:blue}span:before{content:'hello'}@media tv{a{color:red}}", written);
         }
+
+        [TestMethod]
+        public void BackgroundPositionNotMath()
+        {
+            var written = TryCompile("a { background-position: -10px -20px; }");
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{background-position:-10px -20px}", written);
+        }
+
+        [TestMethod]
+        public void MinifyBackground()
+        {
+            var written = 
+                TryCompile(
+                    @"// shouldn't be minified
+                      p {
+                        background: url('banner1.png');
+                        background-repeat: no-repeat;
+                      }
+                      div {
+                        background-image: url('banner2.png');
+                        background-position: left top;
+                      }
+                      span {
+                        background-color: red;
+                        background-image: url('banner3.png');
+                        background-repeat: repeat;
+                        background-attachment: fixed;
+                        background-position: 0px -50px;
+                      }",
+                      minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("p{background:url('banner1.png');background-repeat:no-repeat}div{background:url('banner2.png') left top}span{background:red url('banner3.png') repeat fixed 0px -50px}", written);
+        }
     }
 }
