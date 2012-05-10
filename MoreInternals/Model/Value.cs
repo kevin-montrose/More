@@ -1226,10 +1226,15 @@ namespace MoreInternals.Model
         public override bool NeedsEvaluate { get { return Values.Any(a => a.NeedsEvaluate); } }
 
         public IEnumerable<Value> Values { get; private set; }
+        
+        internal CompoundValue(params Value[] values) : this(values.ToList()) { }
 
-        internal CompoundValue(List<Value> values)
+        internal CompoundValue(params IEnumerable<Value>[] values)
         {
-            Values = values.AsReadOnly();
+            var vals = new List<Value>();
+            foreach (var v in values) vals.AddRange(v);
+
+            Values = vals.AsReadOnly();
         }
 
         public override bool IsImportant()

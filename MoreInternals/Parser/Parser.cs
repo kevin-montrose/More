@@ -876,6 +876,41 @@ namespace MoreInternals.Parser
             return new MixinApplicationProperty(nameStr, ParseApplicationParameters(paramsStr, startParams), optional: optional, overrides: overrides, start: start, stop: stream.Position, filePath: Current.CurrentFilePath);
         }
 
+        // Basically, it's realy common for background-position to be something like "0px -20px", which shouldn't be interpretted as a math value
+        //   so detect the case where two number with unit values are separated by whitespace and treat them as a compound value instead
+        //   otherwise, fallback to normal parsing
+        internal static Value ParseBackgroundPositionValue(ParserStream stream)
+        {
+            var start = stream.Position;
+            var valueStr = new StringBuilder();
+            stream.ScanUntilWithNesting(valueStr, ';');
+
+            var value = valueStr.ToString();
+
+            var parts = value.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+            var pos = Position.Create(start, stream.Position, Current.CurrentFilePath);
+
+            // something's up
+            if (parts.Length != 2)
+            {
+                return MoreValueParser.Parse(value, pos);
+            }
+
+            var p1 = parts[0];
+            var p2 = parts[1];
+
+            var v1 = MoreValueParser.Parse(p1, pos);
+            var v2 = MoreValueParser.Parse(p2, pos);
+
+            if (v1 is NumberWithUnitValue && v2 is NumberWithUnitValue)
+            {
+                return new CompoundValue(v1, v2);
+            }
+
+            return MoreValueParser.Parse(value, pos);
+        }
+
         internal static Value ParseFontValue(ParserStream stream)
         {
             var start = stream.Position;
@@ -958,7 +993,15 @@ namespace MoreInternals.Parser
             }
             else
             {
-                value = ParseMoreValue(stream);
+                if (name.Equals("background-position"))
+                {
+                    // likewise, background-position can often look like a math statement
+                    value = ParseBackgroundPositionValue(stream);
+                }
+                else
+                {
+                    value = ParseMoreValue(stream);
+                }
             }
 
             return new NameValueProperty(name, value, start, stream.Position, Current.CurrentFilePath);
