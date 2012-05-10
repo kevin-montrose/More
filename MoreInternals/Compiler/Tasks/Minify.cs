@@ -208,14 +208,12 @@ namespace MoreInternals.Compiler.Tasks
             return new NameValueProperty(named.Name, MinifyValue(value));
         }
 
-        private static IEnumerable<Property> MinifyPropertyList(IEnumerable<Property> p)
+        private static IEnumerable<NameValueProperty> MinifyFontList(IEnumerable<NameValueProperty> props)
         {
-            var props = p.Cast<NameValueProperty>();
-
             // Don't introduce a new font property if one already exists.
-            if (props.Any(a => a.Name == "font")) return p;
+            if (props.Any(a => a.Name == "font")) return props;
 
-            var ret = new List<Property>();
+            var ret = new List<NameValueProperty>();
 
             // If possible, rewrite font-* properties (+ a few others) into a single font property
             // [font-style font-variant font-weight] font-size[/line-height] font-family
@@ -224,7 +222,7 @@ namespace MoreInternals.Compiler.Tasks
             var fontFamily = props.Where(w => w.Name == "font-family");
 
             // missing or duplicate font-size and font-family make this an untenable optimization
-            if (fontSize.Count() != 1 || fontFamily.Count() != 1) return p;
+            if (fontSize.Count() != 1 || fontFamily.Count() != 1) return props;
 
             var fontStyle = props.Where(w => w.Name == "font-style");
             var fontVariant = props.Where(w => w.Name == "font-variant");
@@ -232,7 +230,7 @@ namespace MoreInternals.Compiler.Tasks
             var lineHeight = props.Where(w => w.Name == "line-height");
 
             // duplicate of these properties make this untenable
-            if (fontSize.Count() > 1 || fontVariant.Count() > 1 || fontWeight.Count() > 1 || lineHeight.Count() > 1) return p;
+            if (fontSize.Count() > 1 || fontVariant.Count() > 1 || fontWeight.Count() > 1 || lineHeight.Count() > 1) return props;
 
             var value = new StringBuilder();
 
@@ -272,6 +270,13 @@ namespace MoreInternals.Compiler.Tasks
             ret.AddRange(props.Where(w => !w.Name.In("font-size", "font-family", "font-style", "font-variant", "font-weight", "line-height")));
 
             return ret;
+        }
+
+        private static IEnumerable<Property> MinifyPropertyList(IEnumerable<Property> p)
+        {
+            var props = p.Cast<NameValueProperty>();
+
+            return MinifyFontList(props);
         }
 
         private static string ValueToString(Value value)
