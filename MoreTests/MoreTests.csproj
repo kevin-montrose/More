@@ -54,9 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Images\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="StyleSheets\compress.more" />
+    <Folder Include="StyleSheets\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MoreInternals\MoreInternals.csproj">
