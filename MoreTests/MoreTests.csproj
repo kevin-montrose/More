@@ -52,17 +52,16 @@
     <Compile Include="ParserTests.cs" />
     <Compile Include="ValueTests.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Images\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="StyleSheets\compress.more" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\MoreInternals\MoreInternals.csproj">
       <Project>{583D4854-C618-4554-A2EF-F75672076B8F}</Project>
       <Name>MoreInternals</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Images\green circle.png" />
+    <Content Include="Images\red block.png" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
