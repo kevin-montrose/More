@@ -2230,5 +2230,24 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("a::first-letter{prop:val}b::first-line{fizz:buzz}", written);
         }
+
+        [TestMethod]
+        public void PseudoClassElementMixupWarns()
+        {
+            var a =
+                @"a::hover { a:b; }
+                  b:first-line { c:d; }
+                  c:before { e:f; }
+                  d::after { g:h; }";
+
+            TryCompile(a);
+            Assert.IsTrue(Current.HasWarnings());
+            var aWarnings = Current.GetWarnings(ErrorType.Parser);
+            Assert.AreEqual(2, aWarnings.Count);
+            Assert.AreEqual("hover was used as an element, but is a class.  Use : instead.", aWarnings[0].Message);
+            Assert.AreEqual("a::hover { a:b; }", aWarnings[0].Snippet(new StringReader(a)).Trim());
+            Assert.AreEqual("first-line was used as a class, but is an element.  Use :: instead.", aWarnings[1].Message);
+            Assert.AreEqual("b:first-line { c:d; }", aWarnings[1].Snippet(new StringReader(a)).Trim());
+        }
     }
 }

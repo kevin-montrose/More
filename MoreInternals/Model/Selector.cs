@@ -64,6 +64,11 @@ namespace MoreInternals.Model
             {
                 var c = raw[i];
 
+                if (c != ':')
+                {
+                    skippedColon = false;
+                }
+
                 if (c == '*')
                 {
                     ret.Add(WildcardSelector.Singleton);
@@ -71,13 +76,7 @@ namespace MoreInternals.Model
                 }
 
                 var j = _NextIndexOf(raw, i + 1, '#', ':', '.', '[', ']');
-                if (j == -1) j = raw.Length;
-
-                if (j == raw.Length || raw[j] != ':')
-                {
-                    // we've encountered something other than a colon, so we're not skipping one obviously
-                    skippedColon = false;
-                }
+                if (j == -1) j = raw.Length;              
 
                 var name = raw.Substring(i, j - i);
 
@@ -115,7 +114,23 @@ namespace MoreInternals.Model
                         continue;
                     }
 
-                    ret.Add(PseudoClassSelector.Parse(name, start, stop, filePath));
+                    var pseudo = (PseudoClassSelector)PseudoClassSelector.Parse(name, start, stop, filePath);
+
+                    if (pseudo.IsElement && !skippedColon)
+                    {
+                        Current.RecordWarning(ErrorType.Parser, pseudo, pseudo.Name + " was used as a class, but is an element.  Use :: instead.");
+                    }
+
+                    if (!pseudo.IsElement && skippedColon)
+                    {
+                        // Because nothing is ever easy, :before and :after are legal to refer to either way despite being elements
+                        if (!pseudo.Name.In("before", "after"))
+                        {
+                            Current.RecordWarning(ErrorType.Parser, pseudo, pseudo.Name + " was used as an element, but is a class.  Use : instead.");
+                        }
+                    }
+
+                    ret.Add(pseudo);
 
                     continue;
                 }
@@ -600,8 +615,8 @@ namespace MoreInternals.Model
     // Pseudo = LINK | VISITED | ACTIVE | HOVER | FOCUS | FIRST_LETTER | FIRST_LINE | FIRST_CHILD | BEFORE | AFTER | LANG | NTH_CHILD | LAST_CHILD | EMPTY | NOT | CHECKED | DISABLED | NTH_LAST_CHILD | NTH_OF_TYPE | NTH_LAST_TYPE | FIRST_OF_TYPE | LAST_OF_TYPE | ONLY_CHILD | ONLY_OF_TYPE | ROOT | TARGET | ENABLED | DEFAULT | VALID | INVALID | IN_RANGE | OUT_OF_RANGE | REQUIRED | OPTIONAL | READ_ONLY | READ_WRITE
     class PseudoClassSelector : Selector
     {
-        private string Name { get; set; }
-        private bool IsElement { get; set; }
+        public string Name { get; private set; }
+        public bool IsElement { get; private set; }
 
         public static readonly PseudoClassSelector LinkSingleton = new PseudoClassSelector("link");
         public static readonly PseudoClassSelector VisitedSingleton = new PseudoClassSelector("visited");
