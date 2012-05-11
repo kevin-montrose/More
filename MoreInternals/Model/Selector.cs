@@ -601,14 +601,13 @@ namespace MoreInternals.Model
     class PseudoClassSelector : Selector
     {
         private string Name { get; set; }
+        private bool IsElement { get; set; }
 
         public static readonly PseudoClassSelector LinkSingleton = new PseudoClassSelector("link");
         public static readonly PseudoClassSelector VisitedSingleton = new PseudoClassSelector("visited");
         public static readonly PseudoClassSelector ActiveSingleton = new PseudoClassSelector("active");
         public static readonly PseudoClassSelector HoverSingleton = new PseudoClassSelector("hover");
         public static readonly PseudoClassSelector FocusSingleton = new PseudoClassSelector("focus");
-        public static readonly PseudoClassSelector FirstLetterSingleton = new PseudoClassSelector("first-letter");
-        public static readonly PseudoClassSelector FirstLineSingleton = new PseudoClassSelector("first-line");
         public static readonly PseudoClassSelector FirstChildSingleton = new PseudoClassSelector("first-child");
         public static readonly PseudoClassSelector BeforeSingleton = new PseudoClassSelector("before");
         public static readonly PseudoClassSelector AfterSingleton = new PseudoClassSelector("after");
@@ -633,7 +632,14 @@ namespace MoreInternals.Model
         public static readonly PseudoClassSelector ReadOnlySingleton = new PseudoClassSelector("read-only");
         public static readonly PseudoClassSelector ReadWriteSingleton = new PseudoClassSelector("read-write");
 
-        protected PseudoClassSelector(string name) { Name = name; }
+        public static readonly PseudoClassSelector FirstLetterSingleton = new PseudoClassSelector("first-letter", true);
+        public static readonly PseudoClassSelector FirstLineSingleton = new PseudoClassSelector("first-line", true);
+
+        protected PseudoClassSelector(string name, bool isElement = false) 
+        { 
+            Name = name;
+            IsElement = isElement;
+        }
 
         public PseudoClassSelector BindToPosition(int start, int stop, string filePath)
         {
@@ -648,6 +654,12 @@ namespace MoreInternals.Model
         public override void Write(TextWriter output)
         {
             output.Write(':');
+
+            if (IsElement)
+            {
+                output.Write(':');
+            }
+
             output.Write(Name);
         }
 
@@ -668,6 +680,7 @@ namespace MoreInternals.Model
                 case "hover": return HoverSingleton.BindToPosition(start, stop, filePath);
                 case "focus": return FocusSingleton.BindToPosition(start, stop, filePath);
                 case "first-letter": return FirstLetterSingleton.BindToPosition(start, stop, filePath);
+                case "first-line": return FirstLineSingleton.BindToPosition(start, stop, filePath);
                 case "first-child": return FirstChildSingleton.BindToPosition(start, stop, filePath);
                 case "before": return BeforeSingleton.BindToPosition(start, stop, filePath);
                 case "after": return AfterSingleton.BindToPosition(start, stop, filePath);

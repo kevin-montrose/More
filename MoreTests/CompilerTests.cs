@@ -2214,5 +2214,21 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("p{background:url('banner1.png');background-repeat:no-repeat}div{background:url('banner2.png') left top}span{background:red url('banner3.png') repeat fixed 0px -50px}", written);
         }
+
+        [TestMethod]
+        public void PseudoElementDoubleColon()
+        {
+            var written =
+                TryCompile(
+                    @"a:first-letter{
+                        prop: val;
+                      }
+                      b::first-line {
+                        fizz: buzz;
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a::first-letter{prop:val}b::first-line{fizz:buzz}", written);
+        }
     }
 }
