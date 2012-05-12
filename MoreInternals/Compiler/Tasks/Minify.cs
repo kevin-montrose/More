@@ -15,7 +15,7 @@ namespace MoreInternals.Compiler.Tasks
     /// it will be used, and so on) and choosing ideal color versions (hex triples when possible,
     /// dropping alpha when not needed, and so on).
     /// </summary>
-    public class Minify
+    public partial class Minify
     {
         private static ColorValue MinifyColor(ColorValue value)
         {
@@ -208,116 +208,69 @@ namespace MoreInternals.Compiler.Tasks
             return new NameValueProperty(named.Name, MinifyValue(value));
         }
 
-        // If possible, rewrite font-* properties (+ a few others) into a single font property
-        // [font-style font-variant font-weight] font-size[/line-height] font-family
-        private static IEnumerable<NameValueProperty> MinifyFontProperties(IEnumerable<NameValueProperty> props)
-        {
-            // Don't introduce a new font property if one already exists.
-            if (props.Any(a => a.Name == "font")) return props;
-
-            var ret = new List<NameValueProperty>();
-
-            var fontSize = props.Where(w => w.Name == "font-size");
-            var fontFamily = props.Where(w => w.Name == "font-family");
-
-            // missing or duplicate font-size and font-family make this an untenable optimization
-            if (fontSize.Count() != 1 || fontFamily.Count() != 1) return props;
-
-            var fontStyle = props.Where(w => w.Name == "font-style");
-            var fontVariant = props.Where(w => w.Name == "font-variant");
-            var fontWeight = props.Where(w => w.Name == "font-weight");
-            var lineHeight = props.Where(w => w.Name == "line-height");
-
-            // duplicate of these properties make this untenable
-            if (fontSize.Count() > 1 || fontVariant.Count() > 1 || fontWeight.Count() > 1 || lineHeight.Count() > 1) return props;
-
-            var value = new StringBuilder();
-
-            var style = fontStyle.SingleOrDefault();
-            if (style != null)
-            {
-                value.Append(ValueToString(style.Value));
-                value.Append(' ');
-            }
-
-            var variant = fontVariant.SingleOrDefault();
-            if (variant != null)
-            {
-                value.Append(ValueToString(variant.Value));
-                value.Append(' ');
-            }
-
-            var weight = fontWeight.SingleOrDefault();
-            if (weight != null)
-            {
-                value.Append(ValueToString(weight.Value));
-                value.Append(' ');
-            }
-
-            var height = lineHeight.SingleOrDefault();
-            value.Append(ValueToString(fontSize.Single().Value));
-            if (height != null)
-            {
-                value.Append('/');
-                value.Append(ValueToString(height.Value));
-            }
-            value.Append(' ');
-
-            value.Append(ValueToString(fontFamily.Single().Value));
-
-            ret.Add(new NameValueProperty("font", new StringValue(value.ToString().Trim())));
-            ret.AddRange(props.Where(w => !w.Name.In("font-size", "font-family", "font-style", "font-variant", "font-weight", "line-height")));
-
-            return ret;
-        }
-
-        private static IEnumerable<NameValueProperty> MinifyBackgroundProperties(IEnumerable<NameValueProperty> props)
-        {
-            // can't do anything if there's already a background property
-            if (props.Any(a => a.Name == "background")) return props;
-
-            var color = props.Where(a => a.Name == "background-color");
-            var img = props.Where(a => a.Name == "background-image");
-            var repeat = props.Where(a => a.Name == "background-repeat");
-            var attachment = props.Where(a => a.Name == "background-attachment");
-            var position = props.Where(a => a.Name == "background-position");
-
-            // Nothing to minify
-            if (color.Count() == 0 && img.Count() == 0 && repeat.Count() == 0 && attachment.Count() == 0 && position.Count() == 0)
-            {
-                return props;
-            }
-
-            // Can't minify if we've got conflicting properties
-            if (color.Count() > 1 || img.Count() > 1 || repeat.Count() > 1 || attachment.Count() > 1 || position.Count() > 1)
-            {
-                return props;
-            }
-
-            var ret = props.Where(a => !a.Name.In("background-color", "background-image", "background-repeat", "background-attachment", "background-position")).ToList();
-
-            ret.Add(
-                new NameValueProperty(
-                    "background", 
-                    new CompoundValue(
-                        color.Select(c => c.Value), 
-                        img.Select(i => i.Value), 
-                        repeat.Select(r => r.Value), 
-                        attachment.Select(a => a.Value), 
-                        position.Select(p => p.Value)
-                    )
-                )
-            );
-
-            return ret;
-        }
-
         private static IEnumerable<Property> MinifyPropertyList(IEnumerable<Property> p)
         {
             var ret = p.Cast<NameValueProperty>();
 
+            // font needs special treatment, because of the / shorthand
             ret = MinifyFontProperties(ret);
-            ret = MinifyBackgroundProperties(ret);
+
+            // These properties all take the form X: (X-*)+; the order of their inclusion is important,
+            //   but ommisions don't need special treatment
+            ret = 
+                MinifyGenericShorthand(
+                    ret,
+                    "background",
+                    "background-color", "background-image", "background-repeat", "background-attachment", "background-position"
+                );
+            ret = 
+                MinifyGenericShorthand(
+                    ret,
+                    "border",
+                    "border-width", "border-style", "border-color"
+                );
+            ret =
+                MinifyGenericShorthand(
+                    ret,
+                    "border-bottom",
+                    "border-bottom-width", "border-bottom-style", "border-bottom-color"
+                );
+            ret =
+                MinifyGenericShorthand(
+                    ret,
+                    "border-bottom",
+                    "border-bottom-width", "border-bottom-style", "border-bottom-color"
+                );
+            ret =
+                MinifyGenericShorthand(
+                    ret,
+                    "border-left",
+                    "border-left-width", "border-left-style", "border-left-color"
+                );
+            ret =
+                MinifyGenericShorthand(
+                    ret,
+                    "border-right",
+                    "border-right-width", "border-right-style", "border-right-color"
+                );
+            ret =
+                MinifyGenericShorthand(
+                    ret,
+                    "border-top",
+                    "border-top-width", "border-top-style", "border-top-color"
+                );
+            ret =
+                MinifyGenericShorthand(
+                    ret,
+                    "list-style",
+                    "list-style-type", "list-style-position", "list-style-image"
+                );
+            ret =
+                MinifyGenericShorthand(
+                    ret,
+                    "outline",
+                    "outline-color", "outline-style", "outline-width"
+                );
 
             return ret;
         }

@@ -58,6 +58,7 @@
     <Compile Include="Compiler\Tasks\Includes.cs" />
     <Compile Include="Compiler\Tasks\Media.cs" />
     <Compile Include="Compiler\Tasks\Minify.cs" />
+    <Compile Include="Compiler\Tasks\Minify.Shorthands.cs" />
     <Compile Include="Compiler\Tasks\Mixins.cs" />
     <Compile Include="Compiler\Tasks\NoOps.cs" />
     <Compile Include="Compiler\Tasks\Parse.cs" />
