@@ -1128,5 +1128,19 @@ namespace MoreTests
             Assert.AreEqual("[<!--] is not a valid identifier", aErrors[0].Message);
             Assert.AreEqual("<!-- [if IE]>", aErrors[0].Snippet(new StringReader(a)).Trim());
         }
+
+        [TestMethod]
+        public void Identifiers()
+        {
+            Assert.IsFalse(Validation.IsIdentifier("1"));
+            Assert.IsFalse(Validation.IsIdentifier("-9"));
+            Assert.IsFalse(Validation.IsIdentifier("--special"));
+
+            Assert.IsTrue(Validation.IsIdentifier("a"));
+            Assert.IsTrue(Validation.IsIdentifier("a9"));
+            Assert.IsTrue(Validation.IsIdentifier("-not-reserved"));
+            Assert.IsTrue(Validation.IsIdentifier("my_id"));
+            Assert.IsTrue(Validation.IsIdentifier("𡀗"));
+        }
     }
 }
