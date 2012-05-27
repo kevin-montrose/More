@@ -1115,5 +1115,18 @@ namespace MoreTests
             Assert.AreEqual("Unknown pseudo class []", aErrors[0].Message);
             Assert.AreEqual("a:::first-line {", aErrors[0].Snippet(new StringReader(a)).Trim());
         }
+
+        [TestMethod]
+        public void ConditionalCommentRejected()
+        {
+            var a =
+                @"<!-- [if IE]>";
+            var aStatements = TryParseStatements(a);
+            Assert.IsTrue(Current.HasErrors());
+            var aErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, aErrors.Count);
+            Assert.AreEqual("[<!--] is not a valid identifier", aErrors[0].Message);
+            Assert.AreEqual("<!-- [if IE]>", aErrors[0].Snippet(new StringReader(a)).Trim());
+        }
     }
 }

@@ -92,13 +92,23 @@ namespace MoreInternals.Model
 
                 if (c == '#')
                 {
-                    ret.Add(new IdSelector(name.Substring(1), start, stop, filePath));
+                    var id = name.Substring(1);
+
+                    if (!Validation.IsIdentifier(id))
+                    {
+                        Current.RecordError(ErrorType.Parser, Position.Create(start, stop, filePath), "[" + id + "] is not a valid identifier");
+                        throw new StoppedParsingException();
+                    }
+
+                    ret.Add(new IdSelector(id, start, stop, filePath));
                     continue;
                 }
 
                 if (c == '.')
                 {
-                    ret.Add(new ClassSelector(name.Substring(1), start, stop, filePath));
+                    var @class = name.Substring(1);
+
+                    ret.Add(new ClassSelector(@class, start, stop, filePath));
                     continue;
                 }
 
@@ -140,6 +150,12 @@ namespace MoreInternals.Model
                     ret.Add(AttributeSelector.Parse(name, start, stop, filePath));
                     i++;
                     continue;
+                }
+
+                if (!Validation.IsIdentifier(name))
+                {
+                    Current.RecordError(ErrorType.Parser, Position.Create(start, stop, filePath), "[" + name + "] is not a valid identifier");
+                    throw new StoppedParsingException();
                 }
 
                 ret.Add(new ElementSelector(name, start, stop, filePath));
@@ -312,6 +328,15 @@ namespace MoreInternals.Model
     {
         public string Attribute { get; protected set; }
 
+        private static bool IsStringAttributeValue(string val)
+        {
+            val = val.Trim();
+
+            return
+                (val.StartsWith("\"") && val.EndsWith("\"")) ||
+                (val.StartsWith("'") && val.EndsWith("'"));
+        }
+
         public static new AttributeSelector Parse(string raw, int start, int stop, string filePath)
         {
             raw = raw.Trim('[', ']');
@@ -320,10 +345,41 @@ namespace MoreInternals.Model
 
             if (i == -1) return new AttributeSetSelector(raw, start, stop, filePath);
 
-            if (raw[i - 1] == '~') return new AttributeOperatorSelector(raw.Substring(0, i - 1), AttributeOperator.Contains, raw.Substring(i - 1 + 2), start, stop, filePath);
-            if (raw[i - 1] == '|') return new AttributeOperatorSelector(raw.Substring(0, i - 1), AttributeOperator.Starts, raw.Substring(i - 1 + 2), start, stop, filePath);
+            if (raw[i - 1] == '~')
+            {
+                var contains = raw.Substring(0, i - 1);
 
-            return new AttributeOperatorSelector(raw.Substring(0, i), AttributeOperator.Equals, raw.Substring(i + 1), start, stop, filePath);
+                if (!IsStringAttributeValue(contains) && !Validation.IsIdentifier(contains))
+                {
+                    Current.RecordError(ErrorType.Parser, Position.Create(start, stop, filePath), "[" + contains + "] is not an identifier or string");
+                    throw new StoppedParsingException();
+                }
+
+                return new AttributeOperatorSelector(contains, AttributeOperator.Contains, raw.Substring(i - 1 + 2), start, stop, filePath);
+            }
+
+            if (raw[i - 1] == '|')
+            {
+                var starts = raw.Substring(0, i - 1);
+
+                if (!IsStringAttributeValue(starts) && !Validation.IsIdentifier(starts))
+                {
+                    Current.RecordError(ErrorType.Parser, Position.Create(start, stop, filePath), "[" + starts + "] is not an identifier or string");
+                    throw new StoppedParsingException();
+                }
+
+                return new AttributeOperatorSelector(starts, AttributeOperator.Starts, raw.Substring(i - 1 + 2), start, stop, filePath);
+            }
+
+            var equals = raw.Substring(0, i);
+
+            if (!IsStringAttributeValue(equals) && !Validation.IsIdentifier(equals))
+            {
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stop, filePath), "[" + equals + "] is not an identifier or string");
+                throw new StoppedParsingException();
+            }
+
+            return new AttributeOperatorSelector(equals, AttributeOperator.Equals, raw.Substring(i + 1), start, stop, filePath);
         }
     }
 

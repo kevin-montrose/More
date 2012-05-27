@@ -78,6 +78,7 @@
     <Compile Include="Helpers\CssWriter.cs" />
     <Compile Include="Helpers\FileCache.cs" />
     <Compile Include="Helpers\FileLookup.cs" />
+    <Compile Include="Helpers\Validation.cs" />
     <Compile Include="Model\MediaQuery.cs" />
     <Compile Include="Model\Property.cs" />
     <Compile Include="Model\Error.cs" />
