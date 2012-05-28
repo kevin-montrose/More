@@ -20,7 +20,7 @@ namespace MoreInternals.Helpers
         /// </summary>
         public static bool IsIdentifier(string id)
         {
-            if (id.Length == 0) return false;
+            if (id.IsNullOrEmpty()) return false;
             if (id.StartsWith("--")) return false;
             if (char.IsDigit(id[0])) return false;
             if (id.Length >= 2 && id[0] == '-' && char.IsDigit(id[1])) return false;
