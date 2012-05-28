@@ -425,6 +425,16 @@ namespace MoreInternals.Model
                 return base.ToString();
             }
         }
+
+        public override bool Equals(object obj)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override int GetHashCode()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     class GroupedValue : Value
@@ -467,6 +477,19 @@ namespace MoreInternals.Model
         public override string ToString()
         {
             return "(" + Value + ")";
+        }
+
+        public override bool Equals(object obj)
+        {
+            var asGroup = obj as GroupedValue;
+            if (asGroup == null) return false;
+
+            return asGroup.Value.Equals(Value);
+        }
+
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode();
         }
     }
 
@@ -592,6 +615,19 @@ namespace MoreInternals.Model
         {
             return new List<string>();
         }
+
+        public override bool Equals(object obj)
+        {
+            var asNumber = obj as NumberValue;
+            if (asNumber == null) return false;
+
+            return asNumber.Value == Value;
+        }
+
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode();
+        }
     }
 
     // 1px, 2em, 100%, etc.
@@ -621,6 +657,21 @@ namespace MoreInternals.Model
             {
                 output.Write('%');
             }
+        }
+
+        public override bool Equals(object obj)
+        {
+            var asNumUnit = obj as NumberWithUnitValue;
+            if (asNumUnit == null) return false;
+
+            return
+                asNumUnit.Value == Value &&
+                asNumUnit.Unit == Unit;
+        }
+
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode() ^ (Unit.GetHashCode() * -1);
         }
     }
 
@@ -655,6 +706,19 @@ namespace MoreInternals.Model
         internal override void Write(TextWriter output)
         {
             output.Write(Enum.GetName(typeof(NamedColor), Color).ToLower());
+        }
+
+        public override bool Equals(object obj)
+        {
+            var asColor = obj as NamedColorValue;
+            if (asColor == null) return false;
+
+            return asColor.Color == Color;
+        }
+
+        public override int GetHashCode()
+        {
+            return Color.GetHashCode();
         }
     }
 
@@ -692,6 +756,22 @@ namespace MoreInternals.Model
             output.Write(Red.ToString("x")[0]);
             output.Write(Green.ToString("x")[0]);
             output.Write(Blue.ToString("x")[0]);
+        }
+
+        public override bool Equals(object obj)
+        {
+            var asColor = obj as HexTripleColorValue;
+            if (asColor == null) return false;
+
+            return
+                asColor.Red == Red &&
+                asColor.Green == Green &&
+                asColor.Blue == Blue;
+        }
+
+        public override int GetHashCode()
+        {
+            return Red.GetHashCode() ^ (Green.GetHashCode() * -1) ^ ((Blue * -1).GetHashCode());
         }
     }
 
@@ -737,6 +817,22 @@ namespace MoreInternals.Model
             output.Write(r);
             output.Write(g);
             output.Write(b);
+        }
+
+        public override bool Equals(object obj)
+        {
+            var asColor = obj as HexSextupleColorValue;
+            if (asColor == null) return false;
+
+            return
+                asColor.Red == Red &&
+                asColor.Green == Green &&
+                asColor.Blue == Blue;
+        }
+
+        public override int GetHashCode()
+        {
+            return Red.GetHashCode() ^ (Green.GetHashCode() * -1) ^ ((Blue * -1).GetHashCode());
         }
     }
 
@@ -846,6 +942,22 @@ namespace MoreInternals.Model
 
             return ret;
         }
+
+        public override bool Equals(object obj)
+        {
+            var asColor = obj as RGBColorValue;
+            if (asColor == null) return false;
+
+            return
+                asColor.Red == Red &&
+                asColor.Green == Green &&
+                asColor.Blue == Blue;
+        }
+
+        public override int GetHashCode()
+        {
+            return Red.GetHashCode() ^ (Green.GetHashCode() * -1) ^ (Blue.GetHashCode());
+        }
     }
 
     // rgba(255, 10, 5, 0.1), etc.
@@ -913,6 +1025,22 @@ namespace MoreInternals.Model
             ret.AddRange(Alpha.ReferredToVariables());
 
             return ret;
+        }
+
+        public override bool Equals(object obj)
+        {
+            var asColor = obj as RGBAColorValue;
+            if (asColor == null) return false;
+
+            return
+                asColor.Red == Red &&
+                asColor.Green == Green &&
+                asColor.Blue == Blue;
+        }
+
+        public override int GetHashCode()
+        {
+            return Red.GetHashCode() ^ (Green.GetHashCode() * -1) ^ (Blue.GetHashCode());
         }
     }
 
@@ -982,6 +1110,22 @@ namespace MoreInternals.Model
             ret.AddRange(Lightness.ReferredToVariables());
 
             return ret;
+        }
+
+        public override bool Equals(object obj)
+        {
+            var asColor = obj as HSLColorValue;
+            if (asColor == null) return false;
+
+            return
+                asColor.Hue == Hue &&
+                asColor.Saturation == Saturation &&
+                asColor.Lightness == Lightness;
+        }
+
+        public override int GetHashCode()
+        {
+            return Hue.GetHashCode() ^ (Saturation.GetHashCode() * -1) ^ (Lightness.GetHashCode());
         }
     }
 
@@ -1163,6 +1307,20 @@ namespace MoreInternals.Model
         {
             return EvaluateMap.ReferredToVariables();
         }
+
+        public override bool Equals(object obj)
+        {
+            var asStr = obj as StringValue;
+
+            if (asStr == null) return false;
+
+            return asStr.Value.Equals(Value, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        public override int GetHashCode()
+        {
+            return Value.ToLowerInvariant().GetHashCode();
+        }
     }
 
     class QuotedStringValue : Value
@@ -1217,6 +1375,19 @@ namespace MoreInternals.Model
         internal override List<string> ReferredToVariables()
         {
             return EvaluateMap.ReferredToVariables();
+        }
+
+        public override bool Equals(object obj)
+        {
+            var asStr = obj as QuotedStringValue;
+            if (asStr == null) return false;
+
+            return asStr.Value == Value;
+        }
+
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode();
         }
     }
 
@@ -1372,6 +1543,19 @@ namespace MoreInternals.Model
             Value.Write(output);
             output.Write(')');
         }
+
+        public override bool Equals(object obj)
+        {
+            var asFormat = obj as FormatValue;
+            if (asFormat == null) return false;
+
+            return asFormat.Value.Equals(Value);
+        }
+
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode();
+        }
     }
 
     class LocalValue : Value
@@ -1410,6 +1594,19 @@ namespace MoreInternals.Model
             output.Write("local(");
             Value.Write(output);
             output.Write(')');
+        }
+
+        public override bool Equals(object obj)
+        {
+            var asLocal = obj as LocalValue;
+            if (asLocal == null) return false;
+
+            return asLocal.Value.Equals(Value);
+        }
+
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode();
         }
     }
 
@@ -1463,6 +1660,19 @@ namespace MoreInternals.Model
         {
             return new List<string>();
         }
+
+        public override bool Equals(object obj)
+        {
+            var asUrl = obj as UrlValue;
+            if (asUrl == null) return false;
+
+            return asUrl.UrlPath.Equals(UrlPath);
+        }
+
+        public override int GetHashCode()
+        {
+            return UrlPath.GetHashCode();
+        }
     }
 
     // Only valid in media queries, represents "30 / 13" or similar
@@ -1502,6 +1712,21 @@ namespace MoreInternals.Model
             LeftHand.Write(output);
             output.Write('/');
             RightHand.Write(output);
+        }
+
+        public override bool Equals(object obj)
+        {
+            var asRatio = obj as RatioValue;
+            if (asRatio == null) return false;
+
+            return
+                asRatio.LeftHand.Equals(LeftHand) &&
+                asRatio.RightHand.Equals(RightHand);
+        }
+
+        public override int GetHashCode()
+        {
+            return LeftHand.GetHashCode() ^ (RightHand.GetHashCode() * -1);
         }
     }
 
@@ -1673,6 +1898,16 @@ namespace MoreInternals.Model
         internal override List<string> ReferredToVariables()
         {
             return new List<string>();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj == Singleton;
+        }
+
+        public override int GetHashCode()
+        {
+            return 1;
         }
     }
 }

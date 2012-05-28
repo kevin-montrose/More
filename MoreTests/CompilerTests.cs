@@ -2216,6 +2216,227 @@ namespace MoreTests
         }
 
         [TestMethod]
+        public void MinifyBorderWidth()
+        {
+            var a =
+                TryCompile(
+                    @"a {
+                        border-width-top: 4px;
+                        border-width-bottom: 3px;
+                        border-width-left: 2px;
+                        border-width-right: 1px;
+                      }",
+                      minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{border-width:4px 1px 3px 2px}", a);
+
+            var b =
+                TryCompile(
+                    @"b {
+                        border-width-top: 1px;
+                        border-width-bottom: 1px;
+                        border-width-left: 1px;
+                        border-width-right: 1px;
+                     }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("b{border-width:1px}", b);
+
+            var c =
+                TryCompile(
+                    @"c {
+                        border-width-top: 1px;
+                        border-width-bottom: 2px;
+                        border-width-left: 1px;
+                        border-width-right: 1px;
+                     }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("c{border-width:1px 1px 2px}", c);
+
+            var d =
+                TryCompile(
+                    @"d {
+                        border-width-top: 1px;
+                        border-width-bottom: 1px;
+                        border-width-left: 2px;
+                        border-width-right: 1px;
+                     }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("d{border-width:1px 1px 1px 2px}", d);
+
+            var e =
+                TryCompile(
+                    @"e {
+                        border-width-top: 1px;
+                        border-width-bottom: 1px;
+                        border-width-left: 1px;
+                        border-width-right: 2px;
+                     }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("e{border-width:1px 2px 1px 1px}", e);
+
+            var f =
+                TryCompile(
+                    @"f {
+                        border-width-top: 2px;
+                        border-width-bottom: 2px;
+                        border-width-left: 1px;
+                        border-width-right: 1px;
+                     }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("f{border-width:2px 1px}", f);
+
+            var g =
+                TryCompile(
+                    @"g {
+                        border-width-top: 2px;
+                        border-width-bottom: 1px;
+                        border-width-left: 2px;
+                        border-width-right: 1px;
+                     }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("g{border-width:2px 1px 1px 2px}", g);
+
+            var h =
+                TryCompile(
+                    @"h {
+                        border-width-top: 2px;
+                        border-width-bottom: 1px;
+                        border-width-left: 1px;
+                        border-width-right: 2px;
+                     }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("h{border-width:2px 2px 1px 1px}", h);
+
+            var i =
+                TryCompile(
+                    @"i {
+                        border-width-top: 1px;
+                        border-width-bottom: 2px;
+                        border-width-left: 2px;
+                        border-width-right: 1px;
+                     }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("i{border-width:1px 1px 2px 2px}", i);
+
+            var j =
+                TryCompile(
+                    @"j {
+                        border-width-top: 1px;
+                        border-width-bottom: 2px;
+                        border-width-left: 1px;
+                        border-width-right: 2px;
+                     }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("j{border-width:1px 2px 2px 1px}", j);
+
+            var k =
+                TryCompile(
+                    @"k {
+                        border-width-top: 1px;
+                        border-width-bottom: 1px;
+                        border-width-left: 2px;
+                        border-width-right: 2px;
+                     }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("k{border-width:1px 2px}", k);
+
+            var l =
+                TryCompile(
+                    @"l {
+                        border-width-top: 2px;
+                        border-width-bottom: 2px;
+                        border-width-left: 2px;
+                        border-width-right: 1px;
+                     }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("l{border-width:2px 1px 2px 2px}", l);
+
+            var m =
+                TryCompile(
+                    @"m {
+                        border-width-top: 2px;
+                        border-width-bottom: 2px;
+                        border-width-left: 1px;
+                        border-width-right: 2px;
+                     }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("m{border-width:2px 2px 2px 1px}", m);
+
+            var n =
+                TryCompile(
+                    @"n {
+                        border-width-top: 2px;
+                        border-width-bottom: 1px;
+                        border-width-left: 2px;
+                        border-width-right: 2px;
+                     }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("n{border-width:2px 2px 1px}", n);
+
+            var o =
+                TryCompile(
+                    @"o {
+                        border-width-top: 1px;
+                        border-width-bottom: 2px;
+                        border-width-left: 2px;
+                        border-width-right: 2px;
+                     }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("o{border-width:1px 2px 2px}", o);
+
+            var p =
+                TryCompile(
+                    @"p {
+                        border-width-top: 15px;
+                        border-width-bottom: 15px;
+                      }",
+                    minify:true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("p{border-width:15px 0}", p);
+
+            // Don't do minification that actually makes things larger
+            var q =
+                TryCompile(
+                    @"q {
+                        border-width-left: 15px;
+                      }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("q{border-width-left:15px}", q);
+        }
+
+        [TestMethod]
         public void PseudoElementDoubleColon()
         {
             var written =

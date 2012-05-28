@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using MoreInternals.Model;
+using System.IO;
+using MoreInternals.Helpers;
 
 namespace MoreInternals.Compiler.Tasks
 {
@@ -11,6 +13,91 @@ namespace MoreInternals.Compiler.Tasks
    /// Think background-color, background-position, etc. -> background
     public partial class Minify
     {
+        /// <summary>
+        /// Take the set of properties that serializes to a shorter string.
+        /// 
+        /// When (presumably equivalent) blocks of CSS are passed in, this method checks that certain attempts
+        /// at minification actually resulted in shorter strings.
+        /// 
+        /// This isn't always guaranteed when you're injecting default values.
+        /// </summary>
+        private static IEnumerable<NameValueProperty> TakeShorter(IEnumerable<NameValueProperty> first, IEnumerable<NameValueProperty> second)
+        {
+            Func<IEnumerable<NameValueProperty>, string> toString =
+                x => 
+                {
+                    using(var writer = new StringWriter())
+                    using(var css = new MinimalCssWriter(writer))
+                    {
+                        x.Each(e => css.WriteRule(e, false));
+
+                        return writer.ToString();
+                    }
+                };
+
+            var map = new[] { Tuple.Create(first, toString(first)), Tuple.Create(second, toString(second)) };
+            return map.OrderBy(o => o.Item2.Length).First().Item1;
+        }
+
+        /// <summary>
+        /// Oddly named, but the CSS 2.1 spec actually says "like border-width" in a few places to describe this shorthand.
+        /// 
+        /// Takes the 4 pass properties and reduces them to `into` in the following manner.
+        /// 
+        /// If any of the four properties aren't defined, consider them to be @default.
+        /// 
+        /// http://www.w3.org/TR/CSS21/box.html#propdef-border-width
+        /// ^ reduce as defined there
+        /// </summary>
+        private static IEnumerable<NameValueProperty> MinifyBorderWidthShorthand(IEnumerable<NameValueProperty> props, string into, string topProp, string rightProp, string bottomProp, string leftProp, Value @default)
+        {
+            var topProps = props.Where(p => p.Name == topProp);
+            var bottomProps = props.Where(p => p.Name == bottomProp);
+            var rightProps = props.Where(p => p.Name == rightProp);
+            var leftProps = props.Where(p => p.Name == leftProp);
+
+            // duplicate declarations, bail
+            if (topProps.Count() > 1 || bottomProps.Count() > 1 || rightProps.Count() > 1 || leftProps.Count() > 1)
+            {
+                return props;
+            }
+
+            // nothing to minify
+            if (topProps.Count() == 0 && bottomProps.Count() == 0 && rightProps.Count() == 0 && leftProps.Count() == 0)
+            {
+                return props;
+            }
+
+            var ret = props.Where(w => !w.Name.In(topProp, leftProp, rightProp, bottomProp)).ToList();
+
+            var topVal = topProps.Select(s => s.Value).SingleOrDefault() ?? @default;
+            var bottomVal = bottomProps.Select(s => s.Value).SingleOrDefault() ?? @default;
+            var rightVal = rightProps.Select(s => s.Value).SingleOrDefault() ?? @default;
+            var leftVal = leftProps.Select(s => s.Value).SingleOrDefault() ?? @default;
+
+            if (topVal.Equals(bottomVal) && topVal.Equals(rightVal) && topVal.Equals(leftVal))
+            {
+                ret.Add(new NameValueProperty(into, topVal));
+                return TakeShorter(ret, props);
+            }
+
+            if (topVal.Equals(bottomVal) && leftVal.Equals(rightVal))
+            {
+                ret.Add(new NameValueProperty(into, new CompoundValue(topVal, rightVal)));
+                return TakeShorter(ret, props);
+            }
+
+            if (!topVal.Equals(bottomVal) && leftVal.Equals(rightVal))
+            {
+                ret.Add(new NameValueProperty(into, new CompoundValue(topVal, rightVal, bottomVal)));
+                return TakeShorter(ret, props);
+            }
+
+            ret.Add(new NameValueProperty(into, new CompoundValue(topVal, rightVal, bottomVal, leftVal)));
+
+            return TakeShorter(ret, props);
+        }
+
         /// <summary>
         /// Takes any set of properties and collapses those that are in `subProps` into `into` provided `into` isn't already defined.
         /// 

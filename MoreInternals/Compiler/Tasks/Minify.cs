@@ -272,6 +272,15 @@ namespace MoreInternals.Compiler.Tasks
                     "outline-color", "outline-style", "outline-width"
                 );
 
+            // Here we minify the trickier "border-width-style" rules
+            ret =
+                MinifyBorderWidthShorthand(
+                    ret,
+                    "border-width",
+                    "border-width-top", "border-width-right", "border-width-bottom", "border-width-left",
+                    new NumberValue(0)
+                );
+
             return ret;
         }
 
