@@ -33,7 +33,13 @@ namespace MoreTests
             var fileLookup = new TestLookup(new Dictionary<string, string>() { { fakeFile, text } }, lookup);
 
             var compiler = Compiler.Get();
-            compiler.Compile(Environment.CurrentDirectory, fakeFile, fakeFile + ".out", fileLookup, new Context(new FileCache()), opts, mode);
+            var ctx = new Context(new FileCache());
+            
+            // it's hard to test minification steps if they all always run, so let's just go for a single pass in the "text comparison" cases
+            //   still do the full thing when we're doing our test "pretty pass" elsewhere to make sure it always terminates
+            ctx.DisableMultipleMinificationPasses = mode != WriterMode.Pretty;
+
+            compiler.Compile(Environment.CurrentDirectory, fakeFile, fakeFile + ".out", fileLookup, ctx, opts, mode);
             var ret =  fileLookup.WriteMap.ElementAt(0).Value;
 
             if(mode == WriterMode.Minimize)
@@ -2419,7 +2425,7 @@ namespace MoreTests
                         border-width-top: 15px;
                         border-width-bottom: 15px;
                       }",
-                    minify:true
+                    minify: true
                 );
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("p{border-width:15px 0}", p);

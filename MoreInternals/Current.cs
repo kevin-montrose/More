@@ -43,6 +43,8 @@ namespace MoreInternals
         internal List<SpriteExport> PendingSpriteExports { get; set; }
         internal TextWriter OutputStream { get; set; }
 
+        internal bool DisableMultipleMinificationPasses { get; set; }
+
         public Context(FileCache cache)
         {
             FileCache = cache;
@@ -128,6 +130,13 @@ namespace MoreInternals
     static class Current
     {
         internal static ThreadLocal<Context> InnerContext = new ThreadLocal<Context>();
+
+        // This is only for testing purposes
+        internal static bool DisableMultipleMinificationPasses
+        {
+            get { return InnerContext.Value.DisableMultipleMinificationPasses; }
+            set { InnerContext.Value.DisableMultipleMinificationPasses = value; }
+        }
 
         public static Scope GlobalScope
         {

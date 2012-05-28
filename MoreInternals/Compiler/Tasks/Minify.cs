@@ -210,6 +210,8 @@ namespace MoreInternals.Compiler.Tasks
 
         private static IEnumerable<Property> MinifyPropertyList(IEnumerable<Property> p)
         {
+            var original = new List<Property>(p);
+
             var ret = p.Cast<NameValueProperty>();
 
             // font needs special treatment, because of the / shorthand
@@ -280,6 +282,43 @@ namespace MoreInternals.Compiler.Tasks
                     "border-width-top", "border-width-right", "border-width-bottom", "border-width-left",
                     new NumberValue(0)
                 );
+            ret =
+                MinifyBorderWidthShorthand(
+                    ret,
+                    "border-style",
+                    "border-style-top", "border-style-right", "border-style-bottom", "border-style-left",
+                    new StringValue("none")
+                );
+            ret =
+                MinifyBorderWidthShorthand(
+                    ret,
+                    "border-color",
+                    "border-color-top", "border-color-right", "border-color-bottom", "border-color-left",
+                    new StringValue("transparent")
+                );
+            ret =
+                MinifyBorderWidthShorthand(
+                    ret,
+                    "margin",
+                    "margin-top", "margin-right", "margin-bottom", "margin-left",
+                    new NumberValue(0)
+                );
+            ret =
+                MinifyBorderWidthShorthand(
+                    ret,
+                    "padding",
+                    "padding-top", "padding-right", "padding-bottom", "padding-left",
+                    new NumberValue(0)
+                );
+
+            // minifying something may open opportunities for further minification
+            //   So continue trying until we're in a stable state.
+            // Theoretically we're not guaranteed to get the ideal minification, but
+            //   we'll find a local maximum this way.
+            if (!Current.DisableMultipleMinificationPasses && (ret.Count() != original.Count() || !ret.All(r => original.Contains(r))))
+            {
+                return MinifyPropertyList(ret);
+            }
 
             return ret;
         }
