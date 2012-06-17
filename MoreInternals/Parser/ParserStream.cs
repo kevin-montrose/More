@@ -145,7 +145,7 @@ namespace MoreInternals.Parser
                 }
                 else
                 {
-                    if (!isEscaped && c == '\'' || c == '"')
+                    if (!isEscaped && (c == '\'' || c == '"'))
                     {
                         nonTerminals.Push(c);
                     }

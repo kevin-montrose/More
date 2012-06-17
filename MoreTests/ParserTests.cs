@@ -1456,6 +1456,15 @@ namespace MoreTests
             var fRule = (NameValueProperty)fBlock.Properties.ElementAt(0);
             Assert.AreEqual("a", fRule.Name);
             Assert.AreEqual(@"b\; and more", fRule.Value.ToString());
+
+            var g = @"h { a: "" \"" "" }";
+            var gStatements = TryParseStatements(g);
+            Assert.AreEqual(1, gStatements.Count);
+            var gBlock = (SelectorAndBlock)gStatements[0];
+            Assert.AreEqual(@"h", ((ElementSelector)gBlock.Selector).Name);
+            var gRule = (NameValueProperty)gBlock.Properties.ElementAt(0);
+            Assert.AreEqual("a", gRule.Name);
+            Assert.AreEqual(@"' \"" '", gRule.Value.ToString());
         }
     }
 }
