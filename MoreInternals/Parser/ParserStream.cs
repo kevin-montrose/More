@@ -117,10 +117,14 @@ namespace MoreInternals.Parser
         /// Advances past needle as well.
         /// 
         /// Differs from ScanUtil in that needles between quotes and ()'s are not counted as terminating.
+        /// 
+        /// needles appear immediately after \ (the escape char) will not be considered matching.
         /// </summary>
         public void ScanUntilWithNesting(StringBuilder buffer, char needle, bool requireFound = true)
         {
             var start = Position;
+
+            var isEscaped = false;
 
             var nonTerminals = new Stack<char>();
             bool found = false;
@@ -128,7 +132,12 @@ namespace MoreInternals.Parser
             {
                 var c = Read();
 
-                if (nonTerminals.Count > 0 && nonTerminals.Peek() == c)
+                if (c == '\\')
+                {
+                    isEscaped = true;
+                }
+
+                if (!isEscaped && nonTerminals.Count > 0 && nonTerminals.Peek() == c)
                 {
                     nonTerminals.Pop();
                     buffer.Append(c);
@@ -136,21 +145,26 @@ namespace MoreInternals.Parser
                 }
                 else
                 {
-                    if (c == '\'' || c == '"')
+                    if (!isEscaped && c == '\'' || c == '"')
                     {
                         nonTerminals.Push(c);
                     }
 
-                    if (c == '(')
+                    if (!isEscaped && c == '(')
                     {
                         nonTerminals.Push(')');
                     }
                 }
 
-                if (nonTerminals.Count == 0 && c == needle)
+                if (!isEscaped && nonTerminals.Count == 0 && c == needle)
                 {
                     found = true;
                     break;
+                }
+
+                if (c != '\\')
+                {
+                    isEscaped = false;
                 }
 
                 buffer.Append(c);
@@ -168,18 +182,32 @@ namespace MoreInternals.Parser
         /// Advances past the needle as well.
         /// 
         /// If none of the needles are found, an error is encountered.
+        /// 
+        /// needles appear immediately after \ (the escape char) will not be considered matching.
         /// </summary>
         public char? ScanUntil(StringBuilder buffer, params char[] needles)
         {
+            var isEscaped = false;
+
             char? found = null;
             while (HasMore())
             {
                 var c = Read();
 
-                if (c.In(needles))
+                if (c == '\\')
+                {
+                    isEscaped = true;
+                }
+
+                if (!isEscaped && c.In(needles))
                 {
                     found = c;
                     break;
+                }
+
+                if (c != '\\')
+                {
+                    isEscaped = false;
                 }
 
                 buffer.Append(c);

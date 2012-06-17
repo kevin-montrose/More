@@ -1416,7 +1416,7 @@ namespace MoreTests
         }
 
         [TestMethod]
-        public void EscapedSelectors()
+        public void Escaping()
         {
             var a = @"\&b { a:b }";
             var aStatements = TryParseStatements(a);
@@ -1441,6 +1441,21 @@ namespace MoreTests
             Assert.AreEqual(1, dStatements.Count);
             var dBlock = (SelectorAndBlock)dStatements[0];
             Assert.AreEqual(@"hello\02b world", ((IdSelector)dBlock.Selector).Name);
+
+            var e = @"#fizz\{buzz { a:b }";
+            var eStatements = TryParseStatements(e);
+            Assert.AreEqual(1, eStatements.Count);
+            var eBlock = (SelectorAndBlock)eStatements[0];
+            Assert.AreEqual(@"fizz\{buzz", ((IdSelector)eBlock.Selector).Name);
+
+            var f = @"hello { a: b\; and more; }";
+            var fStatements = TryParseStatements(f);
+            Assert.AreEqual(1, fStatements.Count);
+            var fBlock = (SelectorAndBlock)fStatements[0];
+            Assert.AreEqual(@"hello", ((ElementSelector)fBlock.Selector).Name);
+            var fRule = (NameValueProperty)fBlock.Properties.ElementAt(0);
+            Assert.AreEqual("a", fRule.Name);
+            Assert.AreEqual(@"b\; and more", fRule.Value.ToString());
         }
     }
 }
