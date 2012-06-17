@@ -1414,5 +1414,33 @@ namespace MoreTests
             Assert.AreEqual("b", ((IdSelector)bBlock.Selector).Name);
             Assert.AreEqual(2, bBlock.Properties.Count());
         }
+
+        [TestMethod]
+        public void EscapedSelectors()
+        {
+            var a = @"\&b { a:b }";
+            var aStatements = TryParseStatements(a);
+            Assert.AreEqual(1, aStatements.Count);
+            var aBlock = (SelectorAndBlock)aStatements[0];
+            Assert.AreEqual(@"\&b", ((ElementSelector)aBlock.Selector).Name);
+
+            var b = @"hello\&b { a:b }";
+            var bStatements = TryParseStatements(b);
+            Assert.AreEqual(1, bStatements.Count);
+            var bBlock = (SelectorAndBlock)bStatements[0];
+            Assert.AreEqual(@"hello\&b", ((ElementSelector)bBlock.Selector).Name);
+
+            var c = @".hello\.world { a:b }";
+            var cStatements = TryParseStatements(c);
+            Assert.AreEqual(1, cStatements.Count);
+            var cBlock = (SelectorAndBlock)cStatements[0];
+            Assert.AreEqual(@"hello\.world", ((ClassSelector)cBlock.Selector).Name);
+
+            var d = @"#hello\02b world { a:b }";
+            var dStatements = TryParseStatements(d);
+            Assert.AreEqual(1, dStatements.Count);
+            var dBlock = (SelectorAndBlock)dStatements[0];
+            Assert.AreEqual(@"hello\02b world", ((IdSelector)dBlock.Selector).Name);
+        }
     }
 }

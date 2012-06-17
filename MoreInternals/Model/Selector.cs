@@ -217,13 +217,236 @@ namespace MoreInternals.Model
             return new AdjacentSiblingSelector(older, younger, start, stop, filePath);
         }
 
+        private static char NextSpecialChar(IEnumerable<char> alreadyUsed, IEnumerable<char> cantBeIn)
+        {
+            // time for an ugly american-ism
+            //   technically any character not in cantBeIn could be used here
+            //   but lets start at a "weird" character for easier debugging
+            //   we're only tossing away 52-ish characters.
+            const char startFrom = 'À';
+
+            var quickLookup = new HashSet<char>(cantBeIn);
+
+            var best = alreadyUsed.Count() > 0 ? (char)(alreadyUsed.Max() + 1) : startFrom;
+
+            while (!char.IsLetter(best) || quickLookup.Contains(best))
+            {
+                best++;
+            }
+
+            return best;
+        }
+
+        /// <summary>
+        /// Determines which string sequences in a selector are escape sequences, and replaces them
+        /// with characters that have no meaning in CSS (and don't appear elsewhere in the selector).
+        /// 
+        /// Returns a dictionary[char, string] that can be used to reverse this transformation.
+        /// </summary>
+        private static Dictionary<char, string> BuildEscapeMap(ref string rawSelector)
+        {
+            var ret = new Dictionary<char, string>();
+            var cleaned = new List<char>();
+
+            bool inEscape = false;
+            int escapeStarts = -1;
+
+            for (var i = 0; i < rawSelector.Length; i++)
+            {
+                var c = rawSelector[i];
+
+                if (c == '\\')
+                {
+                    inEscape = true;
+                    escapeStarts = i;
+                    continue;
+                }
+
+                if (!inEscape)
+                {
+                    cleaned.Add(c);
+                    continue;
+                }
+
+                // special character! (maybe!)
+                if (!char.IsLetterOrDigit(c) && i == escapeStarts + 1)
+                {
+                    var replacement = NextSpecialChar(ret.Keys, rawSelector);
+
+                    ret[replacement] = "\\" + c;
+                    cleaned.Add(replacement);
+                    inEscape = false;
+                    continue;
+                }
+
+                if (c == ' ' || (i - escapeStarts == 7))
+                {
+                    var sequence = rawSelector.Substring(escapeStarts, i - escapeStarts + 1);
+
+                    var replacement = NextSpecialChar(ret.Keys, rawSelector);
+
+                    ret[replacement] = sequence;
+
+                    cleaned.Add(replacement);
+                    inEscape = false;
+                    continue;
+                }
+            }
+
+            rawSelector = new string(cleaned.ToArray());
+
+            return ret;
+        }
+
+        private static string ApplyEscapeMap(string str, Dictionary<char, string> map)
+        {
+            foreach (var entry in map)
+            {
+                str = str.Replace(entry.Key.ToString(), entry.Value);
+            }
+
+            return str;
+        }
+
+        /// <summary>
+        /// Reverses the transformation applied by BuildEscapeMap on a selector.
+        /// </summary>
+        private static Selector ApplyEscapeMap(Selector sel, Dictionary<char, string> map)
+        {
+            // shortcircuit the typical case
+            if (map.Count == 0) return sel;
+
+            var multi = sel as MultiSelector;
+            if (multi != null)
+            {
+                var ret = multi.Selectors.Select(s => ApplyEscapeMap(s, map)).ToList();
+                return new MultiSelector(ret, multi.Start, multi.Stop, multi.FilePath);
+            }
+
+            var childSel = sel as ChildSelector;
+            if (childSel != null)
+            {
+                var parent = ApplyEscapeMap(childSel.Parent, map);
+                var child = ApplyEscapeMap(childSel.Child, map);
+
+                return new ChildSelector(parent, child, childSel.Start, childSel.Stop, childSel.FilePath);
+            }
+
+            var sibling = sel as AdjacentSiblingSelector;
+            if(sibling != null)
+            {
+                var older = ApplyEscapeMap(sibling.Older, map);
+                var younger = ApplyEscapeMap(sibling.Younger, map);
+
+                return new AdjacentSiblingSelector(older, younger, sibling.Start, sibling.Stop, sibling.FilePath);
+            }
+
+            var compound = sel as CompoundSelector;
+            if (compound != null)
+            {
+                var inner = ApplyEscapeMap(compound.Inner, map);
+                var outer = ApplyEscapeMap(compound.Outer, map);
+
+                return new CompoundSelector(inner, outer, compound.Start, compound.Stop, compound.FilePath);
+            }
+
+            var concat = sel as ConcatWithParentSelector;
+            if (concat != null)
+            {
+                var subSel = ApplyEscapeMap(concat.Selector, map);
+
+                return new ConcatWithParentSelector(subSel, concat.Start, concat.Stop, concat.FilePath);
+            }
+
+            var attrOp = sel as AttributeOperatorSelector;
+            if (attrOp != null)
+            {
+                var attr = ApplyEscapeMap(attrOp.Attribute, map);
+                var value = ApplyEscapeMap(attrOp.Value, map);
+
+                return new AttributeOperatorSelector(attr, attrOp.Operator, value, attrOp.Start, attrOp.Stop, attrOp.FilePath);
+            }
+
+            var attrSet = sel as AttributeSetSelector;
+            if (attrSet != null)
+            {
+                var attr = ApplyEscapeMap(attrSet.Attribute, map);
+
+                return new AttributeSetSelector(attr, attrSet.Start, attrSet.Stop, attrSet.FilePath);
+            }
+
+            var @class = sel as ClassSelector;
+            if (@class != null)
+            {
+                var className = ApplyEscapeMap(@class.Name, map);
+
+                return new ClassSelector(className, @class.Start, @class.Stop, @class.FilePath);
+            }
+
+            var concatSel = sel as ConcatSelector;
+            if (concatSel != null)
+            {
+                var sels = concatSel.Selectors.Select(s => ApplyEscapeMap(s, map)).ToList();
+
+                return new ConcatSelector(sels, concatSel.Start, concatSel.Stop, concatSel.FilePath);
+            }
+
+            var elem = sel as ElementSelector;
+            if (elem != null)
+            {
+                var name = ApplyEscapeMap(elem.Name, map);
+
+                return new ElementSelector(name, elem.Start, elem.Stop, elem.FilePath);
+            }
+
+            var id = sel as IdSelector;
+            if (id != null)
+            {
+                var name = ApplyEscapeMap(id.Name, map);
+
+                return new IdSelector(name, id.Start, id.Stop, id.FilePath);
+            }
+
+            var langSel = sel as LangPseudoClassSelector;
+            if (langSel != null)
+            {
+                var lang = ApplyEscapeMap(langSel.Language, map);
+
+                return new LangPseudoClassSelector(lang, langSel.Start, langSel.Stop, langSel.FilePath);
+            }
+
+            var not = sel as NotPseudoClassSelector;
+            if (not != null)
+            {
+                var innerSel = ApplyEscapeMap(not.Selector, map);
+
+                return new NotPseudoClassSelector(innerSel, not.Start, not.Stop, not.FilePath);
+            }
+
+            // You can't really escape and have valid versions of these selectors
+            if (sel is NthChildPsuedoClassSelector || sel is NthLastChildPseudoClassSelector) return sel;
+
+            // Likewise
+            if (sel is NthOfTypePseudoClassSelector || sel is NthLastOfTypePseudoClassSelector) return sel;
+
+            // Ditto
+            if (sel is PseudoClassSelector) return sel;
+
+            // And lucky #4
+            if (sel is WildcardSelector) return sel;
+
+            throw new InvalidOperationException(sel + " should have been handled but wasn't");
+        }
+
         private static Selector ParseRawSelector(string raw, int start, int stop, string filePath)
         {
+            var escapeMap = BuildEscapeMap(ref raw);
+
             raw = raw.Trim();
 
-            if (raw.Contains(',')) return ParseRawCommaDelimittedSelector(raw.Split(','), start, stop, filePath);
-            if (raw.Contains('>')) return ParseRawChildSelector(raw.Split('>'), start, stop, filePath);
-            if (raw.Contains('+')) return ParseRawSiblingSelector(raw.Split('+'), start, stop, filePath);
+            if (raw.Contains(',')) return ApplyEscapeMap(ParseRawCommaDelimittedSelector(raw.Split(','), start, stop, filePath), escapeMap);
+            if (raw.Contains('>')) return ApplyEscapeMap(ParseRawChildSelector(raw.Split('>'), start, stop, filePath), escapeMap);
+            if (raw.Contains('+')) return ApplyEscapeMap(ParseRawSiblingSelector(raw.Split('+'), start, stop, filePath), escapeMap);
 
             var parts = new List<Selector>();
 
@@ -234,7 +457,7 @@ namespace MoreInternals.Model
                 parts.Add(ParseRawCompoundSelector(x, start, stop, filePath));
             }
 
-            if (parts.Count == 1) { return parts[0]; }
+            if (parts.Count == 1) { return ApplyEscapeMap(parts[0], escapeMap); }
 
             var ret = parts[parts.Count - 1];
 
@@ -243,7 +466,7 @@ namespace MoreInternals.Model
                 ret = CompoundSelector.CombineSelectors(parts[i], ret, start, stop, filePath);
             }
 
-            return ret;
+            return ApplyEscapeMap(ret, escapeMap);
         }
 
         public static Selector Parse(string raw, int start, int stop, string filePath)
@@ -472,7 +695,7 @@ namespace MoreInternals.Model
         public Selector Outer { get; private set; }
         public Selector Inner { get; private set; }
 
-        private CompoundSelector(Selector outer, Selector inner, int start, int stop, string filePath)
+        internal CompoundSelector(Selector outer, Selector inner, int start, int stop, string filePath)
         {
             Outer = outer;
             Inner = inner;
