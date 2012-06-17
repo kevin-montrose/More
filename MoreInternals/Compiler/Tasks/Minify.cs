@@ -311,6 +311,44 @@ namespace MoreInternals.Compiler.Tasks
                     new NumberValue(0)
                 );
 
+            // And now for the CSS3 shorthands
+            ret = 
+                MinifyGenericShorthand(
+                    ret,
+                    "animation",
+                    "animation-name", "animation-duration", "animation-timing-function", "animation-delay", "animation-iteration-count", "animation-direction", "animation-fill-mode"
+                );
+            ret = 
+                MinifyGenericShorthand(
+                    ret,
+                    "column-rule",
+                    "column-rule-width", "column-rule-style", "column-rule-color"
+                );
+            ret =
+                MinifyGenericShorthand(
+                    ret,
+                    "columns",
+                    "column-width", "column-count"
+                );
+            ret =
+                MinifyGenericShorthand(
+                    ret,
+                    "line-stacking",
+                    "line-stacking-strategy", "line-stacking-ruby", "line-stacking-shift"
+                );
+            ret =
+                MinifyGenericShorthand(
+                    ret,
+                    "target",
+                    "target-name", "target-new", "target-position"
+                );
+            ret =
+                MinifyGenericShorthand(
+                    ret,
+                    "transition",
+                    "transition-property", "transition-duration", "transition-timing-function", "transition-delay"
+                );
+
             // minifying something may open opportunities for further minification
             //   So continue trying until we're in a stable state.
             // Theoretically we're not guaranteed to get the ideal minification, but
