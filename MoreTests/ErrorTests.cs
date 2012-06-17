@@ -1141,6 +1141,9 @@ namespace MoreTests
             Assert.IsTrue(Validation.IsIdentifier("-not-reserved"));
             Assert.IsTrue(Validation.IsIdentifier("my_id"));
             Assert.IsTrue(Validation.IsIdentifier("𡀗"));
+
+            Assert.IsTrue(Validation.IsIdentifier(@"\26 B"));
+            Assert.IsTrue(Validation.IsIdentifier(@"hello\000026B"));
         }
     }
 }
