@@ -1464,6 +1464,12 @@ namespace MoreTests
                     i: 2.54cm;
                     j: 1000ms;
                     k: 234ms;
+                    l: 360deg;
+                    m: 800grad;
+                    n: " + (decimal)Math.PI + @"rad;
+                    o: 1turn;
+                    p: 1000hz;
+                    q: .001khz;
                   }";
 
             var min = TryCompile(c, minify: true);
@@ -1475,7 +1481,7 @@ namespace MoreTests
             Assert.IsNotNull(max);
             Assert.AreNotEqual(min, max);
 
-            Assert.AreEqual("img{a:#abc;b:#64321e;c:rgba(80,40,20,1);d:green;e:green;f:rgba(128,0,128,1);g:1cm;h:1;i:1in;j:1s;k:234ms}", min);
+            Assert.AreEqual("img{a:#abc;b:#64321e;c:rgba(80,40,20,1);d:green;e:green;f:rgba(128,0,128,1);g:1cm;h:1;i:1in;j:1s;k:234ms;l:1turn;m:2turn;n:180deg;o:1turn;p:1khz;q:1hz}", min);
         }
 
         private int GZipSize(string str)
@@ -1832,7 +1838,7 @@ namespace MoreTests
             var written = TryCompile(c, minify: true);
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual(".class{a:5.006s;b:157mm;c:0.5765cm;d:131.231mm}", written);
+            Assert.AreEqual(".class{a:5.006s;b:157mm;c:5.765mm;d:131.231mm}", written);
         }
 
         [TestMethod]

@@ -35,6 +35,12 @@ namespace MoreInternals.Model
         PC,
         S,
         MS,
+        DEG,
+        GRAD,
+        RAD,
+        TURN,
+        HZ,
+        KHZ,
 
         // Only valid in media queries
         DPI,

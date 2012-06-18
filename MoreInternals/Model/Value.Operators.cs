@@ -30,7 +30,7 @@ namespace MoreInternals.Model
             }
         );
 
-        // Anything not in the this list is not a convertable time unit, the ratios are to milliseconds
+        // Anything not in this list is not a convertable time unit, the ratios are to milliseconds
         internal static ReadOnlyDictionary<Unit, decimal> ConvertableTimeUnits = new ReadOnlyDictionary<Unit, decimal>(
             new Dictionary<Unit, decimal>()
             {
@@ -39,12 +39,32 @@ namespace MoreInternals.Model
             }
         );
 
-        // Anything not in the this list is not a convertable resolution unit, the ratios are to dpcm
+        // Anything not in this list is not a convertable resolution unit, the ratios are to dpcm
         internal static ReadOnlyDictionary<Unit, decimal> ConvertableResolutionUnits = new ReadOnlyDictionary<Unit, decimal>(
             new Dictionary<Unit, decimal>()
             {
                 { Unit.DPCM, 1m },
                 { Unit.DPI, 2.54m }
+            }
+        );
+
+        // Anything not in this list is not a convertable angle unit, the ratios are to turns
+        internal static ReadOnlyDictionary<Unit, decimal> ConvertableAngleUnits = new ReadOnlyDictionary<Unit, decimal>(
+            new Dictionary<Unit, decimal>()
+            {
+                { Unit.TURN, 1 },
+                { Unit.DEG, 1m / 360m },
+                { Unit.GRAD, 1m / 400m },
+                { Unit.RAD, 1m / (decimal)(Math.PI * 2) }
+            }
+        );
+
+        // Anything not in this list is not a convertable frequency unit, the ratios are to hertz
+        internal static ReadOnlyDictionary<Unit, decimal> ConvertableFrequencyUnits = new ReadOnlyDictionary<Unit, decimal>(
+            new Dictionary<Unit, decimal>()
+            {
+                { Unit.HZ, 1 },
+                { Unit.KHZ, 1000 }
             }
         );
 
@@ -64,8 +84,14 @@ namespace MoreInternals.Model
                 {
                     if (!ConvertableResolutionUnits.TryGetValue(fromUnit, out fromRatio) || !ConvertableResolutionUnits.TryGetValue(toUnit, out toRatio))
                     {
-                        converted = 0;
-                        return false;
+                        if (!ConvertableAngleUnits.TryGetValue(fromUnit, out fromRatio) || !ConvertableAngleUnits.TryGetValue(toUnit, out toRatio))
+                        {
+                            if (!ConvertableFrequencyUnits.TryGetValue(fromUnit, out fromRatio) || !ConvertableFrequencyUnits.TryGetValue(toUnit, out toRatio))
+                            {
+                                converted = 0;
+                                return false;
+                            }
+                        }
                     }
                 }
             }

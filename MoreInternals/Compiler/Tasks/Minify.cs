@@ -58,8 +58,10 @@ namespace MoreInternals.Compiler.Tasks
             return new HexSextupleColorValue(red, green, blue);
         }
 
-        private static NumberWithUnitValue MinifyNumberWithUnit(NumberWithUnitValue value)
+        private static void TryMinifyNumberWithUnit(NumberWithUnitValue value, ReadOnlyDictionary<Unit, decimal> possibleConversions, ref NumberWithUnitValue smallest)
         {
+            if (!possibleConversions.ContainsKey(value.Unit)) return;
+
             var min = MinifyNumberValue(value);
 
             var ret = new NumberWithUnitValue(min.Value, value.Unit);
@@ -70,78 +72,48 @@ namespace MoreInternals.Compiler.Tasks
                 retStr = buffer.ToString();
             }
 
-            if (Value.ConvertableSizeUnits.ContainsKey(value.Unit))
+            var inBasic = min.Value * possibleConversions[value.Unit];
+
+            foreach (var unit in possibleConversions.Keys)
             {
-                var inMM = min.Value * Value.ConvertableSizeUnits[value.Unit];
+                var conversion = possibleConversions[unit];
 
-                foreach (var unit in Value.ConvertableSizeUnits.Keys)
+                var maxPrecision = inBasic / conversion;
+
+                // 5 decimal points seems like an acceptable level of precision; webkit seems to agree
+                var inUnit = decimal.Round(maxPrecision, 5);
+
+                var asNum = new NumberValue(inUnit);
+                var minified = MinifyNumberValue(asNum);
+
+                var newMin = new NumberWithUnitValue(minified.Value, unit);
+                string newMinStr;
+
+                using (var buffer = new StringWriter())
                 {
-                    var inUnit = inMM / Value.ConvertableSizeUnits[unit];
+                    newMin.Write(buffer);
+                    newMinStr = buffer.ToString();
+                }
 
-                    var newMin = new NumberWithUnitValue(MinifyNumberValue(new NumberValue(inUnit)).Value, unit);
-                    string newMinStr;
-
-                    using (var buffer = new StringWriter())
-                    {
-                        newMin.Write(buffer);
-                        newMinStr = buffer.ToString();
-                    }
-
-                    if (newMinStr.Length < retStr.Length)
-                    {
-                        ret = newMin;
-                        retStr = newMinStr;
-                    }
+                if (newMinStr.Length < retStr.Length)
+                {
+                    ret = newMin;
+                    retStr = newMinStr;
                 }
             }
 
-            if (Value.ConvertableTimeUnits.ContainsKey(value.Unit))
-            {
-                var inS = min.Value * Value.ConvertableTimeUnits[value.Unit];
+            smallest = ret;
+        }
 
-                foreach (var unit in Value.ConvertableTimeUnits.Keys)
-                {
-                    var inUnit = inS / Value.ConvertableTimeUnits[unit];
-                    var newMin = new NumberWithUnitValue(MinifyNumberValue(new NumberValue(inUnit)).Value, unit);
-                    string newMinStr;
+        private static NumberWithUnitValue MinifyNumberWithUnit(NumberWithUnitValue value)
+        {
+            var ret = value;
 
-                    using (var buffer = new StringWriter())
-                    {
-                        newMin.Write(buffer);
-                        newMinStr = buffer.ToString();
-                    }
-
-                    if (newMinStr.Length < retStr.Length)
-                    {
-                        ret = newMin;
-                        retStr = newMinStr;
-                    }
-                }
-            }
-
-            if (Value.ConvertableResolutionUnits.ContainsKey(value.Unit))
-            {
-                var inDpcm = min.Value * Value.ConvertableResolutionUnits[value.Unit];
-
-                foreach (var unit in Value.ConvertableResolutionUnits.Keys)
-                {
-                    var inUnit = inDpcm / Value.ConvertableResolutionUnits[unit];
-                    var newMin = new NumberWithUnitValue(MinifyNumberValue(new NumberValue(inUnit)).Value, unit);
-                    string newMinStr;
-
-                    using (var buffer = new StringWriter())
-                    {
-                        newMin.Write(buffer);
-                        newMinStr = buffer.ToString();
-                    }
-
-                    if (newMinStr.Length < retStr.Length)
-                    {
-                        ret = newMin;
-                        retStr = newMinStr;
-                    }
-                }
-            }
+            TryMinifyNumberWithUnit(value, Value.ConvertableSizeUnits, ref ret);
+            TryMinifyNumberWithUnit(value, Value.ConvertableTimeUnits, ref ret);
+            TryMinifyNumberWithUnit(value, Value.ConvertableResolutionUnits, ref ret);
+            TryMinifyNumberWithUnit(value, Value.ConvertableAngleUnits, ref ret);
+            TryMinifyNumberWithUnit(value, Value.ConvertableFrequencyUnits, ref ret);
 
             return ret;
         }
@@ -151,7 +123,8 @@ namespace MoreInternals.Compiler.Tasks
             var asStr = value.Value.ToString();
             if (asStr.Contains('.'))
             {
-                asStr = asStr.TrimEnd('0', '.');
+                asStr = asStr.TrimEnd('0');
+                asStr = asStr.TrimEnd('.');
             }
 
             asStr = asStr.TrimStart('0');

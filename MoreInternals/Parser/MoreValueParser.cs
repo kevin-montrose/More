@@ -408,10 +408,28 @@ namespace MoreInternals.Parser
                 }
             }
 
+            if (inStr.StartsWith("khz", StringComparison.InvariantCultureIgnoreCase))
+            {
+                pushBack = inStr.Skip(3).ToList();
+                return Unit.KHZ;
+            }
+
             if (inStr.StartsWith("rem", StringComparison.InvariantCultureIgnoreCase))
             {
                 pushBack = inStr.Skip(3).ToList();
                 return Unit.REM;
+            }
+
+            if (inStr.StartsWith("deg", StringComparison.InvariantCultureIgnoreCase))
+            {
+                pushBack = inStr.Skip(3).ToList();
+                return Unit.DEG;
+            }
+
+            if (inStr.StartsWith("rad", StringComparison.InvariantCultureIgnoreCase))
+            {
+                pushBack = inStr.Skip(3).ToList();
+                return Unit.RAD;
             }
 
             if (inStr.StartsWith("dpi", StringComparison.InvariantCultureIgnoreCase))
@@ -424,6 +442,18 @@ namespace MoreInternals.Parser
             {
                 pushBack = inStr.Skip(4).ToList();
                 return Unit.DPCM;
+            }
+
+            if (inStr.StartsWith("grad", StringComparison.InvariantCultureIgnoreCase))
+            {
+                pushBack = inStr.Skip(4).ToList();
+                return Unit.GRAD;
+            }
+
+            if (inStr.StartsWith("turn", StringComparison.InvariantCultureIgnoreCase))
+            {
+                pushBack = inStr.Skip(4).ToList();
+                return Unit.TURN;
             }
 
             pushBack = inStr.ToList();
