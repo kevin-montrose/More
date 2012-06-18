@@ -1616,6 +1616,82 @@ namespace MoreInternals.Model
         }
     }
 
+    class CycleValue : Value
+    {
+        public IEnumerable<Value> Values { get; private set; }
+
+        internal CycleValue(IEnumerable<Value> values)
+        {
+            Values = values.ToList().AsReadOnly();
+        }
+
+        public override Value Bind(Scope scope)
+        {
+            return new CycleValue(Values.Select(s => s.Bind(scope)));
+        }
+
+        internal override Value Evaluate()
+        {
+            return new CycleValue(Values.Select(s => s.Evaluate()));
+        }
+
+        internal override List<string> ReferredToVariables()
+        {
+            return Values.SelectMany(s => s.ReferredToVariables()).ToList();
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as CycleValue;
+            if (other == null) return false;
+
+            var otherValues = other.Values;
+
+            if (otherValues.Count() != Values.Count()) return false;
+
+            for (var i = 0; i < Values.Count(); i++)
+            {
+                var otherVal = otherValues.ElementAt(i);
+                var val = Values.ElementAt(i);
+
+                if (!val.Equals(otherVal)) return false;
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            var ret = 0;
+
+            for(var i = 0; i < Values.Count(); i++)
+            {
+                var val = Values.ElementAt(i);
+                ret ^= val.GetHashCode();
+
+                if (i % 2 == 0) ret *= -1;
+            }
+
+            return ret;
+        }
+
+        internal override void Write(TextWriter output)
+        {
+            output.Write("calc(");
+
+            var first = Values.First();
+            first.Write(output);
+
+            foreach (var val in Values.Skip(1))
+            {
+                output.Write(',');
+                val.Write(output);
+            }
+
+            output.Write(')');
+        }
+    }
+
     class UrlValue : Value
     {
         public Value UrlPath { get; private set; }

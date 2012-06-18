@@ -188,11 +188,29 @@ namespace MoreInternals.Parser
                         var comma = val as CommaDelimittedValue;
                         if (comma != null)
                         {
-                            Current.RecordError(ErrorType.Parser, forPosition, "Expected 1 parameter to local() value, found "+comma.Values.Count());
+                            Current.RecordError(ErrorType.Parser, forPosition, "Expected 1 parameter to local() value, found " + comma.Values.Count());
                             throw new StoppedParsingException();
                         }
 
                         return new LocalValue(val);
+                    }
+
+                    if (toDate.Equals("cycle", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var val = ParseGroup(stream, forPosition).Value;
+                        var param = new List<Value>();
+
+                        var comma = val as CommaDelimittedValue;
+                        if (comma != null)
+                        {
+                            param.AddRange(comma.Values);
+                        }
+                        else
+                        {
+                            param.Add(val);
+                        }
+
+                        return new CycleValue(param);
                     }
                 }
 

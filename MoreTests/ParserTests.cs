@@ -1466,5 +1466,45 @@ namespace MoreTests
             Assert.AreEqual("a", gRule.Name);
             Assert.AreEqual(@"' \"" '", gRule.Value.ToString());
         }
+
+        [TestMethod]
+        public void Calc()
+        {
+            var aStatements =
+                TryParseStatements(
+                    @"a { 
+                        b: cycle(foo);
+                        c: hello world, cycle(bar), even more;
+                        d: cycle(fizz, buzz, whatever);
+                      }"
+                );
+            Assert.AreEqual(1, aStatements.Count);
+            var aBlock = (SelectorAndBlock)aStatements[0];
+            var props = aBlock.Properties.Cast<NameValueProperty>();
+            Assert.AreEqual(3, props.Count());
+            var aRule1 = props.Single(a => a.Name == "b").Value;
+            var aRule2 = props.Single(a => a.Name == "c").Value;
+            var aRule3 = props.Single(a => a.Name == "d").Value;
+            
+            var cycle1 = aRule1 as CycleValue;
+            Assert.IsNotNull(cycle1);
+            Assert.AreEqual(1, cycle1.Values.Count());
+            Assert.AreEqual("foo", cycle1.Values.Single().ToString());
+
+            var comma2 = aRule2 as CommaDelimittedValue;
+            Assert.IsNotNull(comma2);
+            Assert.AreEqual(3, comma2.Values.Count());
+            var cycle2 = comma2.Values.ElementAt(1) as CycleValue;
+            Assert.IsNotNull(cycle2);
+            Assert.AreEqual(1, cycle2.Values.Count());
+            Assert.AreEqual("bar", cycle2.Values.Single().ToString());
+
+            var cycle3 = aRule3 as CycleValue;
+            Assert.IsNotNull(cycle3);
+            Assert.AreEqual(3, cycle3.Values.Count());
+            Assert.AreEqual("fizz", cycle3.Values.ElementAt(0).ToString());
+            Assert.AreEqual("buzz", cycle3.Values.ElementAt(1).ToString());
+            Assert.AreEqual("whatever", cycle3.Values.ElementAt(2).ToString());
+        }
     }
 }

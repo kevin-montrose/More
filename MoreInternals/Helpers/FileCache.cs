@@ -73,11 +73,14 @@ namespace MoreInternals.Helpers
 
                 return toCache;
             }
-            catch (Exception)
+// this exception is very useful when debugging, even if we don't use it during normal operation
+#pragma warning disable 0168
+            catch (Exception e)
             {
                 Corrupted = true;
                 throw;
             }
+#pragma warning restore 0168
             finally
             {
                 lock (InProgress)
