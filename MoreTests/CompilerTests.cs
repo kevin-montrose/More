@@ -2482,5 +2482,22 @@ namespace MoreTests
             Assert.AreEqual("first-line was used as a class, but is an element.  Use :: instead.", aWarnings[1].Message);
             Assert.AreEqual("b:first-line { c:d; }", aWarnings[1].Snippet(new StringReader(a)).Trim());
         }
+
+        [TestMethod]
+        public void Cycle()
+        {
+            var written =
+                TryCompile(
+                    @"@x = cat;
+                      @y = 10;
+                      @z = 20px;
+                      a {
+                        b: cycle(a,b,c,d);
+                        c: hello, cycle(@x, indeed, @y+@z);
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{b:cycle(a,b,c,d);c:hello,cycle(cat,indeed,30px)}", written);
+        }
     }
 }

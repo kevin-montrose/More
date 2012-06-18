@@ -1677,7 +1677,7 @@ namespace MoreInternals.Model
 
         internal override void Write(TextWriter output)
         {
-            output.Write("calc(");
+            output.Write("cycle(");
 
             var first = Values.First();
             first.Write(output);
