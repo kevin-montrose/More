@@ -1620,6 +1620,14 @@ namespace MoreInternals.Model
     {
         public IEnumerable<Value> Values { get; private set; }
 
+        public override bool NeedsEvaluate
+        {
+            get
+            {
+                return Values.Any(a => a.NeedsEvaluate);
+            }
+        }
+
         internal CycleValue(IEnumerable<Value> values)
         {
             Values = values.ToList().AsReadOnly();
@@ -1690,6 +1698,97 @@ namespace MoreInternals.Model
 
             output.Write(')');
         }
+    }
+
+    class AttributeValue : Value
+    {
+        public Value Attribute { get; private set; }
+
+        public Value Type { get; private set; }
+
+        public Value Fallback { get; private set; }
+
+        public override bool NeedsEvaluate
+        {
+            get
+            {
+                return Attribute.NeedsEvaluate || Type.NeedsEvaluate || Fallback.NeedsEvaluate;
+            }
+        }
+
+        internal AttributeValue(Value attr, Value type, Value fallback)
+        {
+            Attribute = attr;
+            Type = type;
+            Fallback = fallback;
+        }
+
+        public override Value Bind(Scope scope)
+        {
+            return new AttributeValue(Attribute.Bind(scope), Type.Bind(scope), Fallback.Bind(scope));
+        }
+
+        internal override Value Evaluate()
+        {
+            return new AttributeValue(Attribute.Evaluate(), Type.Evaluate(), Fallback.Evaluate());
+        }
+
+        internal override List<string> ReferredToVariables()
+        {
+            return Attribute.ReferredToVariables().Union(Type.ReferredToVariables()).Union(Fallback.ReferredToVariables()).ToList();
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as AttributeValue;
+            if (other == null) return false;
+
+            var typeEquality = Type != null ? Type.Equals(other.Type) : other.Type == null;
+            var fallbackEquality = Fallback != null ? Fallback.Equals(other.Fallback) : other.Fallback == null;
+
+            return
+                Attribute.Equals(other.Attribute) &&
+                typeEquality &&
+                fallbackEquality;
+        }
+
+        public override int GetHashCode()
+        {
+            var attrHash = Attribute.GetHashCode();
+            var typeHash = Type != null ? Type.GetHashCode() : 0.GetHashCode();
+            var fallbackHash = Fallback != null ? Fallback.GetHashCode() : 0.GetHashCode();
+
+            return
+                attrHash ^
+                (-1 * typeHash) ^
+                fallbackHash;
+        }
+
+        internal override void Write(TextWriter output)
+        {
+            output.Write("attr(");
+
+            Attribute.Write(output);
+
+            if (Type != null)
+            {
+                output.Write(' ');
+                Type.Write(output);
+            }
+
+            if (Fallback != null)
+            {
+                output.Write(',');
+                Fallback.Write(output);
+            }
+
+            output.Write(')');
+        }
+    }
+
+    class CalcValue : Value
+    {
+
     }
 
     class UrlValue : Value

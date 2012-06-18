@@ -493,5 +493,33 @@ namespace MoreTests
             Assert.AreEqual(typeof(ImportantValue), fC.Values.ElementAt(1).GetType());
             Assert.AreEqual(typeof(ImportantValue), gC.Values.ElementAt(1).GetType());
         }
+
+        [TestMethod]
+        public void Attr()
+        {
+            var a = Value.Parse("attr(length)");
+            var b = Value.Parse("attr(length px)");
+            var c = Value.Parse("attr(length px, 10px)");
+
+            Assert.AreEqual(typeof(AttributeValue), a.GetType());
+            Assert.AreEqual(typeof(AttributeValue), b.GetType());
+            Assert.AreEqual(typeof(AttributeValue), c.GetType());
+
+            var aAttr = (AttributeValue)a;
+            var bAttr = (AttributeValue)b;
+            var cAttr = (AttributeValue)c;
+
+            Assert.AreEqual("length", aAttr.Attribute.ToString());
+            Assert.AreEqual("length", bAttr.Attribute.ToString());
+            Assert.AreEqual("length", cAttr.Attribute.ToString());
+
+            Assert.AreEqual(null, aAttr.Type);
+            Assert.AreEqual("px", bAttr.Type.ToString());
+            Assert.AreEqual("px", cAttr.Type.ToString());
+
+            Assert.AreEqual(null, aAttr.Fallback);
+            Assert.AreEqual(null, bAttr.Fallback);
+            Assert.AreEqual("10px", cAttr.Fallback.ToString());
+        }
     }
 }

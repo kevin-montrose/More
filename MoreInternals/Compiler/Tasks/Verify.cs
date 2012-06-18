@@ -10,7 +10,8 @@ namespace MoreInternals.Compiler.Tasks
     /// <summary>
     /// Task which does all sorts of "post CSS generation" checks for correctness.
     /// 
-    /// Currently, this is limited to checking that media-queries make sense.
+    /// This checks that media-queries make sense, and that cycle() doesn't violate some constraints.
+    /// 
     /// In the future, this may come to mean all sorts of "property x should be of type y" sorts
     /// of checks.
     /// </summary>
@@ -418,6 +419,41 @@ namespace MoreInternals.Compiler.Tasks
             VerifyPossible(query, query);
         }
 
+        private static void VerifyCycle(IEnumerable<Value> values)
+        {
+            foreach(var value in values)
+            {
+                var comma = value as CommaDelimittedValue;
+                if (comma != null)
+                {
+                    VerifyCycle(comma.Values);
+                    continue;
+                }
+
+                var compound = value as CompoundValue;
+                if (compound != null)
+                {
+                    VerifyCycle(compound.Values);
+                    continue;
+                }
+
+                var cycle = value as CycleValue;
+                if (cycle != null)
+                {
+                    // per http://www.w3.org/TR/css3-values/#cycle ; cycle containing attr() and calc() are invalid
+                    if (cycle.Values.OfType<AttributeValue>().Count() != 0)
+                    {
+                        Current.RecordError(ErrorType.Compiler, cycle, "cycle() values cannot contain attr() values");
+                    }
+
+                    if (cycle.Values.OfType<CalcValue>().Count() != 0)
+                    {
+                        Current.RecordError(ErrorType.Compiler, cycle, "cycle() values cannot contain calc() values");
+                    }
+                }
+            }
+        }
+
         public static List<Block> Task(List<Block> blocks)
         {
             var media = blocks.OfType<MediaBlock>().Select(t => t.MediaQuery);
@@ -427,6 +463,16 @@ namespace MoreInternals.Compiler.Tasks
             var toVerify = media.Union(import).Union(@using).ToList();
 
             toVerify.Each(v => VerifyQuery(v));
+
+            var allProps =
+                blocks.OfType<SelectorAndBlock>().SelectMany(s => s.Properties)
+                .Union(
+                    blocks.OfType<MediaBlock>().Select(m => m.Blocks).OfType<SelectorAndBlock>().SelectMany(s => s.Properties)
+                );
+
+            var values = allProps.OfType<NameValueProperty>().Select(s => s.Value).ToList();
+
+            VerifyCycle(values);
 
             return blocks;
         }

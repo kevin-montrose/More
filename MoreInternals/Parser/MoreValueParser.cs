@@ -177,6 +177,52 @@ namespace MoreInternals.Parser
                                 @params.Values.ElementAt(3)
                             );
                     }
+
+                    if (toDate.Equals("attr", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var @params = ParseGroup(stream, forPosition).Value;
+
+                        Value attrAndType, attr, type, fallback;
+
+                        var comma = @params as CommaDelimittedValue;
+                        if (comma != null)
+                        {
+                            if (comma.Values.Count() > 2)
+                            {
+                                Current.RecordError(ErrorType.Parser, forPosition, "attr expects 1 or 2 parameters, found " + comma);
+                                throw new StoppedParsingException();
+                            }
+
+                            attrAndType = comma.Values.ElementAt(0);
+
+                            fallback = comma.Values.Count() == 2 ? comma.Values.ElementAt(1) : null;
+                        }
+                        else
+                        {
+                            attrAndType = @params;
+                            fallback = null;
+                        }
+
+                        var compound = attrAndType as CompoundValue;
+                        if (compound != null)
+                        {
+                            if (compound.Values.Count() > 2)
+                            {
+                                Current.RecordError(ErrorType.Parser, forPosition, "attr expects an attribute name and optionally a type, found " + compound);
+                                throw new StoppedParsingException();
+                            }
+
+                            attr = compound.Values.ElementAt(0);
+                            type = compound.Values.Count() == 2 ? compound.Values.ElementAt(1) : null;
+                        }
+                        else
+                        {
+                            attr = attrAndType;
+                            type = null;
+                        }
+
+                        return new AttributeValue(attr, type, fallback);
+                    }
                 }
 
                 if (buffer.Length == 5 && (stream.HasMore() && stream.Peek() == '('))
