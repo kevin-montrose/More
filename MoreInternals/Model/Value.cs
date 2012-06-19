@@ -537,10 +537,10 @@ namespace MoreInternals.Model
             return new List<string>() { this.Name };
         }
 
-        [ExcludeFromCodeCoverage]
-        public override string ToString()
+        internal override void Write(TextWriter output)
         {
-            return "@" + Name;
+            output.Write('@');
+            output.Write(Name);
         }
     }
 
