@@ -1145,5 +1145,21 @@ namespace MoreTests
             Assert.IsTrue(Validation.IsIdentifier(@"\26 B"));
             Assert.IsTrue(Validation.IsIdentifier(@"hello\000026B"));
         }
+
+        [TestMethod]
+        public void InvalidCycle()
+        {
+            var a =
+                @"a { 
+                    b: cycle(hello, attr(length)); 
+                    c: cycle(foo, calc(3px + 10%));
+                  }";
+            TryCompile(a);
+            Assert.IsTrue(Current.HasErrors());
+            var aErrors = Current.GetErrors(ErrorType.Compiler);
+
+            Assert.AreEqual("cycle() values cannot contain attr() values", aErrors[0].Message);
+            Assert.AreEqual("cycle() values cannot contain calc() values", aErrors[1].Message);
+        }
     }
 }
