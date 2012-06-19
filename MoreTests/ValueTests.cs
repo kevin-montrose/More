@@ -521,5 +521,29 @@ namespace MoreTests
             Assert.AreEqual(null, bAttr.Fallback);
             Assert.AreEqual("10px", cAttr.Fallback.ToString());
         }
+
+        [TestMethod]
+        public void Calc()
+        {
+            var a = Value.Parse("calc(20%)");
+            var b = Value.Parse("calc(20 + 30px)");
+            var c = Value.Parse("calc(20% - 2em)");
+            var d = Value.Parse("calc((20% - 14) / 2 + 1rem)");
+
+            Assert.AreEqual(typeof(CalcValue), a.GetType());
+            Assert.AreEqual(typeof(CalcValue), b.GetType());
+            Assert.AreEqual(typeof(CalcValue), c.GetType());
+            Assert.AreEqual(typeof(CalcValue), d.GetType());
+
+            var aCalc = (CalcValue)a;
+            var bCalc = (CalcValue)b;
+            var cCalc = (CalcValue)c;
+            var dCalc = (CalcValue)d;
+
+            Assert.AreEqual("20%", aCalc.Value.ToString());
+            Assert.AreEqual("20 + 30px", bCalc.Value.ToString());
+            Assert.AreEqual("20% - 2em", cCalc.Value.ToString());
+            Assert.AreEqual("(20% - 14) / 2 + 1rem", dCalc.Value.ToString());
+        }
     }
 }

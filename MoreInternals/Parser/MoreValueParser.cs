@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using MoreInternals.Model;
 using System.IO;
+using MoreInternals.Helpers;
 
 namespace MoreInternals.Parser
 {
@@ -222,6 +223,26 @@ namespace MoreInternals.Parser
                         }
 
                         return new AttributeValue(attr, type, fallback);
+                    }
+
+                    if (toDate.Equals("calc", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var @params = ParseGroup(stream, forPosition).Value;
+
+                        if (@params is CommaDelimittedValue)
+                        {
+                            Current.RecordError(ErrorType.Parser, forPosition, "calc expects an expression, found " + @params);
+                        }
+
+                        string strVersion;
+                        using(var writer = new StringWriter())
+                        {
+                            @params.Write(writer);
+                            strVersion = writer.ToString();
+                        }
+
+                        // Things passed to calc are opting out of More magic, they don't get anything but in string replacements
+                        return new CalcValue(new StringValue(strVersion));
                     }
                 }
 

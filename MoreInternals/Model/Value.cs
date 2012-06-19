@@ -471,18 +471,19 @@ namespace MoreInternals.Model
 
         internal override Value Evaluate()
         {
-            return new GroupedValue(Value.Evaluate());
+            var inner = Value.Evaluate();
+
+            if (inner is MathValue) return new GroupedValue(inner);
+
+            // there's no point in keeping the "group" around if it's non-functional
+            return inner;
         }
 
         internal override void Write(TextWriter output)
         {
+            output.Write('(');
             Value.Write(output);
-        }
-
-        [ExcludeFromCodeCoverage]
-        public override string ToString()
-        {
-            return "(" + Value + ")";
+            output.Write(')');
         }
 
         public override bool Equals(object obj)
@@ -1813,7 +1814,55 @@ namespace MoreInternals.Model
 
     class CalcValue : Value
     {
+        public StringValue Value { get; private set; }
 
+        public override bool NeedsEvaluate
+        {
+            get
+            {
+                return Value.NeedsEvaluate;
+            }
+        }
+
+        internal CalcValue(StringValue value)
+        {
+            Value = value;
+        }
+
+        public override Value Bind(Scope scope)
+        {
+            return new CalcValue((StringValue)Value.Bind(scope));
+        }
+
+        internal override Value Evaluate()
+        {
+            return new CalcValue((StringValue)Value.Evaluate());
+        }
+
+        internal override List<string> ReferredToVariables()
+        {
+            return Value.ReferredToVariables();
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as CalcValue;
+            if (other == null) return false;
+
+            return Value.Equals(other.Value);
+        }
+
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode();
+        }
+
+        internal override void Write(TextWriter output)
+        {
+            output.Write("calc(");
+            Value.Write(output);
+            output.Write(')');
+        }
     }
 
     class UrlValue : Value
@@ -2031,10 +2080,22 @@ namespace MoreInternals.Model
             return ret;
         }
 
-        [ExcludeFromCodeCoverage]
-        public override string ToString()
+        internal override void Write(TextWriter output)
         {
-            return "(" + LeftHand + " " + Operator + " " + RightHand + ")";
+            LeftHand.Write(output);
+            output.Write(' ');
+            switch (Operator)
+            {
+                case Model.Operator.Div: output.Write('/'); break;
+                case Model.Operator.Minus: output.Write('-'); break;
+                case Model.Operator.Mod: output.Write('%'); break;
+                case Model.Operator.Mult: output.Write('*'); break;
+                case Model.Operator.Plus: output.Write('+'); break;
+                case Model.Operator.Take_Exists: output.Write("??"); break;
+                default: throw new InvalidOperationException("Unknown operator: " + Operator);
+            }
+            output.Write(' ');
+            RightHand.Write(output);
         }
     }
 
