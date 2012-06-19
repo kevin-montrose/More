@@ -2499,5 +2499,26 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("a{b:cycle(a,b,c,d);c:hello,cycle(cat,indeed,30px)}", written);
         }
+
+        [TestMethod]
+        public void Attr()
+        {
+            var written =
+                TryCompile(
+                    @"@x = length;
+                      @y = px;
+                      @z = 30em;
+
+                      a {
+                        b: attr(foo);
+                        c: attr(@x);
+                        d: attr(fizz @y);
+                        e: attr(buzz em, @z+30);
+                        f: attr(@x @y, @z);
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{b:attr(foo);c:attr(length);d:attr(fizz px);e:attr(buzz em,60em);f:attr(length px,30em)}", written);
+        }
     }
 }

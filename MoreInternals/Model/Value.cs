@@ -1712,7 +1712,10 @@ namespace MoreInternals.Model
         {
             get
             {
-                return Attribute.NeedsEvaluate || Type.NeedsEvaluate || Fallback.NeedsEvaluate;
+                return 
+                    Attribute.NeedsEvaluate || 
+                    (Type != null && Type.NeedsEvaluate) || 
+                    (Fallback != null && Fallback.NeedsEvaluate);
             }
         }
 
@@ -1725,17 +1728,39 @@ namespace MoreInternals.Model
 
         public override Value Bind(Scope scope)
         {
-            return new AttributeValue(Attribute.Bind(scope), Type.Bind(scope), Fallback.Bind(scope));
+            return 
+                new AttributeValue(
+                    Attribute.Bind(scope), 
+                    Type != null ? Type.Bind(scope) : null, 
+                    Fallback != null ? Fallback.Bind(scope) : null
+                );
         }
 
         internal override Value Evaluate()
         {
-            return new AttributeValue(Attribute.Evaluate(), Type.Evaluate(), Fallback.Evaluate());
+            return 
+                new AttributeValue(
+                    Attribute.Evaluate(), 
+                    Type != null ? Type.Evaluate() : null,
+                    Fallback != null ? Fallback.Evaluate() : null
+                );
         }
 
         internal override List<string> ReferredToVariables()
         {
-            return Attribute.ReferredToVariables().Union(Type.ReferredToVariables()).Union(Fallback.ReferredToVariables()).ToList();
+            var ret = Attribute.ReferredToVariables();
+            
+            if (Type != null)
+            {
+                ret.AddRange(Type.ReferredToVariables());
+            }
+
+            if (Fallback != null)
+            {
+                ret.AddRange(Fallback.ReferredToVariables());
+            }
+
+            return ret;
         }
 
         public override bool Equals(object obj)
