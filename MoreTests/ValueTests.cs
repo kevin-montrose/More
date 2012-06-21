@@ -545,5 +545,24 @@ namespace MoreTests
             Assert.AreEqual("20% - 2em", cCalc.Value.ToString());
             Assert.AreEqual("(20% - 14) / 2 + 1rem", dCalc.Value.ToString());
         }
+
+        [TestMethod]
+        public void Counter()
+        {
+            var a = Value.Parse("counter(hello)");
+            var b = Value.Parse("counter(hello, world)");
+
+            Assert.AreEqual(typeof(CounterValue), a.GetType());
+            Assert.AreEqual(typeof(CounterValue), b.GetType());
+
+            var aCounter = (CounterValue)a;
+            var bCounter = (CounterValue)b;
+
+            Assert.AreEqual("hello", aCounter.Counter.ToString());
+            Assert.AreEqual("hello", bCounter.Counter.ToString());
+
+            Assert.AreEqual(null, aCounter.Style);
+            Assert.AreEqual("world", bCounter.Style.ToString());
+        }
     }
 }

@@ -1812,6 +1812,83 @@ namespace MoreInternals.Model
         }
     }
 
+    class CounterValue : Value
+    {
+        public Value Counter { get; private set; }
+        public Value Style { get; private set; }
+
+        public override bool NeedsEvaluate
+        {
+            get
+            {
+                return
+                    Counter.NeedsEvaluate ||
+                    Style != null ? Style.NeedsEvaluate : false;
+            }
+        }
+
+        internal CounterValue(Value counter, Value style)
+        {
+            Counter = counter;
+            Style = style;
+        }
+
+        public override Value Bind(Scope scope)
+        {
+            return
+                new CounterValue(
+                    Counter.Bind(scope),
+                    Style != null ? Style.Bind(scope) : null
+                );
+        }
+
+        internal override Value Evaluate()
+        {
+            return
+                new CounterValue(
+                    Counter.Evaluate(),
+                    Style != null ? Style.Evaluate() : null
+                );
+        }
+
+        internal override List<string> ReferredToVariables()
+        {
+            return
+                Counter.ReferredToVariables()
+                .Union(Style != null ? Style.ReferredToVariables() : Enumerable.Empty<string>())
+                .ToList();
+        }
+
+        internal override void Write(TextWriter output)
+        {
+            output.Write("counter(");
+            Counter.Write(output);
+            if (Style != null)
+            {
+                output.Write(',');
+                Style.Write(output);
+            }
+            output.Write(')');
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as CounterValue;
+            if (other == null) return false;
+
+            return
+                Counter.Equals(other.Counter) &&
+                (Style == null && other.Style == null || Style.Equals(other.Style));
+        }
+
+        public override int GetHashCode()
+        {
+            return
+                Counter.GetHashCode() ^
+                (Style != null ? -1 * Style.GetHashCode() : 0);
+        }
+    }
+
     class CalcValue : Value
     {
         public StringValue Value { get; private set; }

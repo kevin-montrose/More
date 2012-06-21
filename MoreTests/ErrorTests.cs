@@ -1158,6 +1158,7 @@ namespace MoreTests
             Assert.IsTrue(Current.HasErrors());
             var aErrors = Current.GetErrors(ErrorType.Compiler);
 
+            Assert.AreEqual(2, aErrors.Count);
             Assert.AreEqual("cycle() values cannot contain attr() values", aErrors[0].Message);
             Assert.AreEqual("cycle() values cannot contain calc() values", aErrors[1].Message);
         }

@@ -2539,5 +2539,25 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("a{b:calc(4% + 2px);c:calc(13px * 15);d:calc((13px + 14em) / 2)}", written);
         }
+
+        [TestMethod]
+        public void Counter()
+        {
+            var written =
+                TryCompile(
+                    @"@style = dot;
+                      @name = foo;
+
+                      a {
+                        b: counter(nope);
+                        c: counter(yes, no);
+                        d: counter(@style);
+                        e: counter(@style, @name);
+                        f: 'hello' counter(sure) 'world';
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{b:counter(nope);c:counter(yes,no);d:counter(dot);e:counter(dot,foo);f:'hello' counter(sure) 'world'}", written);
+        }
     }
 }
