@@ -317,6 +317,26 @@ namespace MoreInternals.Parser
                         return new CounterValue(counter, style);
                     }
                 }
+
+                if (buffer.Length == 8 && (stream.HasMore() && stream.Peek() == '('))
+                {
+                    var toDate = buffer.ToString();
+                    if (toDate.Equals("counters", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var val = ParseGroup(stream, forPosition).Value;
+                        var comma = val as CommaDelimittedValue;
+                        if (comma != null && comma.Values.Count() > 2)
+                        {
+                            Current.RecordError(ErrorType.Parser, forPosition, "Expected at most 2 parameters to counters() value, found " + comma.Values.Count());
+                            throw new StoppedParsingException();
+                        }
+
+                        var counter = comma != null ? comma.Values.ElementAt(0) : val;
+                        var style = comma != null ? comma.Values.ElementAt(1) : null;
+
+                        return new CountersValue(counter, style);
+                    }
+                }
             }
 
             NamedColor color;

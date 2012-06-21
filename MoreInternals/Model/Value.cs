@@ -1889,6 +1889,81 @@ namespace MoreInternals.Model
         }
     }
 
+    class CountersValue : Value
+    {
+        public Value Counter { get; private set; }
+        public Value Style { get; private set; }
+
+        public override bool NeedsEvaluate
+        {
+            get
+            {
+                return
+                    Counter.NeedsEvaluate ||
+                    Style != null ? Style.NeedsEvaluate : false;
+            }
+        }
+
+        internal CountersValue(Value counter, Value style)
+        {
+            Counter = counter;
+            Style = style;
+        }
+
+        internal override List<string> ReferredToVariables()
+        {
+            return
+                Counter.ReferredToVariables()
+                .Union(Style != null ? Style.ReferredToVariables() : Enumerable.Empty<string>())
+                .ToList();
+        }
+
+        public override Value Bind(Scope scope)
+        {
+            return
+                new CountersValue(
+                    Counter.Bind(scope),
+                    Style != null ? Style.Bind(scope) : null
+                );
+        }
+
+        internal override Value Evaluate()
+        {
+            return
+                new CountersValue(
+                    Counter.Evaluate(),
+                    Style != null ? Style.Evaluate() : null
+                );
+        }
+
+        internal override void Write(TextWriter output)
+        {
+            output.Write("counters(");
+            Counter.Write(output);
+            if (Style != null)
+            {
+                output.Write(',');
+                Style.Write(output);
+            }
+            output.Write(')');
+        }
+
+        public override int GetHashCode()
+        {
+            return -1 * base.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as CountersValue;
+            if (other == null) return false;
+
+            return
+                Counter.Equals(other.Counter) &&
+                (Style == null && other.Style == null || Style.Equals(other.Style));
+        }
+    }
+
     class CalcValue : Value
     {
         public StringValue Value { get; private set; }

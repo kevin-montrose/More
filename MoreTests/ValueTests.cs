@@ -564,5 +564,24 @@ namespace MoreTests
             Assert.AreEqual(null, aCounter.Style);
             Assert.AreEqual("world", bCounter.Style.ToString());
         }
+
+        [TestMethod]
+        public void Counters()
+        {
+            var a = Value.Parse("counters(hello)");
+            var b = Value.Parse("counters(hello, world)");
+
+            Assert.AreEqual(typeof(CountersValue), a.GetType());
+            Assert.AreEqual(typeof(CountersValue), b.GetType());
+
+            var aCounters = (CountersValue)a;
+            var bCounters = (CountersValue)b;
+
+            Assert.AreEqual("hello", aCounters.Counter.ToString());
+            Assert.AreEqual("hello", bCounters.Counter.ToString());
+
+            Assert.AreEqual(null, aCounters.Style);
+            Assert.AreEqual("world", bCounters.Style.ToString());
+        }
     }
 }
