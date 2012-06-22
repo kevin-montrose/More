@@ -31,7 +31,7 @@ namespace More
 
         private static FileCache FileCache = new FileCache();
 
-        internal static bool Compile(string currentDir, string inputFile, string outputFile, Context context, bool minify, bool warnAsErrors)
+        internal static bool Compile(string currentDir, string inputFile, string outputFile, Context context, bool minify, bool warnAsErrors, bool autoCacheBreak)
         {
             var opts = Options.None;
             var writerMode = WriterMode.Pretty;
@@ -45,6 +45,11 @@ namespace More
             if (warnAsErrors)
             {
                 opts |= Options.WarningsAsErrors;
+            }
+
+            if (autoCacheBreak)
+            {
+                opts |= Options.GenerateCacheBreakers;
             }
 
             return Compiler.Get().Compile(currentDir, inputFile, outputFile, FileLookup.Singleton, context, opts, writerMode);
@@ -247,7 +252,7 @@ namespace More
             return errors;
         }
 
-        static bool MultiThreadedCompile(int maxParallelism, string workingDirectory, List<string> toCompile, bool overwrite, bool warnAsErrors, bool minify, bool verbose, string spriteProg, string spriteArguments)
+        static bool MultiThreadedCompile(int maxParallelism, string workingDirectory, List<string> toCompile, bool overwrite, bool warnAsErrors, bool minify, bool verbose, string spriteProg, string spriteArguments, bool autoCacheBreak)
         {
             var @lock = new Semaphore(0, toCompile.Count);
             var contexts = new ConcurrentBag<Context>();
@@ -273,7 +278,7 @@ namespace More
                             var timer = new Stopwatch();
                             timer.Start();
 
-                            var result = Compile(workingDirectory, compile, outputFile, threadContext, minify, warnAsErrors);
+                            var result = Compile(workingDirectory, compile, outputFile, threadContext, minify, warnAsErrors, autoCacheBreak);
 
                             timer.Stop();
 
@@ -476,6 +481,7 @@ namespace More
                 string spriteProg = null;
                 string spriteArguments = null;
                 var version = false;
+                var autoCacheBreak = false;
 
                 var options = new OptionSet()
                 {
@@ -490,7 +496,8 @@ namespace More
                     { "v|verbose", "print info output", v => verbose = v != null },
                     { "sp:|spriteprocessor:", "program to run on generated sprites, the sprite will be passed after spritearguments argument", sc => spriteProg = sc },
                     { "sa:|spritearguments:", "arguments to pass to spriteprocessor before the sprite file", sa => spriteArguments = sa },
-                    { "version", "print version string and exit", v => version = v != null }
+                    { "version", "print version string and exit", v => version = v != null },
+                    { "cb|cachebreak", "Include automatically generated cache breakers on referenced resources", cb => autoCacheBreak = cb != null }
                 };
 
                 options.Parse(args);
@@ -526,7 +533,7 @@ namespace More
                     Console.WriteLine("Compiling (" + toCompile.Count + ") files...");
                 }
 
-                var success = MultiThreadedCompile(maxDegreeParallelism, workingDirectory, toCompile, overwrite, warnAsErrors, minify, verbose, spriteProg, spriteArguments);
+                var success = MultiThreadedCompile(maxDegreeParallelism, workingDirectory, toCompile, overwrite, warnAsErrors, minify, verbose, spriteProg, spriteArguments, autoCacheBreak);
 
                 if (verbose)
                 {

@@ -22,7 +22,8 @@ namespace MoreInternals
     {
         None = 0,
         WarningsAsErrors = 1,
-        Minify = 2
+        Minify = 2,
+        GenerateCacheBreakers = 4
     }
 
     public class Context

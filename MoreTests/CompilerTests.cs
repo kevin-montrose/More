@@ -20,7 +20,7 @@ namespace MoreTests
         public TestContext TestContext { get; set; }
 
         private static int TryCompileNumber = 0;
-        private string TryCompile(string text, string fakeFile = null, IFileLookup lookup = null, bool minify = false, WriterMode mode = WriterMode.Minimize)
+        private string TryCompile(string text, string fakeFile = null, IFileLookup lookup = null, bool minify = false, WriterMode mode = WriterMode.Minimize, bool cacheBreak = false)
         {
             fakeFile = fakeFile ?? "compiler-fake-file " + Interlocked.Increment(ref TryCompileNumber) + ".more";
 
@@ -28,6 +28,11 @@ namespace MoreTests
             if (minify)
             {
                 opts |= Options.Minify;
+            }
+
+            if (cacheBreak)
+            {
+                opts |= Options.GenerateCacheBreakers;
             }
 
             var fileLookup = new TestLookup(new Dictionary<string, string>() { { fakeFile, text } }, lookup);
@@ -2578,6 +2583,52 @@ namespace MoreTests
                 );
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("a{b:counters(nope);c:counters(yes,no);d:counters(dot);e:counters(dot,foo);f:'hello' counters(sure) 'world'}", written);
+        }
+
+        [TestMethod]
+        public void CacheBreaker()
+        {
+            var a = 
+                @"@import url(other-file.css);
+
+                  .my-class {
+                    background-image: url('hello-world.png');
+                  }
+
+                  .other-class {
+                    foo: hello, world, url(indeed.jpeg);
+                  }
+
+                  @keyframes my-anim {
+                    0% {
+                      bar: url(""whatever.gif"");
+                    }
+                  }
+
+                  @font-face {
+                    font-family: 'Give Me Your Face';
+                    src: url(somewhere-else.off), local(serif);
+                  }";
+
+            var written =
+                TryCompile(
+                    a,
+                    lookup:
+                        new TestLookup(
+                            new Dictionary<string,string>{
+                                { "other-file.css", "fizzbuzz" },
+                                { "hello-world.png", "yeah whatever" },
+                                { "indeed.jpeg", "yep" },
+                                { "whatever.gif", "more nonsense"},
+                                { "somewhere-else.off", "not a valid font" }
+                            },
+                            null
+                        ),
+                    cacheBreak: true
+                );
+
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("@import url(other-file.css?_=UANKO58546TES);@keyframes my-anim{0%{bar:url('whatever.gif?_=33V5L46AD65T0')}}@font-face{font-family:'Give Me Your Face';src:url(somewhere-else.off?_=N7D76HT70QLTM),local(serif)}.my-class{background-image:url('hello-world.png?_=UJO2NBMDS758S')}.other-class{foo:hello,world,url(indeed.jpeg?_=UR0LTL9CP5DF6)}", written);
         }
     }
 }

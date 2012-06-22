@@ -8,6 +8,8 @@ namespace MoreInternals.Helpers
 {
     public interface IFileLookup
     {
+        bool Exists(string path);
+        Stream ReadRaw(string path);
         TextReader Find(string path);
         TextWriter OpenWrite(string path);
     }
@@ -17,6 +19,16 @@ namespace MoreInternals.Helpers
         public static readonly FileLookup Singleton = new FileLookup();
 
         private FileLookup() { }
+
+        public bool Exists(string file)
+        {
+            return File.Exists(file);
+        }
+
+        public Stream ReadRaw(string file)
+        {
+            return File.Open(file, FileMode.Open);
+        }
 
         public TextReader Find(string file)
         {
@@ -84,6 +96,18 @@ namespace MoreInternals.Helpers
         {
             ReadMap = map;
             InnerLookup = inner;
+        }
+
+        public bool Exists(string path)
+        {
+            return ReadMap.ContainsKey(path) || InnerLookup.Exists(path);
+        }
+
+        public Stream ReadRaw(string path)
+        {
+            var text = Find(path);
+
+            return new MemoryStream(Encoding.UTF8.GetBytes(text.ReadToEnd()));
         }
 
         public TextReader Find(string name)

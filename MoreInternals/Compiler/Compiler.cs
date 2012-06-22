@@ -50,8 +50,9 @@ namespace MoreInternals.Compiler
                 Verify.Task,
                 Current.Options.HasFlag(Options.Minify) ? Minify.Task : noop,
                 Collapse.Task,
-                Write.Task,
-                WriteSprites.Task
+                WriteSprites.Task,
+                Current.Options.HasFlag(Options.GenerateCacheBreakers) ? CacheBreak.Task : noop,
+                Write.Task
             };
 
             try
