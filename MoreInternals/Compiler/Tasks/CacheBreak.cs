@@ -80,7 +80,7 @@ namespace MoreInternals.Compiler.Tasks
         }
 
         /// <summary>
-        /// OK, this is probably going overboard but you got to have some fun sometime.
+        /// OK, this is going overboard but you got to have some fun sometime.
         /// 
         /// Truncating a hash isn't a safe operation, while an ideal hash would have equal entropy
         /// in each "half" there's no proof that any extant hash algorithm behaves that way.
