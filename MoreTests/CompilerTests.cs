@@ -2630,5 +2630,36 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("@import url(other-file.css?_=UANKO58546TES);@keyframes my-anim{0%{bar:url('whatever.gif?_=33V5L46AD65T0')}}@font-face{font-family:'Give Me Your Face';src:url(somewhere-else.off?_=N7D76HT70QLTM),local(serif)}.my-class{background-image:url('hello-world.png?_=UJO2NBMDS758S')}.other-class{foo:hello,world,url(indeed.jpeg?_=UR0LTL9CP5DF6)}", written);
         }
+
+        [TestMethod]
+        public void NestedChildSelector()
+        {
+            var written =
+                TryCompile(
+                    @"hello {
+                        a:b;
+                        > world {
+                            c:d;
+                        }
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("hello{a:b}hello>world{c:d}", written);
+        }
+
+        public void NestedSiblingSelector()
+        {
+            var written =
+                TryCompile(
+                    @"hello {
+                        a:b;
+                        + world {
+                            c:d;
+                        }
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("hello{a:b}hello+world{c:d}", written);
+        }
     }
 }

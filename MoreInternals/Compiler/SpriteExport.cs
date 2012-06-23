@@ -56,7 +56,20 @@ namespace MoreInternals.Compiler
 
         internal static SpriteExport Create(string output, string moreFile, Dictionary<string, string> input)
         {
-            var images = input.ToDictionary(k => k.Key, v => Tuple.Create(v.Value, Bitmap.FromFile(v.Value)));
+            var images = 
+                input.ToDictionary(
+                    k => k.Key, 
+                    v => 
+                    {
+                        if (!File.Exists(v.Value))
+                        {
+                            Current.RecordError(ErrorType.Compiler, Position.NoSite, "Couldn't find sprite image [" + v.Value + "]");
+                            throw new StoppedCompilingException();
+                        }
+                        
+                        return Tuple.Create(v.Value, Bitmap.FromFile(v.Value));
+                    }
+                );
 
             var subSprites =
                 images.Select(

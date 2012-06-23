@@ -1125,7 +1125,7 @@ namespace MoreTests
             Assert.IsTrue(Current.HasErrors());
             var aErrors = Current.GetErrors(ErrorType.Parser);
             Assert.AreEqual(1, aErrors.Count);
-            Assert.AreEqual("[<!--] is not a valid identifier", aErrors[0].Message);
+            Assert.AreEqual("Expected selector", aErrors[0].Message);
             Assert.AreEqual("<!-- [if IE]>", aErrors[0].Snippet(new StringReader(a)).Trim());
         }
 
