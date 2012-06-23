@@ -180,18 +180,18 @@ namespace MoreInternals.Model
 
         private static Selector ParseRawChildSelector(string[] parts, int start, int stop, string filePath)
         {
-            if (parts.Length <= 2)
+            if (parts.Length == 2)
             {
                 Selector parent, child;
 
-                if (parts.Length == 1)
+                if (parts.Count(c => c.Trim().Length > 0) == 2)
                 {
-                    parent = WildcardSelector.Singleton;
-                    child = ParseRawSelector(parts[0], start, stop, filePath);
+                    parent = ParseRawSelector(parts[0], start, stop, filePath);
+                    child = ParseRawSelector(parts[1], start, stop, filePath);
                 }
                 else
                 {
-                    parent = ParseRawSelector(parts[0], start, stop, filePath);
+                    parent = null;
                     child = ParseRawSelector(parts[1], start, stop, filePath);
                 }
 
@@ -455,6 +455,12 @@ namespace MoreInternals.Model
                 if (x.Trim().Length == 0) continue;
 
                 parts.Add(ParseRawCompoundSelector(x, start, stop, filePath));
+            }
+
+            if (parts.Count == 0)
+            {
+                Current.RecordError(ErrorType.Parser, Position.Create(start, stop, filePath), "Expected selector");
+                throw new StoppedParsingException();
             }
 
             if (parts.Count == 1) { return ApplyEscapeMap(parts[0], escapeMap); }

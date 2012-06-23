@@ -563,6 +563,20 @@ namespace MoreInternals.Model
 
             if (!(s1 is MultiSelector) && !(s2 is MultiSelector))
             {
+                var s2Child = s2 as ChildSelector;
+                if (s2Child != null && s2Child.Parent == null)
+                {
+                    ret.Add(new ChildSelector(s1, s2Child.Child, start, stop, filePath));
+                    return ret;
+                }
+
+                var s2Sibling = s2 as AdjacentSiblingSelector;
+                if(s2Sibling != null && s2Sibling.Older == null)
+                {
+                    ret.Add(new AdjacentSiblingSelector(s1, s2Sibling.Younger, start, stop, filePath));
+                    return ret;
+                }
+
                 ret.Add(CompoundSelector.CombineSelectors(s1, s2, start, stop, filePath));
                 return ret;
             }
