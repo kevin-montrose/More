@@ -60,7 +60,7 @@ namespace MoreInternals.Compiler
                 Current.SetWorkingDirectory(currentDir);
                 Current.SetFileLookup(lookup);
 
-                inputFile = inputFile.RebaseFile();
+                inputFile = Path.IsPathRooted(inputFile) ? inputFile : inputFile.RebaseFile();
                 Current.SetInitialFile(inputFile);
 
                 List<Block> blocks;

@@ -105,6 +105,8 @@ namespace MoreInternals.Helpers
 
         public Stream ReadRaw(string path)
         {
+            if (InnerLookup != null && InnerLookup.Exists(path)) return InnerLookup.ReadRaw(path);
+
             var text = Find(path);
 
             return new MemoryStream(Encoding.UTF8.GetBytes(text.ReadToEnd()));
@@ -112,9 +114,9 @@ namespace MoreInternals.Helpers
 
         public TextReader Find(string name)
         {
-            if (InnerLookup != null && !ReadMap.ContainsKey(name)) return InnerLookup.Find(name);
+            if (InnerLookup != null && !ReadMap.Any(x => name.EndsWith(x.Key))) return InnerLookup.Find(name);
 
-            return new StringReader(ReadMap[name]);
+            return new StringReader(ReadMap.Single(x => name.EndsWith(x.Key)).Value);
         }
 
         public TextWriter OpenWrite(string name)

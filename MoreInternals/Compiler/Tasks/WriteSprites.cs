@@ -18,6 +18,13 @@ namespace MoreInternals.Compiler.Tasks
             {
                 var @out = sprite.OutputFile.Replace('/', Path.DirectorySeparatorChar);
 
+                var dir = Path.GetDirectoryName(@out);
+
+                if (!Directory.Exists(dir))
+                {
+                    Directory.CreateDirectory(dir);
+                }
+
                 sprite.Sprite.Save(@out);
                 sprite.Sprite.Dispose();
 

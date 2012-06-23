@@ -30,10 +30,9 @@ namespace MoreInternals
                 return lead + fragment;
             }
 
-            if (relativeToFile.HasValue() && !Path.IsPathRooted(inputFile))
-            {
-                inputFile = Path.GetDirectoryName(relativeToFile) + Path.DirectorySeparatorChar + inputFile.TrimStart(Path.DirectorySeparatorChar);
-            }
+            var dir = relativeToFile.HasValue() ? Path.GetDirectoryName(relativeToFile) : Current.WorkingDirectory;
+
+            inputFile = dir + Path.DirectorySeparatorChar + inputFile.TrimStart(Path.DirectorySeparatorChar);
 
             if (inputFile.Contains(Path.DirectorySeparatorChar + ".."))
             {

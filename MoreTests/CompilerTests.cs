@@ -645,9 +645,9 @@ namespace MoreTests
             testRoot += "MoreTests";
             testRoot += Path.DirectorySeparatorChar;
 
-            var tempPic = testRoot + "Images" + Path.DirectorySeparatorChar + "sprite.png";
-            var redBlock = testRoot + "Images" + Path.DirectorySeparatorChar + "red block.png";
-            var greenCircle = testRoot + "Images" + Path.DirectorySeparatorChar + "green circle.png";
+            var tempPic = Path.DirectorySeparatorChar + "Images" + Path.DirectorySeparatorChar + "sprite.png";
+            var redBlock = Path.DirectorySeparatorChar + "Images" + Path.DirectorySeparatorChar + "red block.png";
+            var greenCircle = Path.DirectorySeparatorChar + "Images" + Path.DirectorySeparatorChar + "green circle.png";
 
             try
             {
@@ -664,15 +664,19 @@ namespace MoreTests
                           redBlock,
                           greenCircle
                         ),
-                        fakeFile: testRoot
+                        fakeFile: testRoot + "all.more",
+                        lookup: FileLookup.Singleton
                     );
 
                 Assert.AreEqual(@".pic1{background-image:url(Images/sprite.png);background-position:0px 0px;background-repeat:no-repeat;width:100px;height:100px}.pic2{background-image:url(Images/sprite.png);background-position:0px -100px;background-repeat:no-repeat;width:50px;height:50px}", simple);
-                Assert.IsTrue(File.Exists(tempPic));
+
+                var spriteLocation = testRoot + tempPic;
+
+                Assert.IsTrue(File.Exists(spriteLocation));
             }
             finally
             {
-                File.Delete(tempPic);
+                File.Delete(testRoot + tempPic);
             }
 
             try
@@ -698,15 +702,19 @@ namespace MoreTests
                           redBlock,
                           greenCircle
                         ),
-                        fakeFile: testRoot
+                        fakeFile: testRoot,
+                        lookup: FileLookup.Singleton
                     );
 
                 Assert.AreEqual(".simpleClass{hello:world}.pic1{background-image:url(Images/sprite.png);background-position:0px 0px;background-repeat:no-repeat;width:100px;height:100px;rule:value}.pic2{background-image:url(Images/sprite.png);background-position:0px -100px;background-repeat:no-repeat;width:50px;height:50px;hello:world}", mixin);
-                Assert.IsTrue(File.Exists(tempPic));
+
+                var spriteLocation = testRoot + tempPic;
+
+                Assert.IsTrue(File.Exists(spriteLocation));
             }
             finally
             {
-                File.Delete(tempPic);
+                File.Delete(testRoot + tempPic);
             }
         }
 

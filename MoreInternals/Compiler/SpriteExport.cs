@@ -61,13 +61,19 @@ namespace MoreInternals.Compiler
                     k => k.Key, 
                     v => 
                     {
-                        if (!File.Exists(v.Value))
+                        if (!Current.FileLookup.Exists(v.Value))
                         {
                             Current.RecordError(ErrorType.Compiler, Position.NoSite, "Couldn't find sprite image [" + v.Value + "]");
                             throw new StoppedCompilingException();
                         }
-                        
-                        return Tuple.Create(v.Value, Bitmap.FromFile(v.Value));
+
+                        Image bitmap;
+                        using (var stream = Current.FileLookup.ReadRaw(v.Value))
+                        {
+                            bitmap = Bitmap.FromStream(stream);
+                        }
+
+                        return Tuple.Create(v.Value, bitmap);
                     }
                 );
 
