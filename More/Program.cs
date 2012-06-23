@@ -405,13 +405,17 @@ namespace More
                 text.WriteLine("On Date: " + DateTime.UtcNow);
                 text.WriteLine();
 
-                if (e != null)
+                var curE = e;
+
+                while (curE != null)
                 {
                     text.WriteLine("Exception");
                     text.WriteLine("---------");
                     text.WriteLine(e.Message);
                     text.WriteLine(e.StackTrace);
                     text.WriteLine();
+
+                    curE = e.InnerException;
                 }
 
                 try
