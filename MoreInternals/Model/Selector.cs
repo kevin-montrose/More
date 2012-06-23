@@ -211,8 +211,18 @@ namespace MoreInternals.Model
                 throw new StoppedParsingException();
             }
 
-            var older = ParseRawSelector(parts[0], start, stop, filePath);
-            var younger = ParseRawSelector(parts[1], start, stop, filePath);
+            Selector older, younger;
+
+            if (parts[0].Trim().IsNullOrEmpty())
+            {
+                older = null;
+            }
+            else
+            {
+                older = ParseRawSelector(parts[0], start, stop, filePath);
+            }
+
+            younger = ParseRawSelector(parts[1], start, stop, filePath);
 
             return new AdjacentSiblingSelector(older, younger, start, stop, filePath);
         }

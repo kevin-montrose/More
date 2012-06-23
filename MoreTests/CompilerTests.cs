@@ -2647,6 +2647,7 @@ namespace MoreTests
             Assert.AreEqual("hello{a:b}hello>world{c:d}", written);
         }
 
+        [TestMethod]
         public void NestedSiblingSelector()
         {
             var written =

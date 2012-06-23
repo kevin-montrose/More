@@ -100,7 +100,7 @@ namespace MoreInternals.Helpers
 
         public bool Exists(string path)
         {
-            return ReadMap.ContainsKey(path) || InnerLookup.Exists(path);
+            return ReadMap.ContainsKey(path) || (InnerLookup != null && InnerLookup.Exists(path));
         }
 
         public Stream ReadRaw(string path)
