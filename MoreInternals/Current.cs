@@ -23,7 +23,8 @@ namespace MoreInternals
         None = 0,
         WarningsAsErrors = 1,
         Minify = 2,
-        GenerateCacheBreakers = 4
+        GenerateCacheBreakers = 4,
+        AutomateVendorPrefixes = 8
     }
 
     public class Context

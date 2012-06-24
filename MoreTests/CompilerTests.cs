@@ -20,7 +20,7 @@ namespace MoreTests
         public TestContext TestContext { get; set; }
 
         private static int TryCompileNumber = 0;
-        private string TryCompile(string text, string fakeFile = null, IFileLookup lookup = null, bool minify = false, WriterMode mode = WriterMode.Minimize, bool cacheBreak = false)
+        private string TryCompile(string text, string fakeFile = null, IFileLookup lookup = null, bool minify = false, WriterMode mode = WriterMode.Minimize, bool cacheBreak = false, bool prefix = false)
         {
             fakeFile = fakeFile ?? "compiler-fake-file " + Interlocked.Increment(ref TryCompileNumber) + ".more";
 
@@ -33,6 +33,11 @@ namespace MoreTests
             if (cacheBreak)
             {
                 opts |= Options.GenerateCacheBreakers;
+            }
+
+            if (prefix)
+            {
+                opts |= Options.AutomateVendorPrefixes;
             }
 
             var fileLookup = new TestLookup(new Dictionary<string, string>() { { fakeFile, text } }, lookup);
@@ -2669,6 +2674,21 @@ namespace MoreTests
                 );
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("hello{a:b}hello+world{c:d}", written);
+        }
+
+        [TestMethod]
+        public void AutoPrefix()
+        {
+            var written =
+                TryCompile(
+                    @".my-class {
+                        fizz: buzz;
+                        columns: 20px 5;
+                      }",
+                    prefix: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual(".my-class{fizz:buzz;-moz-columns:20px 5;-webkit-columns:20px 5;columns:20px 5}", written);
         }
     }
 }

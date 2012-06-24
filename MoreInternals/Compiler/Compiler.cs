@@ -52,6 +52,7 @@ namespace MoreInternals.Compiler
                 Collapse.Task,
                 WriteSprites.Task,
                 Current.Options.HasFlag(Options.GenerateCacheBreakers) ? CacheBreak.Task : noop,
+                Current.Options.HasFlag(Options.AutomateVendorPrefixes) ? AutoPrefix.Task : noop,
                 Write.Task
             };
 
