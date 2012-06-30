@@ -284,6 +284,7 @@ namespace MoreInternals.Compiler.Tasks
             { Tuple.Create(Prefix.O, "object-position"), Simple },
 
             { Tuple.Create(Prefix.WEBKIT, "opacity"), Simple },
+            { Tuple.Create(Prefix.MS, "opacity"), IEOpacity },
 
             { Tuple.Create(Prefix.MS, "overflow-style"), Simple },
 
@@ -366,6 +367,29 @@ namespace MoreInternals.Compiler.Tasks
         };
 
         #endregion
+
+        /// <summary>
+        /// Old versions of IE have two different syntax's for opacity:
+        ///  - -ms-filter: progid:DXImageOhKillMeNow(Opacity=percent)
+        ///  - filter: alpha(opacity=percent)
+        /// </summary>
+        private static IEnumerable<NameValueProperty> IEOpacity(Prefix pre, NameValueProperty opacity)
+        {
+            if (!opacity.Name.Equals("opacity", StringComparison.InvariantCultureIgnoreCase)) throw new InvalidOperationException("Prefix only valid on opacity property");
+            if (pre != Prefix.MS) throw new InvalidOperationException("Prefixer only valid for MS prefix");
+
+            var asNumber = opacity.Value as NumberValue;
+            if (asNumber == null || asNumber is NumberWithUnitValue) return Enumerable.Empty<NameValueProperty>();
+
+            var percent = asNumber.Value * 100;
+
+            return
+                new[] 
+                {
+                    new NameValueProperty("-ms-format", new StringValue("progid:DXImageTransform.Microsoft.Alpha(Opacity=" + percent + ")")),
+                    new NameValueProperty("format", new StringValue("alpha(opacity=" + percent + ")"))
+                };
+        }
 
         /// <summary>
         /// For the display: box; property, changes the value to display: -prefix-box;
