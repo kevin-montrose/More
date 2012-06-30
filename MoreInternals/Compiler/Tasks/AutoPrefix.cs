@@ -223,6 +223,9 @@ namespace MoreInternals.Compiler.Tasks
             { Tuple.Create(Prefix.MOZ, "columns"), Simple },
             { Tuple.Create(Prefix.WEBKIT, "columns"), Simple },
 
+            { Tuple.Create(Prefix.MOZ, "display"), PrefixBox },
+            { Tuple.Create(Prefix.WEBKIT, "display"), PrefixBox },
+
             { Tuple.Create(Prefix.WEBKIT, "grid-column"), Simple },
             { Tuple.Create(Prefix.MS, "grid-column"), Simple },
 
@@ -363,6 +366,31 @@ namespace MoreInternals.Compiler.Tasks
         };
 
         #endregion
+
+        /// <summary>
+        /// For the display: box; property, changes the value to display: -prefix-box;
+        /// </summary>
+        private static IEnumerable<NameValueProperty> PrefixBox(Prefix pre, NameValueProperty display)
+        {
+            if(!display.Name.Equals("display", StringComparison.InvariantCultureIgnoreCase)) throw new InvalidOperationException("Prefixer only valid on display property");
+
+            var asStr = display.Value as StringValue;
+            if (asStr == null) return Enumerable.Empty<NameValueProperty>();
+
+            if (asStr.Value.Equals("box", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return
+                    new []
+                    {
+                        new NameValueProperty(
+                            "display", 
+                            new StringValue("-"+pre.ToString().ToLowerInvariant()+"-box")
+                        )
+                    };
+            }
+
+            return Enumerable.Empty<NameValueProperty>();
+        }
 
         /// <summary>
         /// border-radius and -moz-border-radius differ.

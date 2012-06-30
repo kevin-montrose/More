@@ -2722,5 +2722,19 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual(".nav a{-o-border-radius:10px 5px;-webkit-border-bottom-left-radius:5px;-webkit-border-bottom-right-radius:10px;-webkit-border-top-left-radius:10px;-webkit-border-top-right-radius:5px;border-radius:10px 5px;border:5px solid red}", written);
         }
+
+        [TestMethod]
+        public void PrefixDisplayBox()
+        {
+            var written =
+                TryCompile(
+                    @"a{
+                        display: box
+                      }",
+                    prefix: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{display:-webkit-box;display:-moz-box;display:box}", written);
+        }
     }
 }
