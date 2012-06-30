@@ -2690,5 +2690,22 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual(".my-class{fizz:buzz;-moz-columns:20px 5;-webkit-columns:20px 5;columns:20px 5}", written);
         }
+
+        [TestMethod]
+        public void MozBorderRadius()
+        {
+            var written =
+                TryCompile(
+                    @"a{
+                        border-top-left-radius: 1px;
+                        border-top-right-radius: 2px;
+                        border-bottom-left-radius: 3px;
+                        border-bottom-right-radius: 4px;
+                      }",
+                    prefix: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{-moz-border-radius-topleft:1px;-webkit-border-top-left-radius:1px;border-top-left-radius:1px;-moz-border-radius-topright:2px;-webkit-border-top-right-radius:2px;border-top-right-radius:2px;-moz-border-radius-bottomleft:3px;-webkit-border-bottom-left-radius:3px;border-bottom-left-radius:3px;-moz-border-radius-bottomright:4px;-webkit-border-bottom-right-radius:4px;border-bottom-right-radius:4px}", written);
+        }
     }
 }
