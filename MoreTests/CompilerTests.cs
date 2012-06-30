@@ -2707,5 +2707,20 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("a{-moz-border-radius-topleft:1px;-webkit-border-top-left-radius:1px;border-top-left-radius:1px;-moz-border-radius-topright:2px;-webkit-border-top-right-radius:2px;border-top-right-radius:2px;-moz-border-radius-bottomleft:3px;-webkit-border-bottom-left-radius:3px;border-bottom-left-radius:3px;-moz-border-radius-bottomright:4px;-webkit-border-bottom-right-radius:4px;border-bottom-right-radius:4px}", written);
         }
+
+        [TestMethod]
+        public void PrefixBorderRadius()
+        {
+            var written =
+                TryCompile(
+                    @".nav a{
+                        border-radius: 10px 5px;
+                        border: 5px solid red;
+                      }",
+                    prefix: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual(".nav a{-o-border-radius:10px 5px;-webkit-border-bottom-left-radius:5px;-webkit-border-bottom-right-radius:10px;-webkit-border-top-left-radius:10px;-webkit-border-top-right-radius:5px;border-radius:10px 5px;border:5px solid red}", written);
+        }
     }
 }

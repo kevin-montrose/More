@@ -19,7 +19,7 @@ namespace MoreInternals.Compiler.Tasks
     /// </summary>
     public class AutoPrefix
     {
-        private delegate NameValueProperty Prefixer(Prefix pre, NameValueProperty prop);
+        private delegate IEnumerable<NameValueProperty> Prefixer(Prefix pre, NameValueProperty prop);
 
         private enum Prefix
         {
@@ -37,10 +37,13 @@ namespace MoreInternals.Compiler.Tasks
             (pre, prop) =>
             {
                 return
-                    new NameValueProperty(
-                        "-" + pre.ToString().ToLowerInvariant() + "-" + prop.Name,
-                        prop.Value
-                    );
+                    new[] 
+                    {
+                        new NameValueProperty(
+                            "-" + pre.ToString().ToLowerInvariant() + "-" + prop.Name,
+                            prop.Value
+                        )
+                    };
             };
 
         /// <summary>
@@ -137,6 +140,7 @@ namespace MoreInternals.Compiler.Tasks
             { Tuple.Create(Prefix.WEBKIT, "border-image"), Simple },
             { Tuple.Create(Prefix.O, "border-image"), Simple },
 
+            { Tuple.Create(Prefix.WEBKIT, "border-radius"), WebkitBorderRadius },
             { Tuple.Create(Prefix.O, "border-radius"), Simple },
 
             { Tuple.Create(Prefix.MOZ, "border-start"), Simple },
@@ -360,6 +364,56 @@ namespace MoreInternals.Compiler.Tasks
 
         #endregion
 
+        /// <summary>
+        /// border-radius and -moz-border-radius differ.
+        /// 
+        /// -webkit-border-radius: a b;
+        /// is equivalent to 
+        /// -webkit-border-radius-topleft: a b;
+        /// -webkit-border-radius-topright: a b;
+        /// etc.
+        /// 
+        /// border-radius: a b;
+        /// is equivalent to
+        /// border-radius-top-left-radius: a;
+        /// border-radius-top-right-radius: b;
+        /// border-radius-bottom-right-radius: a;
+        /// border-radius-bottom-left-radius: b;
+        /// 
+        /// This is only true if border-radius has two values; for all other configurations they are equivalent 
+        /// (at least so far as I can tell).
+        /// </summary>
+        private static IEnumerable<NameValueProperty> WebkitBorderRadius(Prefix pre, NameValueProperty borderRadius)
+        {
+            if (borderRadius.Name != "border-radius") throw new InvalidOperationException("Prefixer only valid for border-radius property");
+            if (pre != Prefix.WEBKIT) throw new InvalidOperationException("Prefixer only valid for WEBKIT prefix");
+
+            var asCompound = borderRadius.Value as CompoundValue;
+
+            if (asCompound == null || asCompound.Values.Count() != 2)
+            {   
+                return Simple(pre, borderRadius);
+            }
+
+            var ret = new List<NameValueProperty>();
+
+            var tlbr = asCompound.Values.ElementAt(0);
+            var trbl = asCompound.Values.ElementAt(1);
+
+            ret.Add(new NameValueProperty("-webkit-border-top-left-radius", tlbr));
+            ret.Add(new NameValueProperty("-webkit-border-top-right-radius", trbl));
+            ret.Add(new NameValueProperty("-webkit-border-bottom-left-radius", trbl));
+            ret.Add(new NameValueProperty("-webkit-border-bottom-right-radius", tlbr));
+
+            return ret;
+        }
+
+        /// <summary>
+        /// Handles a straight up name change.
+        /// 
+        /// If a browser implements a property as "-pre-foo" but the spec comes down to "bar",
+        /// this let's use build a Prefixer that will map "bar: x' to "-pre-foo: x"
+        /// </summary>
         private static Prefixer Rename(string newName)
         {
             return
@@ -393,7 +447,7 @@ namespace MoreInternals.Compiler.Tasks
                 {
                     var perBrowserValue = generate(match.Item1, prop);
 
-                    ret.Add(perBrowserValue);
+                    ret.AddRange(perBrowserValue);
                 }
             }
 
