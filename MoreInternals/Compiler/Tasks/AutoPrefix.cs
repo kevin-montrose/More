@@ -624,14 +624,26 @@ namespace MoreInternals.Compiler.Tasks
                     continue;
                 }
 
-                var alreadyPresent = asNameValue.Where(w => possible.Any(p => p.Name == w.Name && p.Name != prop.Name)).ToList();
+                var alreadyPresent = 
+                    asNameValue.Where(
+                        w => 
+                            possible.Any(p => 
+                                p.Name.Equals(w.Name, StringComparison.InvariantCultureIgnoreCase) && 
+                                p.Name != prop.Name
+                            )
+                    ).ToList();
 
                 foreach (var dupe in alreadyPresent)
                 {
-                    Current.RecordInfo("Prefixed property [" + dupe.Name + "] could have been generated automatically");
+                    var dupeOf = possible.Where(w => w.Name == dupe.Name).ToList();
+
+                    if (dupeOf.All(d => d.Value.Equals(dupe.Value)))
+                    {
+                        Current.RecordInfo("Prefixed property " + dupe.Name + " in '" + block.Selector + "' could have been generated automatically");
+                    }
                 }
 
-                possible.RemoveAll(x => alreadyPresent.Contains(x));
+                possible.RemoveAll(x => alreadyPresent.Any(y => y.Name.Equals(x.Name, StringComparison.InvariantCultureIgnoreCase)));
 
                 ret.AddRange(possible);
             }

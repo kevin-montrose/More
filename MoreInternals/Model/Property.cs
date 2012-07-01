@@ -31,6 +31,21 @@ namespace MoreInternals.Model
             Stop = stop;
             FilePath = filePath;
         }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as NameValueProperty;
+            if (other == null) return false;
+
+            return
+                Name.Equals(other.Name, StringComparison.InvariantCultureIgnoreCase) &&
+                Value.Equals(other.Value);
+        }
+
+        public override int GetHashCode()
+        {
+            return Name.ToLowerInvariant().GetHashCode() ^ Value.GetHashCode();
+        }
     }
 
     class MixinApplicationParameter

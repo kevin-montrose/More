@@ -22,6 +22,18 @@ namespace MoreTests
         private static int TryCompileNumber = 0;
         private string TryCompile(string text, string fakeFile = null, IFileLookup lookup = null, bool minify = false, WriterMode mode = WriterMode.Minimize, bool cacheBreak = false, bool prefix = false)
         {
+            if (mode == WriterMode.Minimize)
+            {
+                try
+                {
+                    TryCompile(text, null, lookup, minify, WriterMode.Pretty);
+                }
+                catch (Exception e)
+                {
+                    Assert.Fail("Pretty writing failed");
+                }
+            }
+
             fakeFile = fakeFile ?? "compiler-fake-file " + Interlocked.Increment(ref TryCompileNumber) + ".more";
 
             Options opts = Options.None;
@@ -51,18 +63,6 @@ namespace MoreTests
 
             compiler.Compile(Environment.CurrentDirectory, fakeFile, fakeFile + ".out", fileLookup, ctx, opts, mode);
             var ret =  fileLookup.WriteMap.ElementAt(0).Value;
-
-            if(mode == WriterMode.Minimize)
-            {
-                try
-                {
-                    TryCompile(text, null, lookup, minify, WriterMode.Pretty);
-                }
-                catch (Exception)
-                {
-                    Assert.Fail("Pretty writing failed");
-                }
-            }
 
             return ret;
         }
@@ -2789,6 +2789,43 @@ namespace MoreTests
                 );
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("a{-moz-background-size:10px;-webkit-background-size:10px auto;background-size:10px}b{-moz-background-size:20px 30px;-webkit-background-size:20px 30px;background-size:20px 30px}", written);
+        }
+
+        [TestMethod]
+        public void PrefixerInfoOnConflict()
+        {
+            var written =
+                TryCompile(
+                    @"a{
+                        -ms-overflow-style: hidden;
+                        overflow-style: hidden;
+                      }",
+                    prefix: true
+                 );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{-ms-overflow-style:hidden;overflow-style:hidden}", written);
+
+            var info = Current.GetInfo();
+            Assert.AreEqual(1, info.Count);
+            Assert.AreEqual("Prefixed property -ms-overflow-style in 'a' could have been generated automatically", info[0]);
+        }
+
+        [TestMethod]
+        public void PrefixerNoInfoOnPartilConflict()
+        {
+            var written =
+                TryCompile(
+                    @"a{
+                        -ms-overflow-style: fizz;
+                        overflow-style: hidden;
+                      }",
+                    prefix: true
+                 );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{-ms-overflow-style:fizz;overflow-style:hidden}", written);
+
+            var info = Current.GetInfo();
+            Assert.AreEqual(0, info.Count);
         }
     }
 }

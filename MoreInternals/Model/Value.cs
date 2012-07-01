@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using MoreInternals.Parser;
 using MoreInternals.Compiler;
 using System.Diagnostics.CodeAnalysis;
+using System.Collections;
 
 namespace MoreInternals.Model
 {
@@ -434,12 +435,12 @@ namespace MoreInternals.Model
 
         public override bool Equals(object obj)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(this.GetType().Name + ".Equals");
         }
 
         public override int GetHashCode()
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(this.GetType().Name + ".GetHashCode");
         }
     }
 
@@ -1456,6 +1457,47 @@ namespace MoreInternals.Model
 
             return ret;
         }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as CompoundValue;
+            if (other == null) return false;
+
+            if (other.Values.Count() != Values.Count()) return false;
+
+            for (var i = 0; i < Values.Count(); i++)
+            {
+                if (!Values.ElementAt(i).Equals(other.Values.ElementAt(i))) return false;
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            var ret = 0;
+            for (var i = 0; i < Values.Count(); i++)
+            {
+                var vHash = Values.ElementAt(i).GetHashCode();
+
+                var bytes = BitConverter.GetBytes(vHash).ToList();
+
+                var rotateBy = i % bytes.Count;
+
+                var firstI = bytes.Take(rotateBy);
+                var theRest = bytes.Skip(rotateBy);
+
+                var rotatedBytes = new List<byte>(4);
+                rotatedBytes.AddRange(firstI);
+                rotatedBytes.AddRange(theRest);
+
+                var rotated = BitConverter.ToInt32(rotatedBytes.ToArray(), 0);
+
+                ret ^= rotated;
+            }
+
+            return ret;
+        }
     }
 
     // font-family: serif, sans-serif ; etc.
@@ -1507,6 +1549,47 @@ namespace MoreInternals.Model
             foreach (var value in Values)
             {
                 ret.AddRange(value.ReferredToVariables());
+            }
+
+            return ret;
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as CommaDelimittedValue;
+            if (other == null) return false;
+
+            if (other.Values.Count() != Values.Count()) return false;
+
+            for (var i = 0; i < Values.Count(); i++)
+            {
+                if (!Values.ElementAt(i).Equals(other.Values.ElementAt(i))) return false;
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            var ret = -1;
+            for (var i = 0; i < Values.Count(); i++)
+            {
+                var vHash = Values.ElementAt(i).GetHashCode();
+
+                var bytes = BitConverter.GetBytes(vHash).ToList();
+
+                var rotateBy = i % bytes.Count;
+
+                var firstI = bytes.Take(rotateBy);
+                var theRest = bytes.Skip(rotateBy);
+
+                var rotatedBytes = new List<byte>(4);
+                rotatedBytes.AddRange(firstI);
+                rotatedBytes.AddRange(theRest);
+
+                var rotated = BitConverter.ToInt32(rotatedBytes.ToArray(), 0);
+
+                ret ^= rotated;
             }
 
             return ret;
@@ -1950,7 +2033,11 @@ namespace MoreInternals.Model
 
         public override int GetHashCode()
         {
-            return -1 * base.GetHashCode();
+            return
+                -1 * (
+                    Counter.GetHashCode() ^
+                    (Style != null ? -1 * Style.GetHashCode() : 0)
+                );
         }
 
         public override bool Equals(object obj)
