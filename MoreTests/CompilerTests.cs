@@ -2827,5 +2827,55 @@ namespace MoreTests
             var info = Current.GetInfo();
             Assert.AreEqual(0, info.Count);
         }
+
+        [TestMethod]
+        public void BorderRadiusSlashSyntax()
+        {
+            var written =
+                TryCompile(
+                    @"a{
+                        border-radius: 1px / 2px;
+                      }
+                      b{
+                        border-radius: 1px 2px / 3px;
+                      }
+                      c{
+                        border-radius: 1px 2px 3px / 4px;
+                      }
+                      d{
+                        border-radius: 1px 2px 3px 4px / 5px;
+                      }
+                      e{
+                        border-radius: 1px 2px 3px 4px / 5px;
+                      }
+                      e{
+                        border-radius: 1px 2px 3px 4px / 5px 6px;
+                      }
+                      e{
+                        border-radius: 1px 2px 3px 4px / 5px 6px 7px;
+                      }
+                      e{
+                        border-radius: 1px 2px 3px 4px / 5px 6px 7px 8px;
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{border-radius:1px / 2px}b{border-radius:1px 2px / 3px}c{border-radius:1px 2px 3px / 4px}d{border-radius:1px 2px 3px 4px / 5px}e{border-radius:1px 2px 3px 4px / 5px;border-radius:1px 2px 3px 4px / 5px 6px;border-radius:1px 2px 3px 4px / 5px 6px 7px;border-radius:1px 2px 3px 4px / 5px 6px 7px 8px}", written);
+        }
+
+        [TestMethod]
+        public void TerminalFontLikeValue()
+        {
+            var written =
+                TryCompile(
+                    @"a{
+                        font: foo / bar
+                      }
+                      b {
+                        border-radius: x / a
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{font:foo / bar}b{border-radius:x / a}", written);
+        }
     }
 }

@@ -911,7 +911,7 @@ namespace MoreInternals.Parser
             return MoreValueParser.Parse(value, pos);
         }
 
-        internal static Value ParseFontValue(ParserStream stream)
+        internal static Value ParseFontLikeValue(ParserStream stream)
         {
             var start = stream.Position;
             var valueStr = new StringBuilder();
@@ -989,7 +989,7 @@ namespace MoreInternals.Parser
             if (name.Equals("font", StringComparison.InvariantCultureIgnoreCase))
             {
                 // font has a goofy shorthand, needs special treatment
-                value = ParseFontValue(stream);
+                value = ParseFontLikeValue(stream);
             }
             else
             {
@@ -1000,7 +1000,14 @@ namespace MoreInternals.Parser
                 }
                 else
                 {
-                    value = ParseMoreValue(stream);
+                    if (name.Equals("border-radius"))
+                    {
+                        value = ParseFontLikeValue(stream);
+                    }
+                    else
+                    {
+                        value = ParseMoreValue(stream);
+                    }
                 }
             }
 
