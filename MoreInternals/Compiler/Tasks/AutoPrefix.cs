@@ -514,16 +514,16 @@ namespace MoreInternals.Compiler.Tasks
         /// 
         /// -webkit-border-radius: a b;
         /// is equivalent to 
-        /// -webkit-border-radius-topleft: a b;
-        /// -webkit-border-radius-topright: a b;
+        /// -webkit-top-left-border-radius: a b;
+        /// -webkit-top-right-border-radius: a b;
         /// etc.
         /// 
         /// border-radius: a b;
         /// is equivalent to
-        /// border-radius-top-left-radius: a;
-        /// border-radius-top-right-radius: b;
-        /// border-radius-bottom-right-radius: a;
-        /// border-radius-bottom-left-radius: b;
+        /// border-top-left-radius: a;
+        /// border-top-right-radius: b;
+        /// border-bottom-right-radius: a;
+        /// border-bottom-left-radius: b;
         /// 
         /// This is only true if border-radius has two values; for all other configurations they are equivalent 
         /// (at least so far as I can tell).
