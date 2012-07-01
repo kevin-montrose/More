@@ -2773,5 +2773,22 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("a{-moz-background-clip:border;-webkit-background-clip:border;background-clip:border-box}b{-moz-background-clip:padding;-webkit-background-clip:padding;background-clip:padding-box}c{-webkit-background-clip:content;background-clip:content-box}d{background-clip:foo}", written);
         }
+
+        [TestMethod]
+        public void BackgroundSize()
+        {
+            var written =
+                TryCompile(
+                    @"a{
+                        background-size: 10px;
+                      }
+                      b{
+                        background-size: 20px 30px;
+                      }",
+                    prefix: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{-moz-background-size:10px;-webkit-background-size:10px auto;background-size:10px}b{-moz-background-size:20px 30px;-webkit-background-size:20px 30px;background-size:20px 30px}", written);
+        }
     }
 }

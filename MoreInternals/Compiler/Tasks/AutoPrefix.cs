@@ -110,7 +110,8 @@ namespace MoreInternals.Compiler.Tasks
             { Tuple.Create(Prefix.MOZ, "background-origin"), MozBackgroundBoxAlt },
             { Tuple.Create(Prefix.WEBKIT, "background-origin"), WebkitBackgroundBoxAlt },
 
-            { Tuple.Create(Prefix.WEBKIT, "background-size"), Simple },
+            { Tuple.Create(Prefix.MOZ, "background-size"), Simple },
+            { Tuple.Create(Prefix.WEBKIT, "background-size"), WebkitBackgroundSize },
 
             { Tuple.Create(Prefix.WEBKIT, "border-after"), Simple },
             { Tuple.Create(Prefix.WEBKIT, "border-after-color"), Simple },
@@ -371,14 +372,32 @@ namespace MoreInternals.Compiler.Tasks
         #endregion
 
         /// <summary>
-        /// Webkit supports a prefixed version of background-clip
+        /// Webkit's prefixed background-size differs from the spec
+        /// in that a single value (background-size: X) is treated like (background-size: X X).
+        /// 
+        /// It should be treated as (background-size: X auto), this detects and inserts that case.
+        /// 
+        /// In the case where two values are passed, the prefixed version matches the final spec.
+        /// </summary>
+        private static IEnumerable<NameValueProperty> WebkitBackgroundSize(Prefix pre, NameValueProperty backgroundSize)
+        {
+            var asMulti = backgroundSize.Value as CompoundValue;
+            if (asMulti != null) return Simple(pre, backgroundSize);
+
+            var newValue = new CompoundValue(backgroundSize.Value, new StringValue("auto"));
+
+            return Simple(pre, new NameValueProperty(backgroundSize.Name, newValue));
+        }
+
+        /// <summary>
+        /// Webkit supports prefixed versions of background-clip & background-origin
         /// that accepts alternate versions of padding-box, border-box, and content-box; padding, border, and content respectively.
         /// </summary>
-        private static IEnumerable<NameValueProperty> WebkitBackgroundBoxAlt(Prefix pre, NameValueProperty backgroundClip)
+        private static IEnumerable<NameValueProperty> WebkitBackgroundBoxAlt(Prefix pre, NameValueProperty backgroundX)
         {
             if (pre != Prefix.WEBKIT) throw new InvalidOperationException("Prefixer only valid for WEBKIT");
 
-            var asStr = backgroundClip.Value as StringValue;
+            var asStr = backgroundX.Value as StringValue;
             if (asStr == null) return Enumerable.Empty<NameValueProperty>();
 
             if (asStr.Value.Equals("padding-box", StringComparison.InvariantCultureIgnoreCase))
@@ -386,7 +405,7 @@ namespace MoreInternals.Compiler.Tasks
                 return
                     Simple(
                         pre,
-                        new NameValueProperty(backgroundClip.Name, new StringValue("padding"))
+                        new NameValueProperty(backgroundX.Name, new StringValue("padding"))
                     );
             }
 
@@ -395,7 +414,7 @@ namespace MoreInternals.Compiler.Tasks
                 return
                     Simple(
                         pre,
-                        new NameValueProperty(backgroundClip.Name, new StringValue("border"))
+                        new NameValueProperty(backgroundX.Name, new StringValue("border"))
                     );
             }
 
@@ -404,7 +423,7 @@ namespace MoreInternals.Compiler.Tasks
                 return
                     Simple(
                         pre,
-                        new NameValueProperty(backgroundClip.Name, new StringValue("content"))
+                        new NameValueProperty(backgroundX.Name, new StringValue("content"))
                     );
             }
 
@@ -412,14 +431,14 @@ namespace MoreInternals.Compiler.Tasks
         }
 
         /// <summary>
-        /// Mozilla supports a prefixed version of background-clip
+        /// Mozilla supports prefixed versions of background-clip & background-origin
         /// that accepts alternate versions of padding-box and border-box; padding and border respectively.
         /// </summary>
-        private static IEnumerable<NameValueProperty> MozBackgroundBoxAlt(Prefix pre, NameValueProperty backgroundClip)
+        private static IEnumerable<NameValueProperty> MozBackgroundBoxAlt(Prefix pre, NameValueProperty backgroundX)
         {
             if (pre != Prefix.MOZ) throw new InvalidOperationException("Prefixer only valid for MOZ");
 
-            var asStr = backgroundClip.Value as StringValue;
+            var asStr = backgroundX.Value as StringValue;
             if (asStr == null) return Enumerable.Empty<NameValueProperty>();
 
             if (asStr.Value.Equals("padding-box", StringComparison.InvariantCultureIgnoreCase))
@@ -427,7 +446,7 @@ namespace MoreInternals.Compiler.Tasks
                 return 
                     Simple(
                         pre,
-                        new NameValueProperty(backgroundClip.Name, new StringValue("padding"))
+                        new NameValueProperty(backgroundX.Name, new StringValue("padding"))
                     );
             }
 
@@ -436,7 +455,7 @@ namespace MoreInternals.Compiler.Tasks
                 return
                     Simple(
                         pre,
-                        new NameValueProperty(backgroundClip.Name, new StringValue("border"))
+                        new NameValueProperty(backgroundX.Name, new StringValue("border"))
                     );
             }
 
