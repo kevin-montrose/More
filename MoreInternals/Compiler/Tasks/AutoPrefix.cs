@@ -475,13 +475,12 @@ namespace MoreInternals.Compiler.Tasks
             var asNumber = opacity.Value as NumberValue;
             if (asNumber == null || asNumber is NumberWithUnitValue) return Enumerable.Empty<NameValueProperty>();
 
-            var percent = asNumber.Value * 100;
+            var percent = decimal.Round(asNumber.Value * 100, 0);
 
             return
                 new[] 
                 {
-                    new NameValueProperty("-ms-format", new StringValue("progid:DXImageTransform.Microsoft.Alpha(Opacity=" + percent + ")")),
-                    new NameValueProperty("format", new StringValue("alpha(opacity=" + percent + ")"))
+                    new NameValueProperty("filter", new StringValue("progid:DXImageTransform.Microsoft.Alpha(Opacity=" + percent + ")"))
                 };
         }
 

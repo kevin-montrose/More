@@ -2748,7 +2748,7 @@ namespace MoreTests
                     prefix: true
                 );
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("a{format:alpha(opacity=30.0);-ms-format:progid:DXImageTransform.Microsoft.Alpha(Opacity=30.0);-webkit-opacity:0.3;opacity:0.3}", written);
+            Assert.AreEqual("a{filter:progid:DXImageTransform.Microsoft.Alpha(Opacity=30);-webkit-opacity:0.3;opacity:0.3}", written);
         }
 
         [TestMethod]
