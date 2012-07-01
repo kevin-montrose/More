@@ -104,9 +104,11 @@ namespace MoreInternals.Compiler.Tasks
             { Tuple.Create(Prefix.WEBKIT, "backface-visibility"), Simple },
             { Tuple.Create(Prefix.MS, "backface-visibility"), Simple },
 
-            { Tuple.Create(Prefix.WEBKIT, "background-clip"), Simple },
+            { Tuple.Create(Prefix.MOZ, "background-clip"), MozBackgroundBoxAlt },
+            { Tuple.Create(Prefix.WEBKIT, "background-clip"), WebkitBackgroundBoxAlt },
 
-            { Tuple.Create(Prefix.WEBKIT, "background-origin"), Simple },
+            { Tuple.Create(Prefix.MOZ, "background-origin"), MozBackgroundBoxAlt },
+            { Tuple.Create(Prefix.WEBKIT, "background-origin"), WebkitBackgroundBoxAlt },
 
             { Tuple.Create(Prefix.WEBKIT, "background-size"), Simple },
 
@@ -367,6 +369,79 @@ namespace MoreInternals.Compiler.Tasks
         };
 
         #endregion
+
+        /// <summary>
+        /// Webkit supports a prefixed version of background-clip
+        /// that accepts alternate versions of padding-box, border-box, and content-box; padding, border, and content respectively.
+        /// </summary>
+        private static IEnumerable<NameValueProperty> WebkitBackgroundBoxAlt(Prefix pre, NameValueProperty backgroundClip)
+        {
+            if (pre != Prefix.WEBKIT) throw new InvalidOperationException("Prefixer only valid for WEBKIT");
+
+            var asStr = backgroundClip.Value as StringValue;
+            if (asStr == null) return Enumerable.Empty<NameValueProperty>();
+
+            if (asStr.Value.Equals("padding-box", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return
+                    Simple(
+                        pre,
+                        new NameValueProperty(backgroundClip.Name, new StringValue("padding"))
+                    );
+            }
+
+            if (asStr.Value.Equals("border-box", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return
+                    Simple(
+                        pre,
+                        new NameValueProperty(backgroundClip.Name, new StringValue("border"))
+                    );
+            }
+
+            if (asStr.Value.Equals("content-box", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return
+                    Simple(
+                        pre,
+                        new NameValueProperty(backgroundClip.Name, new StringValue("content"))
+                    );
+            }
+
+            return Enumerable.Empty<NameValueProperty>();
+        }
+
+        /// <summary>
+        /// Mozilla supports a prefixed version of background-clip
+        /// that accepts alternate versions of padding-box and border-box; padding and border respectively.
+        /// </summary>
+        private static IEnumerable<NameValueProperty> MozBackgroundBoxAlt(Prefix pre, NameValueProperty backgroundClip)
+        {
+            if (pre != Prefix.MOZ) throw new InvalidOperationException("Prefixer only valid for MOZ");
+
+            var asStr = backgroundClip.Value as StringValue;
+            if (asStr == null) return Enumerable.Empty<NameValueProperty>();
+
+            if (asStr.Value.Equals("padding-box", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return 
+                    Simple(
+                        pre,
+                        new NameValueProperty(backgroundClip.Name, new StringValue("padding"))
+                    );
+            }
+
+            if(asStr.Value.Equals("border-box", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return
+                    Simple(
+                        pre,
+                        new NameValueProperty(backgroundClip.Name, new StringValue("border"))
+                    );
+            }
+
+            return Enumerable.Empty<NameValueProperty>();
+        }
 
         /// <summary>
         /// Old versions of IE have two different syntax's for opacity:

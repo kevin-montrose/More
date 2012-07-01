@@ -2750,5 +2750,28 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("a{format:alpha(opacity=30.0);-ms-format:progid:DXImageTransform.Microsoft.Alpha(Opacity=30.0);-webkit-opacity:0.3;opacity:0.3}", written);
         }
+
+        [TestMethod]
+        public void BackgroundClip()
+        {
+            var written =
+                TryCompile(
+                    @"a{
+                        background-clip: border-box;
+                      }
+                      b{
+                        background-clip: padding-box;
+                      }
+                      c{
+                        background-clip: content-box;
+                      }
+                      d{
+                        background-clip: foo;
+                      }",
+                    prefix: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{-moz-background-clip:border;-webkit-background-clip:border;background-clip:border-box}b{-moz-background-clip:padding;-webkit-background-clip:padding;background-clip:padding-box}c{-webkit-background-clip:content;background-clip:content-box}d{background-clip:foo}", written);
+        }
     }
 }
