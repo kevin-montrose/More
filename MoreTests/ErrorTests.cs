@@ -1162,5 +1162,24 @@ namespace MoreTests
             Assert.AreEqual("cycle() values cannot contain attr() values", aErrors[0].Message);
             Assert.AreEqual("cycle() values cannot contain calc() values", aErrors[1].Message);
         }
+
+        [TestMethod]
+        public void InvalidSteps()
+        {
+            var a =
+                @"a {
+                    b: steps(1, foo);
+                    c: steps(foo, end);
+                    d: steps(0, start);
+                  }";
+            TryCompile(a);
+            Assert.IsTrue(Current.HasErrors());
+            var aErrors = Current.GetErrors(ErrorType.Compiler);
+
+            Assert.AreEqual(3, aErrors.Count);
+            Assert.AreEqual("steps() expects one of end or start as its second parameter", aErrors[0].Message);
+            Assert.AreEqual("steps() expects an untyped integer for its first parameter", aErrors[1].Message);
+            Assert.AreEqual("steps() expects an integer value > 0 as its first parameter", aErrors[2].Message);
+        }
     }
 }

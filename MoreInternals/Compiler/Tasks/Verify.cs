@@ -454,6 +454,52 @@ namespace MoreInternals.Compiler.Tasks
             }
         }
 
+        private static void VerifySteps(IEnumerable<Value> values)
+        {
+            foreach (var value in values)
+            {
+                var comma = value as CommaDelimittedValue;
+                if (comma != null)
+                {
+                    VerifySteps(comma.Values);
+                    continue;
+                }
+
+                var compound = value as CompoundValue;
+                if (compound != null)
+                {
+                    VerifySteps(compound.Values);
+                    continue;
+                }
+
+                var steps = value as StepsValue;
+                if (steps != null)
+                {
+                    var numSteps = steps.NumberOfSteps as NumberValue;
+                    var dir = steps.Direction as StringValue;
+
+                    if (numSteps == null || numSteps is NumberWithUnitValue)
+                    {
+                        Current.RecordError(ErrorType.Compiler, value, "steps() expects an untyped integer for its first parameter");
+                    }
+                    else
+                    {
+                        var v = numSteps.Value;
+
+                        if (decimal.Round(v, 0) != v || v <= 0)
+                        {
+                            Current.RecordError(ErrorType.Compiler, value, "steps() expects an integer value > 0 as its first parameter");
+                        }
+                    }
+
+                    if (dir == null || !(dir.Value.ToLowerInvariant().In("end", "start")))
+                    {
+                        Current.RecordError(ErrorType.Compiler, value, "steps() expects one of end or start as its second parameter");
+                    }
+                }
+            }
+        }
+
         public static List<Block> Task(List<Block> blocks)
         {
             var media = blocks.OfType<MediaBlock>().Select(t => t.MediaQuery);
@@ -473,6 +519,7 @@ namespace MoreInternals.Compiler.Tasks
             var values = allProps.OfType<NameValueProperty>().Select(s => s.Value).ToList();
 
             VerifyCycle(values);
+            VerifySteps(values);
 
             return blocks;
         }

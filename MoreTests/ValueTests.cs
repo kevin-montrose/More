@@ -583,5 +583,18 @@ namespace MoreTests
             Assert.AreEqual(null, aCounters.Style);
             Assert.AreEqual("world", bCounters.Style.ToString());
         }
+
+        [TestMethod]
+        public void Steps()
+        {
+            var a = Value.Parse("steps(2, end)");
+
+            Assert.AreEqual(typeof(StepsValue), a.GetType());
+
+            var aSteps = (StepsValue)a;
+
+            Assert.AreEqual("2", aSteps.NumberOfSteps.ToString());
+            Assert.AreEqual("end", aSteps.Direction.ToString());
+        }
     }
 }

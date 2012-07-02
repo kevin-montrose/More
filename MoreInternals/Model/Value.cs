@@ -2104,6 +2104,65 @@ namespace MoreInternals.Model
         }
     }
 
+    class StepsValue : Value
+    {
+        public Value NumberOfSteps { get; private set; }
+        public Value Direction { get; private set; }
+
+        public override bool NeedsEvaluate
+        {
+            get
+            {
+                return NumberOfSteps.NeedsEvaluate || Direction.NeedsEvaluate;
+            }
+        }
+
+        public StepsValue(Value numSteps, Value dir)
+        {
+            NumberOfSteps = numSteps;
+            Direction = dir;
+        }
+
+        public override Value Bind(Scope scope)
+        {
+            return new StepsValue(NumberOfSteps.Bind(scope), Direction.Bind(scope));
+        }
+
+        internal override Value Evaluate()
+        {
+            return new StepsValue(NumberOfSteps.Evaluate(), Direction.Evaluate());
+        }
+
+        internal override List<string> ReferredToVariables()
+        {
+            return NumberOfSteps.ReferredToVariables().Union(Direction.ReferredToVariables()).ToList();
+        }
+
+        internal override void Write(TextWriter output)
+        {
+            output.Write("steps(");
+            NumberOfSteps.Write(output);
+            output.Write(',');
+            Direction.Write(output);
+            output.Write(')');
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as StepsValue;
+            if (other == null) return false;
+
+            return
+                NumberOfSteps.Equals(other.NumberOfSteps) &&
+                Direction.Equals(other.Direction);
+        }
+
+        public override int GetHashCode()
+        {
+            return NumberOfSteps.GetHashCode() ^ (-1 * Direction.GetHashCode());
+        }
+    }
+
     class UrlValue : Value
     {
         public Value UrlPath { get; private set; }

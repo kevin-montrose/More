@@ -279,6 +279,19 @@ namespace MoreInternals.Parser
 
                         return new CycleValue(param);
                     }
+
+                    if (toDate.Equals("steps", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var val = ParseGroup(stream, forPosition).Value;
+                        var param = val as CommaDelimittedValue;
+                        if (param == null || param.Values.Count() != 2)
+                        {
+                            Current.RecordError(ErrorType.Parser, forPosition, "steps() expects 2 parameters");
+                            throw new StoppedParsingException();
+                        }
+
+                        return new StepsValue(param.Values.ElementAt(0), param.Values.ElementAt(1));
+                    }
                 }
 
                 if (buffer.Length == 6 && (stream.HasMore() && stream.Peek() == '('))

@@ -2877,5 +2877,18 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("a{font:foo / bar}b{border-radius:x / a}", written);
         }
+
+        [TestMethod]
+        public void Steps()
+        {
+            var written =
+                TryCompile(
+                    @"a{
+                        transition-timing-function: steps(2, end);
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{transition-timing-function:steps(2,end)}", written);
+        }
     }
 }
