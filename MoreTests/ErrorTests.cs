@@ -1177,7 +1177,7 @@ namespace MoreTests
             var aErrors = Current.GetErrors(ErrorType.Compiler);
 
             Assert.AreEqual(3, aErrors.Count);
-            Assert.AreEqual("steps() expects one of end or start as its second parameter", aErrors[0].Message);
+            Assert.AreEqual("steps() expects one of end or start as its optional second parameter", aErrors[0].Message);
             Assert.AreEqual("steps() expects a unit-less integer for its first parameter", aErrors[1].Message);
             Assert.AreEqual("steps() expects an integer value > 0 as its first parameter", aErrors[2].Message);
         }

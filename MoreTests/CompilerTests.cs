@@ -2885,10 +2885,13 @@ namespace MoreTests
                 TryCompile(
                     @"a{
                         transition-timing-function: steps(2, end);
+                      }
+                      b {
+                        animation-timing-function: steps(5);
                       }"
                 );
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("a{transition-timing-function:steps(2,end)}", written);
+            Assert.AreEqual("a{transition-timing-function:steps(2,end)}b{animation-timing-function:steps(5)}", written);
         }
 
         [TestMethod]

@@ -2113,7 +2113,9 @@ namespace MoreInternals.Model
         {
             get
             {
-                return NumberOfSteps.NeedsEvaluate || Direction.NeedsEvaluate;
+                return 
+                    NumberOfSteps.NeedsEvaluate || 
+                    Direction != null ? Direction.NeedsEvaluate : false;
             }
         }
 
@@ -2125,25 +2127,42 @@ namespace MoreInternals.Model
 
         public override Value Bind(Scope scope)
         {
-            return new StepsValue(NumberOfSteps.Bind(scope), Direction.Bind(scope));
+            return 
+                new StepsValue(
+                    NumberOfSteps.Bind(scope), 
+                    Direction != null ? Direction.Bind(scope) : null
+                );
         }
 
         internal override Value Evaluate()
         {
-            return new StepsValue(NumberOfSteps.Evaluate(), Direction.Evaluate());
+            return 
+                new StepsValue(
+                    NumberOfSteps.Evaluate(), 
+                    Direction != null ? Direction.Evaluate() : null
+                );
         }
 
         internal override List<string> ReferredToVariables()
         {
-            return NumberOfSteps.ReferredToVariables().Union(Direction.ReferredToVariables()).ToList();
+            return 
+                NumberOfSteps.ReferredToVariables()
+                .Union(
+                    Direction != null ? Direction.ReferredToVariables() : Enumerable.Empty<string>()
+                ).ToList();
         }
 
         internal override void Write(TextWriter output)
         {
             output.Write("steps(");
             NumberOfSteps.Write(output);
-            output.Write(',');
-            Direction.Write(output);
+            
+            if (Direction != null)
+            {
+                output.Write(',');
+                Direction.Write(output);
+            }
+            
             output.Write(')');
         }
 
@@ -2152,14 +2171,20 @@ namespace MoreInternals.Model
             var other = obj as StepsValue;
             if (other == null) return false;
 
+            var dirEqual =
+                other.Direction == null && Direction == null ||
+                Direction != null && Direction.Equals(other.Direction);
+
             return
                 NumberOfSteps.Equals(other.NumberOfSteps) &&
-                Direction.Equals(other.Direction);
+                dirEqual;
         }
 
         public override int GetHashCode()
         {
-            return NumberOfSteps.GetHashCode() ^ (-1 * Direction.GetHashCode());
+            return 
+                NumberOfSteps.GetHashCode() ^ 
+                (-1 * (Direction != null ? Direction.GetHashCode() : 0));
         }
     }
 

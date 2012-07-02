@@ -492,9 +492,9 @@ namespace MoreInternals.Compiler.Tasks
                         }
                     }
 
-                    if (dir == null || !(dir.Value.ToLowerInvariant().In("end", "start")))
+                    if ((steps.Direction != null && dir == null) || (dir != null && !(dir.Value.ToLowerInvariant().In("end", "start"))))
                     {
-                        Current.RecordError(ErrorType.Compiler, value, "steps() expects one of end or start as its second parameter");
+                        Current.RecordError(ErrorType.Compiler, value, "steps() expects one of end or start as its optional second parameter");
                     }
                 }
             }

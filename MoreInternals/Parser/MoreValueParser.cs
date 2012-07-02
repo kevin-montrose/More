@@ -283,14 +283,17 @@ namespace MoreInternals.Parser
                     if (toDate.Equals("steps", StringComparison.InvariantCultureIgnoreCase))
                     {
                         var val = ParseGroup(stream, forPosition).Value;
-                        var param = val as CommaDelimittedValue;
-                        if (param == null || param.Values.Count() != 2)
+                        var comma = val as CommaDelimittedValue;
+                        if (comma != null && comma.Values.Count() > 2)
                         {
-                            Current.RecordError(ErrorType.Parser, forPosition, "steps() expects 2 parameters");
+                            Current.RecordError(ErrorType.Parser, forPosition, "Expected at most 2 parameters to steps() value, found " + comma.Values.Count());
                             throw new StoppedParsingException();
                         }
 
-                        return new StepsValue(param.Values.ElementAt(0), param.Values.ElementAt(1));
+                        var steps = comma != null ? comma.Values.ElementAt(0) : val;
+                        var dir = comma != null ? comma.Values.ElementAt(1) : null;
+
+                        return new StepsValue(steps, dir);
                     }
                 }
 

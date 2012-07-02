@@ -588,13 +588,19 @@ namespace MoreTests
         public void Steps()
         {
             var a = Value.Parse("steps(2, end)");
+            var b = Value.Parse("steps(5)");
 
             Assert.AreEqual(typeof(StepsValue), a.GetType());
+            Assert.AreEqual(typeof(StepsValue), b.GetType());
 
             var aSteps = (StepsValue)a;
+            var bSteps = (StepsValue)b;
 
             Assert.AreEqual("2", aSteps.NumberOfSteps.ToString());
             Assert.AreEqual("end", aSteps.Direction.ToString());
+
+            Assert.AreEqual("5", bSteps.NumberOfSteps.ToString());
+            Assert.IsNull(bSteps.Direction);
         }
 
         [TestMethod]
