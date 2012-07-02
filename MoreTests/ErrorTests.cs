@@ -1178,8 +1178,27 @@ namespace MoreTests
 
             Assert.AreEqual(3, aErrors.Count);
             Assert.AreEqual("steps() expects one of end or start as its second parameter", aErrors[0].Message);
-            Assert.AreEqual("steps() expects an untyped integer for its first parameter", aErrors[1].Message);
+            Assert.AreEqual("steps() expects a unit-less integer for its first parameter", aErrors[1].Message);
             Assert.AreEqual("steps() expects an integer value > 0 as its first parameter", aErrors[2].Message);
+        }
+
+        [TestMethod]
+        public void InvalidCubicBezier()
+        {
+            var a =
+                @"a {
+                    b: cubic-bezier(2, 0, 1, 1);
+                    c: cubic-bezier(1, 1, foo, 1);
+                    d: cubic-bezier(1, 1, -5, 1);
+                  }";
+            TryCompile(a);
+            Assert.IsTrue(Current.HasErrors());
+            var aErrors = Current.GetErrors(ErrorType.Compiler);
+
+            Assert.AreEqual(3, aErrors.Count);
+            Assert.AreEqual("cubic-bezier() expects its first value to be in the range [0, 1]", aErrors[0].Message);
+            Assert.AreEqual("cubic-bezier() expects 4 unit-less parameters", aErrors[1].Message);
+            Assert.AreEqual("cubic-bezier() expects its third value to be in the range [0, 1]", aErrors[2].Message);
         }
     }
 }

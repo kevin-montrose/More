@@ -2890,5 +2890,19 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("a{transition-timing-function:steps(2,end)}", written);
         }
+
+        [TestMethod]
+        public void CubicBezier()
+        {
+            var written =
+                TryCompile(
+                    @"@foo = 0.5;
+                      a{
+                        transition-timing-function: cubic-bezier(1, 3.5, @foo, 5);
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{transition-timing-function:cubic-bezier(1,3.5,0.5,5)}", written);
+        }
     }
 }

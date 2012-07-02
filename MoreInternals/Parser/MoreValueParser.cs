@@ -350,6 +350,29 @@ namespace MoreInternals.Parser
                         return new CountersValue(counter, style);
                     }
                 }
+
+                if (buffer.Length == 12 && (stream.HasMore() && stream.Peek() == '('))
+                {
+                    var toDate = buffer.ToString();
+                    if (toDate.Equals("cubic-bezier", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var val = ParseGroup(stream, forPosition).Value;
+                        var comma = val as CommaDelimittedValue;
+                        if (comma == null || comma.Values.Count() != 4)
+                        {
+                            Current.RecordError(ErrorType.Parser, forPosition, "Excepted 4 parameters to cubic-bezier()");
+                            throw new StoppedParsingException();
+                        }
+
+                        return
+                            new CubicBezierValue(
+                                comma.Values.ElementAt(0),
+                                comma.Values.ElementAt(1),
+                                comma.Values.ElementAt(2),
+                                comma.Values.ElementAt(3)
+                            );
+                    }
+                }
             }
 
             NamedColor color;

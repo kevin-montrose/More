@@ -2117,7 +2117,7 @@ namespace MoreInternals.Model
             }
         }
 
-        public StepsValue(Value numSteps, Value dir)
+        internal StepsValue(Value numSteps, Value dir)
         {
             NumberOfSteps = numSteps;
             Direction = dir;
@@ -2160,6 +2160,98 @@ namespace MoreInternals.Model
         public override int GetHashCode()
         {
             return NumberOfSteps.GetHashCode() ^ (-1 * Direction.GetHashCode());
+        }
+    }
+
+    class CubicBezierValue : Value
+    {
+        public Value X1 { get; private set; }
+        public Value Y1 { get; private set; }
+
+        public Value X2 { get; private set; }
+        public Value Y2 { get; private set; }
+
+        public override bool NeedsEvaluate
+        {
+            get
+            {
+                return X1.NeedsEvaluate || Y1.NeedsEvaluate || X2.NeedsEvaluate || Y2.NeedsEvaluate;
+            }
+        }
+
+        internal CubicBezierValue(Value x1, Value y1, Value x2, Value y2)
+        {
+            X1 = x1;
+            Y1 = y1;
+
+            X2 = x2;
+            Y2 = y2;
+        }
+
+        internal override List<string> ReferredToVariables()
+        {
+            return
+                X1.ReferredToVariables()
+                .Union(Y1.ReferredToVariables())
+                .Union(X2.ReferredToVariables())
+                .Union(Y2.ReferredToVariables())
+                .ToList();
+        }
+
+        public override Value Bind(Scope scope)
+        {
+            return
+                new CubicBezierValue(
+                    X1.Bind(scope),
+                    Y1.Bind(scope),
+                    X2.Bind(scope),
+                    Y2.Bind(scope)
+                );
+        }
+
+        internal override Value Evaluate()
+        {
+            return
+                new CubicBezierValue(
+                    X1.Evaluate(),
+                    Y1.Evaluate(),
+                    X2.Evaluate(),
+                    Y2.Evaluate()
+                );
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as CubicBezierValue;
+            if (other == null) return false;
+
+            return
+                X1.Equals(other.X1) &&
+                Y1.Equals(other.Y1) &&
+                X2.Equals(other.X2) &&
+                Y2.Equals(other.Y2);
+        }
+
+        public override int GetHashCode()
+        {
+            return
+                X1.GetHashCode() ^
+                (-1 * Y1.GetHashCode()) ^
+                (1 + X2.GetHashCode()) ^
+                (-1 * (Y2.GetHashCode() + 1));
+        }
+
+        internal override void Write(TextWriter output)
+        {
+            output.Write("cubic-bezier(");
+            X1.Write(output);
+            output.Write(',');
+            Y1.Write(output);
+            output.Write(',');
+            X2.Write(output);
+            output.Write(',');
+            Y2.Write(output);
+            output.Write(')');
         }
     }
 

@@ -596,5 +596,20 @@ namespace MoreTests
             Assert.AreEqual("2", aSteps.NumberOfSteps.ToString());
             Assert.AreEqual("end", aSteps.Direction.ToString());
         }
+
+        [TestMethod]
+        public void CubicBezier()
+        {
+            var a = Value.Parse("cubic-bezier(1, 2, 3, 4)");
+
+            Assert.AreEqual(typeof(CubicBezierValue), a.GetType());
+
+            var aBezier = (CubicBezierValue)a;
+
+            Assert.AreEqual("1", aBezier.X1.ToString());
+            Assert.AreEqual("2", aBezier.Y1.ToString());
+            Assert.AreEqual("3", aBezier.X2.ToString());
+            Assert.AreEqual("4", aBezier.Y2.ToString());
+        }
     }
 }

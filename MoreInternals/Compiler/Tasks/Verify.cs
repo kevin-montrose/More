@@ -480,7 +480,7 @@ namespace MoreInternals.Compiler.Tasks
 
                     if (numSteps == null || numSteps is NumberWithUnitValue)
                     {
-                        Current.RecordError(ErrorType.Compiler, value, "steps() expects an untyped integer for its first parameter");
+                        Current.RecordError(ErrorType.Compiler, value, "steps() expects a unit-less integer for its first parameter");
                     }
                     else
                     {
@@ -495,6 +495,53 @@ namespace MoreInternals.Compiler.Tasks
                     if (dir == null || !(dir.Value.ToLowerInvariant().In("end", "start")))
                     {
                         Current.RecordError(ErrorType.Compiler, value, "steps() expects one of end or start as its second parameter");
+                    }
+                }
+            }
+        }
+
+        private static void VerifyCubicBezier(IEnumerable<Value> values)
+        {
+            foreach (var value in values)
+            {
+                var comma = value as CommaDelimittedValue;
+                if (comma != null)
+                {
+                    VerifySteps(comma.Values);
+                    continue;
+                }
+
+                var compound = value as CompoundValue;
+                if (compound != null)
+                {
+                    VerifySteps(compound.Values);
+                    continue;
+                }
+
+                var bezier = value as CubicBezierValue;
+                if (bezier != null)
+                {
+                    var x1 = bezier.X1 as NumberValue;
+                    var y1 = bezier.Y1 as NumberValue;
+                    var x2 = bezier.X2 as NumberValue;
+                    var y2 = bezier.Y2 as NumberValue;
+
+                    if (x1 == null || y1 == null || x2 == null || y2 == null ||
+                       (x1 is NumberWithUnitValue) || (y1 is NumberWithUnitValue) ||
+                       (x2 is NumberWithUnitValue) || (y2 is NumberWithUnitValue))
+                    {
+                        Current.RecordError(ErrorType.Compiler, value, "cubic-bezier() expects 4 unit-less parameters");
+                        continue;
+                    }
+
+                    if (x1.Value < 0 || x1.Value > 1)
+                    {
+                        Current.RecordError(ErrorType.Compiler, value, "cubic-bezier() expects its first value to be in the range [0, 1]");
+                    }
+
+                    if (x2.Value < 0 || x2.Value > 1)
+                    {
+                        Current.RecordError(ErrorType.Compiler, value, "cubic-bezier() expects its third value to be in the range [0, 1]");
                     }
                 }
             }
@@ -520,6 +567,7 @@ namespace MoreInternals.Compiler.Tasks
 
             VerifyCycle(values);
             VerifySteps(values);
+            VerifyCubicBezier(values);
 
             return blocks;
         }
