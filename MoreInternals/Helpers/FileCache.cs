@@ -94,5 +94,11 @@ namespace MoreInternals.Helpers
         {
             return Cache.Select(s => s.Key).Union(InProgress).ToList();
         }
+
+        public void Remove(string path)
+        {
+            ReadOnlyCollection<Block> ignored;
+            Cache.TryRemove(path, out ignored);
+        }
     }
 }

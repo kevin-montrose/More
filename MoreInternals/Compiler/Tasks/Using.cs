@@ -122,6 +122,13 @@ namespace MoreInternals.Compiler.Tasks
                 ret.Add(new MediaBlock(loaded.Item1.MediaQuery, inner.ToList(), loaded.Item1.Start, loaded.Item1.Stop, loaded.Item1.FilePath));
             }
 
+            // Record dependencies
+            initialStatements
+                .OfType<Model.Using>()
+                .Each(
+                    u => Current.Dependecies.UsingResolved(initialFile, u.RawPath)
+                );
+
             return ret;
         }
     }

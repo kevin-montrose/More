@@ -789,6 +789,18 @@ namespace MoreTests
         }
 
         [TestMethod]
+        public void RebaseRelativeTo()
+        {
+            Current.SetContext(new Context(new FileCache()));
+
+            var a = @"hello-world.css".RebaseFile(@"C:\what\the\heck\");
+            var b = @"img\noooo.foo".RebaseFile(@"C:\no\idea.more");
+
+            Assert.AreEqual(@"C:\what\the\heck\hello-world.css", a);
+            Assert.AreEqual(@"C:\no\img\noooo.foo", b);
+        }
+
+        [TestMethod]
         public void MixinOverrides()
         {
             var written =

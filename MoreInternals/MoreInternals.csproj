@@ -80,6 +80,7 @@
     <Compile Include="Current.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Helpers\CssWriter.cs" />
+    <Compile Include="Helpers\DependencyGraph.cs" />
     <Compile Include="Helpers\FileCache.cs" />
     <Compile Include="Helpers\FileLookup.cs" />
     <Compile Include="Helpers\Validation.cs" />

@@ -83,6 +83,8 @@ namespace MoreInternals.Compiler
                     }
                 }
 
+                Current.Dependecies.FileCompiled(inputFile, blocks);
+
                 return true;
             }
             catch (StoppedCompilingException)

@@ -35,6 +35,8 @@ namespace MoreInternals.Compiler.Tasks
                 Current.SpritePending(export);
 
                 ret.AddRange(export.MixinEquivalents());
+
+                Current.Dependecies.SpritesResolved(sprite);
             }
 
             return ret;

@@ -257,12 +257,12 @@ namespace More
             return errors;
         }
 
-        static bool MultiThreadedCompile(int maxParallelism, string workingDirectory, List<string> toCompile, bool overwrite, bool warnAsErrors, bool minify, bool verbose, string spriteProg, string spriteArguments, bool autoCacheBreak, bool autoPrefix)
+        static bool MultiThreadedCompile(int maxParallelism, string workingDirectory, List<string> toCompile, bool overwrite, bool warnAsErrors, bool minify, bool verbose, string spriteProg, string spriteArguments, bool autoCacheBreak, bool autoPrefix, out DependencyGraph dependencies)
         {
             var @lock = new Semaphore(0, toCompile.Count);
             var contexts = new ConcurrentBag<Context>();
             var outMsg = new ConcurrentBag<string>();
-
+           
             toCompile.AsParallel()
                 .WithDegreeOfParallelism(maxParallelism)
                 .WithExecutionMode(ParallelExecutionMode.ForceParallelism)
@@ -313,6 +313,8 @@ namespace More
             {
                 mergedContext = mergedContext.Merge(contexts.ElementAt(i));
             }
+
+            dependencies = mergedContext.Dependecies;
 
             var infoMessages = mergedContext.GetInfoMessages().ToList();
             var errors = mergedContext.GetErrors();
@@ -366,7 +368,7 @@ namespace More
             return mergedContext.GetErrors().Count == 0;
         }
 
-        private static bool VerifyParameters(string workingDirectory, int maxDegreeParallelism, string spriteProg)
+        private static bool VerifyParameters(string workingDirectory, int maxDegreeParallelism, string spriteProg, bool overwrite, bool watch)
         {
             var ret = true;
 
@@ -385,6 +387,12 @@ namespace More
             if (maxDegreeParallelism <= 0)
             {
                 Console.WriteLine("maxthreads must be >= 0");
+                return false;
+            }
+
+            if (watch && !overwrite)
+            {
+                Console.Write("/overwrite must be set when /watch is set");
                 return false;
             }
 
@@ -492,6 +500,7 @@ namespace More
                 var version = false;
                 var autoCacheBreak = false;
                 var autoPrefix = false;
+                var watch = false;
 
                 var options = new OptionSet()
                 {
@@ -508,10 +517,13 @@ namespace More
                     { "sa:|spritearguments:", "arguments to pass to spriteprocessor before the sprite file", sa => spriteArguments = sa },
                     { "version", "print version string and exit", v => version = v != null },
                     { "cb|cachebreak", "Include automatically generated cache breakers on referenced resources", cb => autoCacheBreak = cb != null },
-                    { "p|prefix", "Automatically generate vender prefixed versions of properties", p => autoPrefix = p != null }
+                    { "p|prefix", "Automatically generate vender prefixed versions of properties", p => autoPrefix = p != null },
+                    { "w|watch", "Automatically recompile when files change", w => watch = w != null }
                 };
 
                 options.Parse(args);
+
+                Console.ReadKey();
 
                 if (showHelp)
                 {
@@ -526,7 +538,7 @@ namespace More
                     return (int)ExitCode.Success;
                 }
 
-                if (!VerifyParameters(workingDirectory, maxDegreeParallelism, spriteProg))
+                if (!VerifyParameters(workingDirectory, maxDegreeParallelism, spriteProg, overwrite, watch))
                 {
                     return (int)ExitCode.BadParameters;
                 }
@@ -544,11 +556,49 @@ namespace More
                     Console.WriteLine("Compiling (" + toCompile.Count + ") files...");
                 }
 
-                var success = MultiThreadedCompile(maxDegreeParallelism, workingDirectory, toCompile, overwrite, warnAsErrors, minify, verbose, spriteProg, spriteArguments, autoCacheBreak, autoPrefix);
+                DependencyGraph dependenices;
+                var success = MultiThreadedCompile(maxDegreeParallelism, workingDirectory, toCompile, overwrite, warnAsErrors, minify, verbose, spriteProg, spriteArguments, autoCacheBreak, autoPrefix, out dependenices);
 
-                if (verbose)
+                if (watch)
                 {
-                    Console.ReadKey();
+                    using (var watcher = new DependencyWatcher(dependenices))
+                    {
+                        watcher.Changed +=
+                            delegate(List<string> changed)
+                            {
+                                var recompile = dependenices.NeedRecompilation(changed, toCompile).ToList();
+
+                                if (recompile.Count > 0)
+                                {
+                                    foreach (var f in changed)
+                                    {
+                                        FileCache.Remove(f);
+                                    }
+
+                                    Console.WriteLine(changed.Count + " file(s) changed, recompiling " + recompile.Count + " .more files:");
+                                    Console.WriteLine(string.Join("\n", recompile.Select(s => "\t" + s)));
+
+                                    DependencyGraph ignored;
+                                    MultiThreadedCompile(maxDegreeParallelism, workingDirectory, recompile, overwrite, warnAsErrors, minify, verbose, spriteProg, spriteArguments, autoCacheBreak, autoPrefix, out ignored);
+                                }
+                            };
+
+                        watcher.Init(workingDirectory);
+
+                        if (verbose)
+                        {
+                            Console.WriteLine("Watching for file changes, press any key to exit");
+                        }
+
+                        Console.ReadKey();
+                    }
+                }
+                else
+                {
+                    if (verbose)
+                    {
+                        Console.ReadKey();
+                    }
                 }
 
                 return (int)(success ? ExitCode.Success : ExitCode.CompilationErrors);

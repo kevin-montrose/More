@@ -35,6 +35,8 @@ namespace MoreInternals
         public IFileLookup FileLookup { get; internal set; }
         public FileCache FileCache { get; internal set; }
 
+        public DependencyGraph Dependecies { get; internal set; }
+
         internal Scope GlobalScope { get; set; }
         internal string InitialFilePath { get; set; }
         internal string CurrentFilePath { get; set; }
@@ -58,6 +60,7 @@ namespace MoreInternals
             WriterMode = MoreInternals.WriterMode.Pretty;
             Options = MoreInternals.Options.None;
             PendingSpriteExports = new List<SpriteExport>();
+            Dependecies = new DependencyGraph();
         }
 
         public IEnumerable<string> GetInfoMessages() { return InfoMessages.AsReadOnly(); }
@@ -117,6 +120,8 @@ namespace MoreInternals
             // Dupes should be removed here, thus Union()
             var sprites = this.GetSpriteFiles().Union(other.GetSpriteFiles()).ToList();
 
+            var dependencies = this.Dependecies.Merge(other.Dependecies);
+
             var ret = new Context(this.FileCache);
             ret.Errors = errors;
             ret.Warnings = warnings;
@@ -124,6 +129,7 @@ namespace MoreInternals
             ret.SpriteFiles = sprites;
             ret.Options = this.Options;
             ret.WriterMode = this.WriterMode;
+            ret.Dependecies = dependencies;
 
             return ret;
         }
@@ -191,6 +197,11 @@ namespace MoreInternals
         public static List<SpriteExport> PendingSpriteExports
         {
             get { return InnerContext.Value.PendingSpriteExports; }
+        }
+
+        public static DependencyGraph Dependecies
+        {
+            get { return InnerContext.Value.Dependecies; }
         }
 
         public static FileCache FileCache
