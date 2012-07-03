@@ -523,8 +523,6 @@ namespace More
 
                 options.Parse(args);
 
-                Console.ReadKey();
-
                 if (showHelp)
                 {
                     options.WriteOptionDescriptions(Console.Out);
@@ -591,6 +589,8 @@ namespace More
                         }
 
                         Console.ReadKey();
+
+                        return (int)ExitCode.Success;
                     }
                 }
                 else
