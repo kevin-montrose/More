@@ -70,7 +70,8 @@
     <Compile Include="Compiler\Tasks\ResetIncludes.cs" />
     <Compile Include="Compiler\Tasks\ResetReOrder.cs" />
     <Compile Include="Compiler\Tasks\Sprites.cs" />
-    <Compile Include="Compiler\Tasks\Unroll.cs" />
+    <Compile Include="Compiler\Tasks\UnrollNestedMedia.cs" />
+    <Compile Include="Compiler\Tasks\UnrollNestedSelectors.cs" />
     <Compile Include="Compiler\Tasks\Using.cs" />
     <Compile Include="Compiler\Tasks\References.cs" />
     <Compile Include="Compiler\Tasks\Verify.cs" />

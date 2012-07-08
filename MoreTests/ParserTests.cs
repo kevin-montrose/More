@@ -13,9 +13,6 @@ using MoreInternals.Helpers;
 
 namespace MoreTests
 {
-    /// <summary>
-    /// Summary description for UnitTest1
-    /// </summary>
     [TestClass]
     public class ParserTests
     {
@@ -1505,6 +1502,41 @@ namespace MoreTests
             Assert.AreEqual("fizz", cycle3.Values.ElementAt(0).ToString());
             Assert.AreEqual("buzz", cycle3.Values.ElementAt(1).ToString());
             Assert.AreEqual("whatever", cycle3.Values.ElementAt(2).ToString());
+        }
+
+        [TestMethod]
+        public void InnerMediaProperty()
+        {
+            var aStatements =
+                TryParseStatements(
+                    @"#hello {
+                        a: b;
+                        @media only tv {
+                          c: d;
+                          .world {
+                            e: f;
+                          }
+                        }
+                      }"
+                );
+            Assert.AreEqual(1, aStatements.Count);
+            
+            var selBlock = (SelectorAndBlock)aStatements[0];
+            Assert.AreEqual("hello", ((IdSelector)selBlock.Selector).Name);
+
+            Assert.AreEqual(2, selBlock.Properties.Count());
+            var nameVal = (NameValueProperty)selBlock.Properties.ElementAt(0);
+            Assert.AreEqual("a", nameVal.Name);
+            Assert.AreEqual("b", nameVal.Value.ToString());
+
+            var innerMedia = (InnerMediaProperty)selBlock.Properties.ElementAt(1);
+            Assert.AreEqual(2, innerMedia.Properties.Count());
+            var nameVal2 = (NameValueProperty)innerMedia.Properties.ElementAt(0);
+            Assert.AreEqual("c", nameVal2.Name);
+            Assert.AreEqual("d", nameVal2.Value.ToString());
+
+            var nested = (NestedBlockProperty)innerMedia.Properties.ElementAt(1);
+            Assert.AreEqual(".world", nested.Block.Selector.ToString());
         }
     }
 }

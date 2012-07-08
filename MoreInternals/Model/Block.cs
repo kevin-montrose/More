@@ -345,6 +345,7 @@ namespace MoreInternals.Model
             var inclRules = Properties.OfType<IncludeSelectorProperty>();
             var resetRules = Properties.Where(w => w is ResetProperty || w is ResetSelfProperty);
             var variableRules = Properties.OfType<VariableProperty>();
+            var innerMedia = Properties.OfType<InnerMediaProperty>();
 
             if (variableRules.Count() > 0)
             {
@@ -527,6 +528,7 @@ namespace MoreInternals.Model
 
             retRules.AddRange(inclRules);
             retRules.AddRange(resetRules);
+            retRules.AddRange(innerMedia);
 
             return new SelectorAndBlock(this.Selector, retRules, this.ResetContext, this.Start, this.Stop, this.FilePath);
         }
@@ -535,7 +537,7 @@ namespace MoreInternals.Model
         {
             var ret = new List<SelectorAndBlock>();
 
-            var theseRules = Properties.Where(r => r is NameValueProperty || r is IncludeSelectorProperty || r is ResetSelfProperty || r is ResetProperty);
+            var theseRules = Properties.Where(r => r is NameValueProperty || r is IncludeSelectorProperty || r is ResetSelfProperty || r is ResetProperty || r is InnerMediaProperty);
             var blocks = Properties.OfType<NestedBlockProperty>();
 
             ret.Add(new SelectorAndBlock(this.Selector, theseRules, this.ResetContext, this.Start, this.Stop, this.FilePath));

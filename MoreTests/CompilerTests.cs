@@ -253,7 +253,7 @@ namespace MoreTests
 
             var compiler = Compiler.Get();
 
-            var unrolled = Unroll.Task(statements.ToList()).Cast<SelectorAndBlock>().ToList();
+            var unrolled = UnrollNestedSelectors.Task(statements.ToList()).Cast<SelectorAndBlock>().ToList();
 
             Assert.AreEqual(2, unrolled.Count);
             Assert.AreEqual("img", ((ElementSelector)unrolled[0].Selector).Name);
@@ -275,7 +275,7 @@ namespace MoreTests
 
             var compiler = Compiler.Get();
 
-            var unrolled = Unroll.Task(statements.ToList()).Cast<SelectorAndBlock>().ToList();
+            var unrolled = UnrollNestedSelectors.Task(statements.ToList()).Cast<SelectorAndBlock>().ToList();
 
             Assert.AreEqual(3, unrolled.Count);
             Assert.AreEqual("img", ((ElementSelector)unrolled[0].Selector).Name);
@@ -307,7 +307,7 @@ namespace MoreTests
 
             var compiler = Compiler.Get();
 
-            var ready = Unroll.Task(Mixin.Task(statements)).Cast<SelectorAndBlock>().ToList();
+            var ready = UnrollNestedSelectors.Task(Mixin.Task(statements)).Cast<SelectorAndBlock>().ToList();
 
             Assert.AreEqual(5, ready.Count);
 
@@ -1947,7 +1947,7 @@ namespace MoreTests
             var written = TryCompile(c);
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("img{width:50px;height:50px}img .class{display:inline-block}p{line-height:2em}div{line-height:2em}", written);
+            Assert.AreEqual("p{line-height:2em}div{width:50px;height:50px;line-height:2em}img{width:50px;height:50px}img .class{display:inline-block}", written);
         }
 
         [TestMethod]
@@ -1978,7 +1978,7 @@ namespace MoreTests
             var written = TryCompile(c);
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
 
-            Assert.AreEqual("sub{a:10;b:15}sub :hover{c:150;d:d}d{d:d}", written);
+            Assert.AreEqual("d{d:d}sub{a:10;b:15}sub :hover{c:150;d:d}", written);
         }
 
         [TestMethod]
@@ -2016,7 +2016,7 @@ namespace MoreTests
             var written = TryCompile(c);
 
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("a{color:blue}a:hover{color:red}h1{margin:0;a:b;margin:0}p a:hover{c:d;color:red}h2{e:f;margin:0}", written);
+            Assert.AreEqual("h1{a:b;margin:0}p a:hover{c:d}h2{e:f}a{color:blue}a:hover{color:red}", written);
         }
 
         [TestMethod]
@@ -2219,7 +2219,7 @@ namespace MoreTests
                       span:before { content: 'hello' }"
                 );
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("p{line-height:110%}a{color:blue}span:before{content:'hello'}@media tv{a{color:red}}", written);
+            Assert.AreEqual("a{color:blue}span:before{content:'hello'}p{line-height:110%}@media tv{a{color:red}}", written);
         }
 
         [TestMethod]
@@ -2918,6 +2918,26 @@ namespace MoreTests
                 );
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("a{transition-timing-function:cubic-bezier(1,3.5,0.5,5)}", written);
+        }
+
+        [TestMethod]
+        public void NestedMedia()
+        {
+            var written =
+                TryCompile(
+                    @"foo {
+                        a: b;
+                        @media only tv {
+                          c: d;
+
+                          .bar {
+                            e: f;
+                          }
+                        }
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("foo{a:b}@media only tv{foo{c:d}foo .bar{e:f}}", written);
         }
     }
 }
