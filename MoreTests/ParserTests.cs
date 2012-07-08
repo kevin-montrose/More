@@ -1530,12 +1530,12 @@ namespace MoreTests
             Assert.AreEqual("b", nameVal.Value.ToString());
 
             var innerMedia = (InnerMediaProperty)selBlock.Properties.ElementAt(1);
-            Assert.AreEqual(2, innerMedia.Properties.Count());
-            var nameVal2 = (NameValueProperty)innerMedia.Properties.ElementAt(0);
+            Assert.AreEqual(2, innerMedia.Block.Properties.Count());
+            var nameVal2 = (NameValueProperty)innerMedia.Block.Properties.ElementAt(0);
             Assert.AreEqual("c", nameVal2.Name);
             Assert.AreEqual("d", nameVal2.Value.ToString());
 
-            var nested = (NestedBlockProperty)innerMedia.Properties.ElementAt(1);
+            var nested = (NestedBlockProperty)innerMedia.Block.Properties.ElementAt(1);
             Assert.AreEqual(".world", nested.Block.Selector.ToString());
         }
     }

@@ -526,9 +526,13 @@ namespace MoreInternals.Model
                 retRules.Add(new NestedBlockProperty(block.Block.BindAndEvaluateMixins(scope), block.Start, block.Stop));
             }
 
+            foreach (var media in innerMedia)
+            {
+                retRules.Add(new InnerMediaProperty(media.MediaQuery, media.Block.BindAndEvaluateMixins(scope), media.Start, media.Stop, media.FilePath));
+            }
+
             retRules.AddRange(inclRules);
             retRules.AddRange(resetRules);
-            retRules.AddRange(innerMedia);
 
             return new SelectorAndBlock(this.Selector, retRules, this.ResetContext, this.Start, this.Stop, this.FilePath);
         }

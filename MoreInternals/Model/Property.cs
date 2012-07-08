@@ -237,12 +237,13 @@ namespace MoreInternals.Model
     class InnerMediaProperty : Property
     {
         public MediaQuery MediaQuery { get; private set; }
-        public IEnumerable<Property> Properties { get; private set; }
+        public SelectorAndBlock Block { get; private set; }
 
-        public InnerMediaProperty(MediaQuery media, List<Property> properties, int start, int stop, string file)
+        public InnerMediaProperty(MediaQuery media, SelectorAndBlock block, int start, int stop, string file)
         {
             MediaQuery = media;
-            Properties = properties.AsReadOnly();
+
+            Block = block;
 
             Start = start;
             Stop = stop;
@@ -251,7 +252,7 @@ namespace MoreInternals.Model
 
         public override string ToString()
         {
-            return "@media " + MediaQuery + " { " + string.Join(" ", Properties) + " }";
+            return "@media " + MediaQuery + " { " + string.Join(" ", Block.Properties) + " }";
         }
     }
 }

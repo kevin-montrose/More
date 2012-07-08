@@ -1200,5 +1200,60 @@ namespace MoreTests
             Assert.AreEqual("cubic-bezier() expects 4 unit-less parameters", aErrors[1].Message);
             Assert.AreEqual("cubic-bezier() expects its third value to be in the range [0, 1]", aErrors[2].Message);
         }
+
+        [TestMethod]
+        public void NestedMediaInvalid()
+        {
+            var a =
+                @"a {
+                    b: c;
+                    @media only tv {
+                        d: e;
+                        .foo {
+                          @media only print {
+                            f: g;
+                          }
+                        }
+                    }
+                  }";
+            TryCompile(a);
+            Assert.IsTrue(Current.HasErrors());
+            var aErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, aErrors.Count);
+            Assert.AreEqual("@media blocks cannot be nested within each other", aErrors[0].Message);
+            Assert.AreEqual(
+                @"@media only print {
+                            f: g;
+                          }", 
+                aErrors[0].Snippet(new StringReader(a)).Trim()
+            );
+
+            var b =
+                @"@mx() {
+                    foo: bar;
+                    @media only print and (min-color:4) {
+                        nope: not happening;
+                    }
+                  }
+
+                  fizz {
+                    buzz: batt;
+                    @media only tv {
+                        yes: indeed;
+                        @mx();
+                    }
+                  }";
+            var x = TryCompile(b);
+            Assert.IsTrue(Current.HasErrors());
+            var bErrors = Current.GetErrors(ErrorType.Compiler);
+            Assert.AreEqual(1, bErrors.Count);
+            Assert.AreEqual("@media blocks cannot be nested within each other", bErrors[0].Message);
+            Assert.AreEqual(
+                @"@media only print and (min-color:4) {
+                        nope: not happening;
+                    }", 
+                bErrors[0].Snippet(new StringReader(b)).Trim()
+            );
+        }
     }
 }

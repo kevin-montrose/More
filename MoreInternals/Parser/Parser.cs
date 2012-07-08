@@ -42,7 +42,9 @@ namespace MoreInternals.Parser
 
             var props = ParseCssRules(InvalidSelector.Singleton, stream);
 
-            return new InnerMediaProperty(mediaQuery, props, start, stream.Position, Current.CurrentFilePath);
+            var blockEquiv = new SelectorAndBlock(InvalidSelector.Singleton, props, null, start, stream.Position, Current.CurrentFilePath);
+
+            return new InnerMediaProperty(mediaQuery, blockEquiv, start, stream.Position, Current.CurrentFilePath);
         }
 
         internal static MediaBlock ParseMediaDirective(ParserStream stream)

@@ -33,7 +33,7 @@ namespace MoreInternals.Compiler.Tasks
                         {
                             new SelectorAndBlock(
                                 block.Selector,
-                                media.Properties,
+                                media.Block.Properties,
                                 null,
                                 -1,
                                 -1,
