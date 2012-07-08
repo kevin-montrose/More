@@ -2923,7 +2923,7 @@ namespace MoreTests
         [TestMethod]
         public void NestedMedia()
         {
-            var written =
+            var a =
                 TryCompile(
                     @"foo {
                         a: b;
@@ -2937,7 +2937,24 @@ namespace MoreTests
                       }"
                 );
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("foo{a:b}@media only tv{foo{c:d}foo .bar{e:f}}", written);
+            Assert.AreEqual("foo{a:b}@media only tv{foo{c:d}foo .bar{e:f}}", a);
+
+            var b =
+                TryCompile(
+                    @"@mx() {
+                        hello: world;
+                        @media only all and (min-resolution: 200dpi) {
+                            fizz:buzz;
+                        }
+                      }
+
+                      foo {
+                        bar: bat;
+                        @mx();
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("foo{bar:bat;hello:world}@media only all and (min-resolution:200dpi){foo{fizz:buzz}}", b);
         }
     }
 }

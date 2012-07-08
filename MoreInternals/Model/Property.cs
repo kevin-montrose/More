@@ -236,13 +236,11 @@ namespace MoreInternals.Model
 
     class InnerMediaProperty : Property
     {
-        public Selector ContainingSelector { get; private set; }
         public MediaQuery MediaQuery { get; private set; }
         public IEnumerable<Property> Properties { get; private set; }
 
-        public InnerMediaProperty(Selector containingSelector, MediaQuery media, List<Property> properties, int start, int stop, string file)
+        public InnerMediaProperty(MediaQuery media, List<Property> properties, int start, int stop, string file)
         {
-            ContainingSelector = containingSelector;
             MediaQuery = media;
             Properties = properties.AsReadOnly();
 

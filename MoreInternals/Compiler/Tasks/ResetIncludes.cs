@@ -98,12 +98,12 @@ namespace MoreInternals.Compiler.Tasks
                 var selBlock = block as SelectorAndBlock;
                 if (selBlock != null)
                 {
-                    var props = new List<NameValueProperty>();
+                    var props = new List<Property>();
 
                     var resetProps = selBlock.Properties.OfType<ResetProperty>();
                     var selfResetProps = selBlock.Properties.OfType<ResetSelfProperty>();
 
-                    props.AddRange(selBlock.Properties.Where(w => !(resetProps.Contains(w) || selfResetProps.Contains(w))).Cast<NameValueProperty>());
+                    props.AddRange(selBlock.Properties.Where(w => !(resetProps.Contains(w) || selfResetProps.Contains(w))));
 
                     var copySels = resetProps.Select(x => x.Selector).Union(selfResetProps.Select(x => x.EffectiveSelector)).ToList();
 
@@ -114,7 +114,7 @@ namespace MoreInternals.Compiler.Tasks
                         foreach (var p in newProps)
                         {
                             // reset properties never override
-                            if (props.Any(a => a.Name.Equals(p.Name, StringComparison.InvariantCultureIgnoreCase))) continue;
+                            if (props.Any(a => a is NameValueProperty && ((NameValueProperty)a).Name.Equals(p.Name, StringComparison.InvariantCultureIgnoreCase))) continue;
 
                             props.Add(p);
                         }

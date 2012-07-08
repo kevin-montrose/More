@@ -24,15 +24,9 @@ namespace MoreInternals.Parser
                 starting++;
         }
 
-        internal static InnerMediaProperty ParseInnerMediaDirective(Selector selector, ParserStream stream)
+        internal static InnerMediaProperty ParseInnerMediaDirective(ParserStream stream)
         {
             var start = stream.Position;
-
-            if (selector == InvalidSelector.Singleton)
-            {
-                Current.RecordError(ErrorType.Parser, Position.Create(start, stream.Position, Current.CurrentFilePath), "@media statements can only be nested in selector blocks");
-                throw new StoppedParsingException();
-            }
 
             var media = new StringBuilder();
             stream.ScanUntil(media, '{');
@@ -48,7 +42,7 @@ namespace MoreInternals.Parser
 
             var props = ParseCssRules(InvalidSelector.Singleton, stream);
 
-            return new InnerMediaProperty(selector, mediaQuery, props, start, stream.Position, Current.CurrentFilePath);
+            return new InnerMediaProperty(mediaQuery, props, start, stream.Position, Current.CurrentFilePath);
         }
 
         internal static MediaBlock ParseMediaDirective(ParserStream stream)
@@ -539,7 +533,7 @@ namespace MoreInternals.Parser
 
                 if (c == '@')
                 {
-                    var rule = ParseMixinOrVariableRule(InvalidSelector.Singleton, stream);
+                    var rule = ParseMixinOrVariableRule(stream);
                     if (!(rule is VariableProperty))
                     {
                         Current.RecordError(ErrorType.Parser, rule, "Expected variable declaration");
@@ -796,7 +790,7 @@ namespace MoreInternals.Parser
             return pieces.Select(s => ParseMixinParameter(s.Item1, start, s.Item2)).ToList();
         }
 
-        internal static Property ParseMixinOrVariableRule(Selector selector, ParserStream stream)
+        internal static Property ParseMixinOrVariableRule(ParserStream stream)
         {
             var start = stream.Position;
 
@@ -810,7 +804,7 @@ namespace MoreInternals.Parser
                 // Check for nested media block syntax
                 if (name.ToString().Equals("media", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    return ParseInnerMediaDirective(selector, stream);
+                    return ParseInnerMediaDirective(stream);
                 }
 
                 var c = stream.Read();
@@ -969,13 +963,13 @@ namespace MoreInternals.Parser
             return new StringValue(value);
         }
 
-        internal static Property ParseRule(Selector selector, ParserStream stream)
+        internal static Property ParseRule(ParserStream stream)
         {
             var start = stream.Position;
 
             if (stream.Peek() == '@')
             {
-                return ParseMixinOrVariableRule(selector, stream);
+                return ParseMixinOrVariableRule(stream);
             }
 
             var ruleName = new StringBuilder();
@@ -1069,7 +1063,7 @@ namespace MoreInternals.Parser
                 }
                 else
                 {
-                    ret.Add(ParseRule(selector, stream));
+                    ret.Add(ParseRule(stream));
                 }
             }
 

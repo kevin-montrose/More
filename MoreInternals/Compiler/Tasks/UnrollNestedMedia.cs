@@ -32,7 +32,7 @@ namespace MoreInternals.Compiler.Tasks
                         new List<Block>
                         {
                             new SelectorAndBlock(
-                                media.ContainingSelector,
+                                block.Selector,
                                 media.Properties,
                                 null,
                                 -1,
@@ -45,7 +45,7 @@ namespace MoreInternals.Compiler.Tasks
                         media.FilePath
                     );
 
-                ret.AddRange(UnrollNestedSelectors.Task(new List<Block> { unrolled }));
+                ret.Add(unrolled);
             }
 
             ret.Add(new SelectorAndBlock(block.Selector, props, null, block.Start, block.Stop, block.FilePath));
