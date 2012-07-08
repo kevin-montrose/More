@@ -20,9 +20,45 @@ namespace MoreInternals.Compiler.Tasks
             foreach (var prop in block.Properties)
             {
                 var media = prop as InnerMediaProperty;
-                if (media == null)
+                var nested = prop as NestedBlockProperty;
+                if (media == null && nested == null)
                 {
                     props.Add(prop);
+                    continue;
+                }
+
+                if (nested != null)
+                {
+                    var inner = Unroll(nested.Block);
+                    var innerMedia = inner.OfType<MediaBlock>();
+                    var other = inner.Where(i => !(i is MediaBlock)).Cast<SelectorAndBlock>();
+
+                    props.AddRange(other.Select(s => new NestedBlockProperty(s, s.Start, s.Stop)));
+
+                    foreach (var m in innerMedia)
+                    {
+                        var selBlock = 
+                            new SelectorAndBlock(
+                                block.Selector,
+                                m.Blocks.Cast<SelectorAndBlock>().Select(s => new NestedBlockProperty(s, s.Start, s.Stop)),
+                                null,
+                                m.Start,
+                                m.Stop,
+                                m.FilePath
+                            );
+
+                        var newMedia =
+                            new MediaBlock(
+                                m.MediaQuery,
+                                new List<Block> { selBlock },
+                                m.Start,
+                                m.Stop,
+                                m.FilePath
+                            );
+
+                        ret.Add(newMedia);
+                    }
+
                     continue;
                 }
 

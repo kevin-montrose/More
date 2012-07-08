@@ -2955,6 +2955,79 @@ namespace MoreTests
                 );
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("foo{bar:bat;hello:world}@media only all and (min-resolution:200dpi){foo{fizz:buzz}}", b);
+
+            var c =
+                TryCompile(
+                    @"@mx(@foo) {
+                        c: @foo;
+                        @media only tv {
+                            c: @foo * 2;
+                            &:active {
+                                d: @foo + @bar;
+                            }
+                        }
+                      }
+
+                      @bar = 20px;
+
+                      a {
+                        b: @bar;
+                        @media only print {
+                            b: @bar + 10;
+                            &:hover {
+                                b: @bar * 3;
+                            }
+                        }
+                        @mx(15px);
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("a{b:20px;c:15px}@media only tv{a{c:30px}a:active{d:35px}}@media only print{a{b:30px}a:hover{b:60px}}", c);
+
+            var d =
+                TryCompile(
+                    @"@a = 10;
+                      @mx(@foo) {
+                        b: @a + @foo;
+                        @reset();
+                        @media only tv {
+                          c: d;
+                          .bar {
+                            @(.fizz);
+                          }
+                        }
+                      }
+
+                      @reset {
+                        hello{
+                          font-weight: bold;
+                        }
+                        outer hello {
+                          foo: bar;
+                        }
+                      }
+
+                      outer {
+                          font-weight: normal;
+
+                          hello {
+                            e:f;
+                            @mx(7em);                        
+                          }
+                      }
+
+                      .fizz {
+                        chirp: chirp;
+                      }
+
+                      @media only tv {
+                        .fizz {
+                            buzz: buzz;
+                        }
+                      }"
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("outer{font-weight:normal}outer hello{e:f;b:17em;foo:bar}.fizz{chirp:chirp}hello{font-weight:bold}@media only tv{outer hello{c:d}outer hello .bar{buzz:buzz}.fizz{buzz:buzz}}", d);
         }
     }
 }
