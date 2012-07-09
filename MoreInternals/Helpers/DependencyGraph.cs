@@ -63,14 +63,6 @@ namespace MoreInternals.Helpers
             return !Exclusions.Contains(path) && InvertedDependencies.ContainsKey(path);
         }
 
-        /// <summary>
-        /// Returns every file that appears in the dependency graph.
-        /// </summary>
-        public IEnumerable<string> AllFiles()
-        {
-            return InvertedDependencies.Keys.Where(w => !Exclusions.Contains(w)).ToList();
-        }
-
         internal void SpritesResolved(SpriteBlock block)
         {
             var relativeFiles = block.Sprites.Select(s => s.SpriteFilePath.Value).ToList();

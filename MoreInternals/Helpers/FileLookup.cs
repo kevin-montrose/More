@@ -58,6 +58,16 @@ namespace MoreInternals.Helpers
         }
     }
 
+    class TestAllExistLookup : TestLookup
+    {
+        internal TestAllExistLookup() : base(new Dictionary<string,string>(), null) { }
+
+        public override bool Exists(string path)
+        {
+            return true;
+        }
+    }
+
     class TestLookup : IFileLookup
     {
         class DummyWriter : TextWriter
@@ -98,7 +108,7 @@ namespace MoreInternals.Helpers
             InnerLookup = inner;
         }
 
-        public bool Exists(string path)
+        public virtual bool Exists(string path)
         {
             return ReadMap.ContainsKey(path) || (InnerLookup != null && InnerLookup.Exists(path));
         }

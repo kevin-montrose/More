@@ -3029,5 +3029,42 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("outer{font-weight:normal}outer hello{e:f;b:17em;foo:bar}.fizz{chirp:chirp}hello{font-weight:bold}@media only tv{outer hello{c:d}outer hello .bar{buzz:buzz}.fizz{buzz:buzz}}", d);
         }
+
+        [TestMethod]
+        public void DependencyGraph()
+        {
+            Current.SetContext(new Context(new FileCache()));
+            Current.SetFileLookup(new TestAllExistLookup());
+
+            var parser = MoreInternals.Parser.Parser.CreateParser();
+            var statements = parser.Parse("dummy-file.more", new StringReader("foo { bar: url('/ref.png'); }"));
+            var sprite = new SpriteBlock(
+                new QuotedStringValue("out.png"), 
+                    new List<SpriteRule> {
+                        new SpriteRule("blah", new QuotedStringValue("/img/blah.png"), -1, -1, "fake.more")
+                    },
+                    -1,
+                    -1, 
+                    "fake.more"
+                );
+
+            var graph = new DependencyGraph();
+            graph.UsingResolved("used-file.more", "second-dep.css");
+            graph.UsingResolved("dummy-file.more", "used-file.more");
+            graph.FileCompiled("dummy-file.more", statements);
+            graph.SpritesResolved(sprite);
+
+            var a = graph.NeedRecompilation(new[] { @"\second-dep.css" }, new[] { "used-file.more", "out.png" });
+            Assert.AreEqual(1, a.Count());
+            Assert.AreEqual("used-file.more", a.Single());
+
+            var b = graph.NeedRecompilation(new[] { @"\fizz.more", @"\img\blah.png" }, new[] { "fake.more", "used-file.more" });
+            Assert.AreEqual(1, b.Count());
+            Assert.AreEqual("fake.more", b.Single());
+
+            var c = graph.NeedRecompilation(new[] { @"\ref.png" }, new[] { "dummy-file.more" });
+            Assert.AreEqual(1, c.Count());
+            Assert.AreEqual("dummy-file.more", c.Single());
+        }
     }
 }
