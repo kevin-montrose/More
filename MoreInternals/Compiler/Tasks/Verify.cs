@@ -547,6 +547,58 @@ namespace MoreInternals.Compiler.Tasks
             }
         }
 
+        private static void VerifyColorStop(Value value)
+        {
+            var asCompound = value as CompoundValue;
+            if (asCompound != null)
+            {
+                if (asCompound.Values.Count() != 2)
+                {
+                    Current.RecordError(ErrorType.Compiler, value, "color-stops should be composed of two values, one color and one length or percentage");
+                    return;
+                }
+
+                var first = asCompound.Values.ElementAt(0) as ColorValue;
+                var second = asCompound.Values.ElementAt(1) as NumberWithUnitValue;
+
+                if (first == null)
+                {
+                    Current.RecordError(ErrorType.Compiler, value, "a color-stop's first value should be a color");
+                    return;
+                }
+
+                if (second == null)
+                {
+                    Current.RecordError(ErrorType.Compiler, value, "a color-stop's second value should be a percentage or length");
+                    return;
+                }
+
+                if (second.Unit == Unit.Percent)
+                {
+                    if (second.Value < 0 || second.Value > 100)
+                    {
+                        Current.RecordError(ErrorType.Compiler, value, "a color-stop's second value, if a percentage, should be between 0% and 100%");
+                        return;
+                    }
+                }
+                else
+                {
+                    if (!second.Unit.In(Unit.EM, Unit.EX, Unit.CH, Unit.REM, Unit.VH, Unit.VW, Unit.VM, Unit.PX, Unit.MM, Unit.CM, Unit.IN, Unit.PT, Unit.PC))
+                    {
+                        Current.RecordError(ErrorType.Compiler, value, "a color-stop's second value, if not a percentage, should be a length");
+                        return;
+                    }
+                }
+
+                return;
+            }
+
+            if (!(value is ColorValue))
+            {
+                Current.RecordError(ErrorType.Compiler, value, "a color-stop should be a color if it is composed of only one value");
+            }
+        }
+
         private static void VerifyLinearGradient(IEnumerable<Value> values)
         {
             foreach (var value in values)
@@ -568,11 +620,7 @@ namespace MoreInternals.Compiler.Tasks
                 var linGrad = value as LinearGradientValue;
                 if (linGrad != null)
                 {
-                    if (linGrad.Parameters.Skip(1).Any(a => !(a is ColorValue)))
-                    {
-                        Current.RecordError(ErrorType.Compiler, value, "linear-gradient expects an optional angle parameter followed by at least one color parameter");
-                        continue;
-                    }
+                    linGrad.Parameters.Skip(1).Each(v => VerifyColorStop(v));
 
                     var first = linGrad.Parameters.First();
                     var asNum = first as NumberWithUnitValue;
@@ -584,27 +632,27 @@ namespace MoreInternals.Compiler.Tasks
                             continue;
                         }
                     }
-
-                    var asString = first as StringValue;
-                    if (asString != null)
+                    else
                     {
-                        if (!asString.Value.StartsWith("to ", StringComparison.InvariantCultureIgnoreCase))
+                        var asString = first.ToString().Trim();
+                        if (asString.StartsWith("to ", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            Current.RecordError(ErrorType.Compiler, first, "linear-gradient's first parameter, if an angle shorthand, must begin 'to'");
-                            continue;
-                        }
+                            var parts = asString.Substring(3).Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToList();
+                            if (parts.Count > 2 || parts.Count == 0)
+                            {
+                                Current.RecordError(ErrorType.Compiler, first, "linear-gradient's first parameter, if an angle shorthand, must be of the form 'to [left | right] || [top | bottom]'");
+                                continue;
+                            }
 
-                        var parts = asString.Value.Substring(3).Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToList();
-                        if (parts.Count > 2 || parts.Count == 0)
-                        {
-                            Current.RecordError(ErrorType.Compiler, first, "linear-gradient's first parameter, if an angle shorthand, must be of the form 'to [left | right] || [top | bottom]'");
-                            continue;
+                            if (parts.Any(a => !a.ToLowerInvariant().In("top", "left", "bottom", "right")))
+                            {
+                                Current.RecordError(ErrorType.Compiler, first, "linear-gradient's first parameter, if an angle shorthand, must be of the form 'to [left | right] || [top | bottom]'");
+                                continue;
+                            }
                         }
-
-                        if (parts.Any(a => !a.ToLowerInvariant().In("top", "left", "bottom", "right")))
+                        else
                         {
-                            Current.RecordError(ErrorType.Compiler, first, "linear-gradient's first parameter, if an angle shorthand, must be of the form 'to [left | right] || [top | bottom]'");
-                            continue;
+                            VerifyColorStop(first);
                         }
                     }
                 }

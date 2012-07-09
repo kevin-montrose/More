@@ -3093,12 +3093,12 @@ namespace MoreTests
                 TryCompile(
                     @"@dir = to top left;
                       foo {
-                        bar: linear-gradient(@dir, #ccddee, lightgreen);
+                        bar: linear-gradient(@dir, #ccddee, lightgreen 59%);
                       }",
                     minify: true
                 );
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
-            Assert.AreEqual("foo{bar:linear-gradient(315deg,#cde,#90ee90)}", a);
+            Assert.AreEqual("foo{bar:linear-gradient(315deg,#cde,#90ee90 59%)}", a);
         }
     }
 }
