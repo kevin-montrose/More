@@ -1243,7 +1243,7 @@ namespace MoreTests
                         @mx();
                     }
                   }";
-            var x = TryCompile(b);
+            TryCompile(b);
             Assert.IsTrue(Current.HasErrors());
             var bErrors = Current.GetErrors(ErrorType.Compiler);
             Assert.AreEqual(1, bErrors.Count);
@@ -1254,6 +1254,21 @@ namespace MoreTests
                     }", 
                 bErrors[0].Snippet(new StringReader(b)).Trim()
             );
+        }
+
+        [TestMethod]
+        public void LinearGradient()
+        {
+            var a =
+                @"foo {
+                    bar: linear-gradient();
+                  }";
+            TryCompile(a);
+            Assert.IsTrue(Current.HasErrors());
+            var aErrors = Current.GetErrors(ErrorType.Parser);
+            Assert.AreEqual(1, aErrors.Count);
+            Assert.AreEqual("linear-gradient expects at least one parameter", aErrors[0].Message);
+            Assert.AreEqual("bar: linear-gradient();", aErrors[0].Snippet(new StringReader(a)).Trim());
         }
     }
 }

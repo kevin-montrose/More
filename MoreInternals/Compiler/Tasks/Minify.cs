@@ -5,6 +5,7 @@ using System.Text;
 using MoreInternals.Model;
 using System.IO;
 using MoreInternals.Helpers;
+using System.Text.RegularExpressions;
 
 namespace MoreInternals.Compiler.Tasks
 {
@@ -134,6 +135,44 @@ namespace MoreInternals.Compiler.Tasks
             return new NumberValue(decimal.Parse(asStr));
         }
 
+        private static LinearGradientValue MinifyLinearGradient(LinearGradientValue val)
+        {
+            var first = val.Parameters.First();
+
+            var newParams = new List<Value>();
+
+            var stringEquiv = first.ToString();
+            var cleanedStr = Regex.Replace(stringEquiv.ToLowerInvariant(), @"\s+", " ").Trim();
+
+            switch (cleanedStr)
+            {
+                case "to top": newParams.Add(new NumberWithUnitValue(0, Unit.DEG)); break;
+                case "to right": newParams.Add(new NumberWithUnitValue(90, Unit.DEG)); break;
+                case "to bottom": newParams.Add(new NumberWithUnitValue(180, Unit.DEG)); break;
+                case "to left": newParams.Add(new NumberWithUnitValue(270, Unit.DEG)); break;
+
+                case "to top left":
+                case "to left top": newParams.Add(new NumberWithUnitValue(315, Unit.DEG)); break;
+
+                case "to top right":
+                case "to right top": newParams.Add(new NumberWithUnitValue(45, Unit.DEG)); break;
+
+                case "to bottom left":
+                case "to left bottom": newParams.Add(new NumberWithUnitValue(225, Unit.DEG)); break;
+
+                case "to bottom right":
+                case "to right bottom": newParams.Add(new NumberWithUnitValue(135, Unit.DEG)); break;
+
+                default: newParams.Add(first); break;
+            }
+
+            newParams.AddRange(val.Parameters.Skip(1));
+
+            var minified = newParams.Select(v => MinifyValue(v)).ToList();
+
+            return new LinearGradientValue(minified);
+        }
+
         private static Value MinifyValue(Value value)
         {
             var comma = value as CommaDelimittedValue;
@@ -165,6 +204,11 @@ namespace MoreInternals.Compiler.Tasks
             if (value is NumberValue)
             {
                 return MinifyNumberValue((NumberValue)value);
+            }
+
+            if (value is LinearGradientValue)
+            {
+                return MinifyLinearGradient((LinearGradientValue)value);
             }
 
             return value;

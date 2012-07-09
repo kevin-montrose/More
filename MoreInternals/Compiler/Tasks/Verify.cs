@@ -547,6 +547,70 @@ namespace MoreInternals.Compiler.Tasks
             }
         }
 
+        private static void VerifyLinearGradient(IEnumerable<Value> values)
+        {
+            foreach (var value in values)
+            {
+                var comma = value as CommaDelimittedValue;
+                if (comma != null)
+                {
+                    VerifySteps(comma.Values);
+                    continue;
+                }
+
+                var compound = value as CompoundValue;
+                if (compound != null)
+                {
+                    VerifySteps(compound.Values);
+                    continue;
+                }
+
+                var linGrad = value as LinearGradientValue;
+                if (linGrad != null)
+                {
+                    if (linGrad.Parameters.Skip(1).Any(a => !(a is ColorValue)))
+                    {
+                        Current.RecordError(ErrorType.Compiler, value, "linear-gradient expects an optional angle parameter followed by at least one color parameter");
+                        continue;
+                    }
+
+                    var first = linGrad.Parameters.First();
+                    var asNum = first as NumberWithUnitValue;
+                    if (asNum != null)
+                    {
+                        if (!asNum.Unit.In(Unit.DEG, Unit.GRAD, Unit.RAD, Unit.TURN))
+                        {
+                            Current.RecordError(ErrorType.Compiler, first, "linear-gradient's first parameter, if not a color, must be an angle");
+                            continue;
+                        }
+                    }
+
+                    var asString = first as StringValue;
+                    if (asString != null)
+                    {
+                        if (!asString.Value.StartsWith("to ", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            Current.RecordError(ErrorType.Compiler, first, "linear-gradient's first parameter, if an angle shorthand, must begin 'to'");
+                            continue;
+                        }
+
+                        var parts = asString.Value.Substring(3).Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Distinct().ToList();
+                        if (parts.Count > 2 || parts.Count == 0)
+                        {
+                            Current.RecordError(ErrorType.Compiler, first, "linear-gradient's first parameter, if an angle shorthand, must be of the form 'to [left | right] || [top | bottom]'");
+                            continue;
+                        }
+
+                        if (parts.Any(a => !a.ToLowerInvariant().In("top", "left", "bottom", "right")))
+                        {
+                            Current.RecordError(ErrorType.Compiler, first, "linear-gradient's first parameter, if an angle shorthand, must be of the form 'to [left | right] || [top | bottom]'");
+                            continue;
+                        }
+                    }
+                }
+            }
+        }
+
         public static List<Block> Task(List<Block> blocks)
         {
             var media = blocks.OfType<MediaBlock>().Select(t => t.MediaQuery);
@@ -568,6 +632,7 @@ namespace MoreInternals.Compiler.Tasks
             VerifyCycle(values);
             VerifySteps(values);
             VerifyCubicBezier(values);
+            VerifyLinearGradient(values);
 
             return blocks;
         }

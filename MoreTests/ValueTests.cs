@@ -617,5 +617,28 @@ namespace MoreTests
             Assert.AreEqual("3", aBezier.X2.ToString());
             Assert.AreEqual("4", aBezier.Y2.ToString());
         }
+
+        [TestMethod]
+        public void LinearGradient()
+        {
+            var a = Value.Parse("linear-gradient(to top right)");
+            var b = Value.Parse("linear-gradient(#ddd)");
+            var c = Value.Parse("linear-gradient(30deg, #ccc, #fef)");
+
+            Assert.AreEqual(typeof(LinearGradientValue), a.GetType());
+            Assert.AreEqual(typeof(LinearGradientValue), b.GetType());
+            Assert.AreEqual(typeof(LinearGradientValue), c.GetType());
+
+            var aLin = (LinearGradientValue)a;
+            var bLin = (LinearGradientValue)b;
+            var cLin = (LinearGradientValue)c;
+
+            Assert.AreEqual("to top right", aLin.Parameters.Single().ToString());
+            Assert.AreEqual("#ddd", bLin.Parameters.Single().ToString());
+            Assert.AreEqual(3, cLin.Parameters.Count());
+            Assert.AreEqual("30deg", cLin.Parameters.ElementAt(0).ToString());
+            Assert.AreEqual("#ccc", cLin.Parameters.ElementAt(1).ToString());
+            Assert.AreEqual("#fef", cLin.Parameters.ElementAt(2).ToString());
+        }
     }
 }

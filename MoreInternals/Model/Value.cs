@@ -2400,6 +2400,87 @@ namespace MoreInternals.Model
         }
     }
 
+    class LinearGradientValue : Value
+    {
+        public IEnumerable<Value> Parameters { get; private set; }
+
+        public override bool NeedsEvaluate
+        {
+            get
+            {
+                return Parameters.Any(a => a.NeedsEvaluate);
+            }
+        }
+
+        internal LinearGradientValue(IEnumerable<Value> @params)
+        {
+            Parameters = @params.ToList().AsReadOnly();
+        }
+
+        internal override List<string> ReferredToVariables()
+        {
+            return Parameters.SelectMany(c => c.ReferredToVariables()).ToList();
+        }
+
+        public override Value Bind(Scope scope)
+        {
+            return 
+                new LinearGradientValue(
+                    Parameters.Select(c => c.Bind(scope))
+                );
+        }
+
+        internal override Value Evaluate()
+        {
+            return new LinearGradientValue(
+                Parameters.Select(c => c.Evaluate())
+            );
+        }
+
+        public override int GetHashCode()
+        {
+            var ret = 0;
+
+            for (var i = 0; i < Parameters.Count(); i++)
+            {
+                ret ^= (Parameters.ElementAt(i).GetHashCode() * i);
+            }
+
+            return ret;
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as LinearGradientValue;
+            if (other == null) return false;
+
+            if (Parameters.Count() != other.Parameters.Count()) return false;
+
+            for (var i = 0; i < Parameters.Count(); i++)
+            {
+                if (!Parameters.ElementAt(i).Equals(other.Parameters.ElementAt(i))) return false;
+            }
+
+            return true;
+        }
+
+        internal override void Write(TextWriter output)
+        {
+            output.Write("linear-gradient(");
+
+            var first = Parameters.First();
+            first.Write(output);
+
+            foreach (var color in Parameters.Skip(1))
+            {
+                output.Write(',');
+                color.Write(output);
+            }
+
+            output.Write(')');
+        }
+    }
+
     // @a?, (@a + 5)?, etc.
     class LeftExistsValue : Value
     {

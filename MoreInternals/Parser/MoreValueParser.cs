@@ -376,6 +376,26 @@ namespace MoreInternals.Parser
                             );
                     }
                 }
+
+                if (buffer.Length == 15 && (stream.HasMore() && stream.Peek() == '('))
+                {
+                    var toDate = buffer.ToString();
+                    if (toDate.Equals("linear-gradient", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var val = ParseGroup(stream, forPosition).Value;
+                        var comma = val as CommaDelimittedValue;
+
+                        if (comma != null && comma.Values.Count() == 0)
+                        {
+                            Current.RecordError(ErrorType.Parser, forPosition, "linear-gradient expects at least one parameter");
+                            throw new StoppedParsingException();
+                        }
+
+                        var parameters = comma != null ? comma.Values : new List<Value> { val };
+
+                        return new LinearGradientValue(parameters);
+                    }
+                }
             }
 
             NamedColor color;

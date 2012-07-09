@@ -3085,5 +3085,20 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("@keyframes foo{0%{foo:bar}to{fizz:buzz}}@-webkit-keyframes foo{0%{foo:bar}to{fizz:buzz}}@-moz-keyframes foo{0%{foo:bar}to{fizz:buzz}}@-o-keyframes foo{0%{foo:bar}to{fizz:buzz}}", a);
         }
+
+        [TestMethod]
+        public void MinifyLinearGradient()
+        {
+            var a =
+                TryCompile(
+                    @"@dir = to top left;
+                      foo {
+                        bar: linear-gradient(@dir, #ccddee, lightgreen);
+                      }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("foo{bar:linear-gradient(315deg,#cde,#90ee90)}", a);
+        }
     }
 }
