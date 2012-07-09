@@ -3066,5 +3066,24 @@ namespace MoreTests
             Assert.AreEqual(1, c.Count());
             Assert.AreEqual("dummy-file.more", c.Single());
         }
+
+        [TestMethod]
+        public void PrefixedKeyframes()
+        {
+            var a =
+                TryCompile(
+                    @"@keyframes foo {
+                        0% {
+                          foo: bar;
+                        }
+                        100% {
+                          fizz: buzz;
+                        }
+                      }",
+                    prefix: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("@keyframes foo{0%{foo:bar}to{fizz:buzz}}@-webkit-keyframes foo{0%{foo:bar}to{fizz:buzz}}@-moz-keyframes foo{0%{foo:bar}to{fizz:buzz}}@-o-keyframes foo{0%{foo:bar}to{fizz:buzz}}", a);
+        }
     }
 }

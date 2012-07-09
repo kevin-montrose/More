@@ -597,7 +597,11 @@ namespace MoreInternals.Compiler.Tasks
             }
 
             // No prefixed versions found
-            if (ret.Count == 0) return null;
+            if (ret.Count == 0)
+            {
+                ret.Add(prop);
+                return ret;
+            }
 
             // Just to make testing easier
             ret = ret.OrderBy(r => r.Name).ToList();
@@ -693,7 +697,29 @@ namespace MoreInternals.Compiler.Tasks
                         keyframeRet.Add(new KeyFrame(frame.Percentages.ToList(), frameProp, frame.Start, frame.Stop, frame.FilePath));
                     }
 
-                    ret.Add(new KeyFramesBlock(keyframesBlock.Prefix, keyframesBlock.Name, keyframeRet, keyframesBlock.Variables.ToList(), keyframesBlock.Start, keyframesBlock.Stop, keyframesBlock.FilePath));
+                    var prefixedKeyframe = new KeyFramesBlock(keyframesBlock.Prefix, keyframesBlock.Name, keyframeRet, keyframesBlock.Variables.ToList(), keyframesBlock.Start, keyframesBlock.Stop, keyframesBlock.FilePath);
+
+                    ret.Add(prefixedKeyframe);
+
+                    // there are @-wekbit-, @-moz-, and @-o- versions of @keyframes (of course...)
+                    if (prefixedKeyframe.Prefix.IsNullOrEmpty())
+                    {
+                        if (!blocks.OfType<KeyFramesBlock>().Any(a => a.Prefix.Equals("-webkit-", StringComparison.InvariantCultureIgnoreCase) && a.Name == prefixedKeyframe.Name))
+                        {
+                            ret.Add(new KeyFramesBlock("-webkit-", prefixedKeyframe.Name, prefixedKeyframe.Frames.ToList(), prefixedKeyframe.Variables.ToList(), prefixedKeyframe.Start, prefixedKeyframe.Stop, prefixedKeyframe.FilePath));
+                        }
+
+                        if (!blocks.OfType<KeyFramesBlock>().Any(a => a.Prefix.Equals("-moz-", StringComparison.InvariantCultureIgnoreCase) && a.Name == prefixedKeyframe.Name))
+                        {
+                            ret.Add(new KeyFramesBlock("-moz-", prefixedKeyframe.Name, prefixedKeyframe.Frames.ToList(), prefixedKeyframe.Variables.ToList(), prefixedKeyframe.Start, prefixedKeyframe.Stop, prefixedKeyframe.FilePath));
+                        }
+
+                        if (!blocks.OfType<KeyFramesBlock>().Any(a => a.Prefix.Equals("-o-", StringComparison.InvariantCultureIgnoreCase) && a.Name == prefixedKeyframe.Name))
+                        {
+                            ret.Add(new KeyFramesBlock("-o-", prefixedKeyframe.Name, prefixedKeyframe.Frames.ToList(), prefixedKeyframe.Variables.ToList(), prefixedKeyframe.Start, prefixedKeyframe.Stop, prefixedKeyframe.FilePath));
+                        }
+                    }
+
                     continue;
                 }
 
