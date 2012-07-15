@@ -621,8 +621,8 @@ namespace MoreTests
         [TestMethod]
         public void LinearGradient()
         {
-            var a = Value.Parse("linear-gradient(to top right)");
-            var b = Value.Parse("linear-gradient(#ddd)");
+            var a = Value.Parse("linear-gradient(to top right, #efe)");
+            var b = Value.Parse("linear-gradient(#ddd, #abc)");
             var c = Value.Parse("linear-gradient(30deg, #ccc, #fef)");
 
             Assert.AreEqual(typeof(LinearGradientValue), a.GetType());
@@ -633,12 +633,43 @@ namespace MoreTests
             var bLin = (LinearGradientValue)b;
             var cLin = (LinearGradientValue)c;
 
-            Assert.AreEqual("to top right", aLin.Parameters.Single().ToString());
-            Assert.AreEqual("#ddd", bLin.Parameters.Single().ToString());
+            Assert.AreEqual(2, aLin.Parameters.Count());
+            Assert.AreEqual("to top right", aLin.Parameters.ElementAt(0).ToString());
+            Assert.AreEqual("#efe", aLin.Parameters.ElementAt(1).ToString());
+            Assert.AreEqual(2, bLin.Parameters.Count());
+            Assert.AreEqual("#ddd", bLin.Parameters.ElementAt(0).ToString());
+            Assert.AreEqual("#abc", bLin.Parameters.ElementAt(1).ToString());
             Assert.AreEqual(3, cLin.Parameters.Count());
             Assert.AreEqual("30deg", cLin.Parameters.ElementAt(0).ToString());
             Assert.AreEqual("#ccc", cLin.Parameters.ElementAt(1).ToString());
             Assert.AreEqual("#fef", cLin.Parameters.ElementAt(2).ToString());
+        }
+
+        [TestMethod]
+        public void RadialGradient()
+        {
+            var a = Value.Parse("radial-gradient(circle at center, #fff)");
+            var b = Value.Parse("radial-gradient(at right, #fef)");
+            var c = Value.Parse("radial-gradient(circle, #ccc, #fef)");
+
+            Assert.AreEqual(typeof(RadialGradientValue), a.GetType());
+            Assert.AreEqual(typeof(RadialGradientValue), b.GetType());
+            Assert.AreEqual(typeof(RadialGradientValue), c.GetType());
+
+            var aRad = (RadialGradientValue)a;
+            var bRad = (RadialGradientValue)b;
+            var cRad = (RadialGradientValue)c;
+
+            Assert.AreEqual(2, aRad.Parameters.Count());
+            Assert.AreEqual("circle at center", aRad.Parameters.ElementAt(0).ToString());
+            Assert.AreEqual("#fff", aRad.Parameters.ElementAt(1).ToString());
+            Assert.AreEqual(2, bRad.Parameters.Count());
+            Assert.AreEqual("at right", bRad.Parameters.ElementAt(0).ToString());
+            Assert.AreEqual("#fef", bRad.Parameters.ElementAt(1).ToString());
+            Assert.AreEqual(3, cRad.Parameters.Count());
+            Assert.AreEqual("circle", cRad.Parameters.ElementAt(0).ToString());
+            Assert.AreEqual("#ccc", cRad.Parameters.ElementAt(1).ToString());
+            Assert.AreEqual("#fef", cRad.Parameters.ElementAt(2).ToString());
         }
     }
 }

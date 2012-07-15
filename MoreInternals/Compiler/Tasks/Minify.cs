@@ -173,6 +173,11 @@ namespace MoreInternals.Compiler.Tasks
             return new LinearGradientValue(minified);
         }
 
+        private static RadialGradientValue MinifyRadialGradient(RadialGradientValue val)
+        {
+            return new RadialGradientValue(val.Parameters.Select(v => MinifyValue(v)));
+        }
+
         private static Value MinifyValue(Value value)
         {
             var comma = value as CommaDelimittedValue;
@@ -209,6 +214,11 @@ namespace MoreInternals.Compiler.Tasks
             if (value is LinearGradientValue)
             {
                 return MinifyLinearGradient((LinearGradientValue)value);
+            }
+
+            if (value is RadialGradientValue)
+            {
+                return MinifyRadialGradient((RadialGradientValue)value);
             }
 
             return value;

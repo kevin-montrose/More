@@ -1267,7 +1267,7 @@ namespace MoreTests
             Assert.IsTrue(Current.HasErrors());
             var aErrors = Current.GetErrors(ErrorType.Parser);
             Assert.AreEqual(1, aErrors.Count);
-            Assert.AreEqual("linear-gradient expects at least one parameter", aErrors[0].Message);
+            Assert.AreEqual("linear-gradient expects at least two parameters", aErrors[0].Message);
             Assert.AreEqual("bar: linear-gradient();", aErrors[0].Snippet(new StringReader(a)).Trim());
 
             var b =

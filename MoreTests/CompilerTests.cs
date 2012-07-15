@@ -3100,5 +3100,20 @@ namespace MoreTests
             Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
             Assert.AreEqual("foo{bar:linear-gradient(315deg,#cde,#90ee90 59%)}", a);
         }
+
+        [TestMethod]
+        public void RadialGradient()
+        {
+            var a =
+                TryCompile(
+                    @"@shape = 50px circle;
+                      foo {
+                        bar: radial-gradient(@shape, #ccddee, lightgreen 59%);
+                      }",
+                    minify: true
+                );
+            Assert.IsFalse(Current.HasErrors(), string.Join("\r\n", Current.GetErrors(ErrorType.Compiler).Union(Current.GetErrors(ErrorType.Parser)).Select(s => s.Message)));
+            Assert.AreEqual("foo{bar:radial-gradient(50px circle,#cde,#90ee90 59%)}", a);
+        }
     }
 }

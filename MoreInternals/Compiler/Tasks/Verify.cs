@@ -655,6 +655,8 @@ namespace MoreInternals.Compiler.Tasks
                             VerifyColorStop(first);
                         }
                     }
+
+                    continue;
                 }
             }
         }

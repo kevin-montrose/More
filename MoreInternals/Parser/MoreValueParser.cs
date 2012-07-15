@@ -385,15 +385,27 @@ namespace MoreInternals.Parser
                         var val = ParseGroup(stream, forPosition).Value;
                         var comma = val as CommaDelimittedValue;
 
-                        if (comma != null && comma.Values.Count() == 0)
+                        if (comma == null || comma.Values.Count() < 2)
                         {
-                            Current.RecordError(ErrorType.Parser, forPosition, "linear-gradient expects at least one parameter");
+                            Current.RecordError(ErrorType.Parser, forPosition, "linear-gradient expects at least two parameters");
                             throw new StoppedParsingException();
                         }
 
-                        var parameters = comma != null ? comma.Values : new List<Value> { val };
+                        return new LinearGradientValue(comma.Values);
+                    }
 
-                        return new LinearGradientValue(parameters);
+                    if (toDate.Equals("radial-gradient", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var val = ParseGroup(stream, forPosition).Value;
+                        var comma = val as CommaDelimittedValue;
+
+                        if (comma == null || comma.Values.Count() < 2)
+                        {
+                            Current.RecordError(ErrorType.Parser, forPosition, "radial-gradient expects at least two parameters");
+                            throw new StoppedParsingException();
+                        }
+
+                        return new RadialGradientValue(comma.Values);
                     }
                 }
             }

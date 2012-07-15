@@ -2481,6 +2481,82 @@ namespace MoreInternals.Model
         }
     }
 
+    class RadialGradientValue : Value
+    {
+        public IEnumerable<Value> Parameters { get; private set; }
+
+        public override bool NeedsEvaluate
+        {
+            get
+            {
+                return Parameters.Any(a => a.NeedsEvaluate);
+            }
+        }
+
+        internal RadialGradientValue(IEnumerable<Value> param)
+        {
+            Parameters = param.ToList().AsReadOnly();
+        }
+
+        internal override List<string> ReferredToVariables()
+        {
+            return Parameters.SelectMany(m => m.ReferredToVariables()).ToList();
+        }
+
+        public override Value Bind(Scope scope)
+        {
+            return new RadialGradientValue(Parameters.Select(s => s.Bind(scope)).ToList());
+        }
+
+        internal override Value Evaluate()
+        {
+            return new RadialGradientValue(Parameters.Select(s => s.Evaluate()).ToList());
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as RadialGradientValue;
+            if (other == null) return false;
+
+            if (Parameters.Count() != other.Parameters.Count()) return false;
+
+            for (var i = 0; i < Parameters.Count(); i++)
+            {
+                if (!Parameters.ElementAt(i).Equals(other.Parameters.ElementAt(i))) return false;
+            }
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            var ret = 0;
+
+            for (var i = 0; i < Parameters.Count(); i++)
+            {
+                ret ^= (i % 2 == 0 ? 1 : -1) * Parameters.ElementAt(i).GetHashCode();
+            }
+
+            return ret;
+        }
+
+        internal override void Write(TextWriter output)
+        {
+            output.Write("radial-gradient(");
+            
+            var first = Parameters.First();
+            first.Write(output);
+
+            foreach(var p in Parameters.Skip(1))
+            {
+                output.Write(',');
+                p.Write(output);
+            }
+
+            output.Write(')');
+        }
+    }
+
     // @a?, (@a + 5)?, etc.
     class LeftExistsValue : Value
     {
